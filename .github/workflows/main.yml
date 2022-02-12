@@ -35,16 +35,20 @@ jobs:
         with:
           dotnet-version: '6.0.x'
 
-      - name: build test
-        run: |
-          dotnet build
-          dotnet test
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Build
+        run: dotnet build --no-restore
+      
+      - name: Test
+        run: dotnet test --no-build --verbosity normal
           
-      - name: publish zip
+      - name: Publish zip
         run: |
           dotnet publish Malte2.Server/Malte2.Server.csproj -c release -r win7-x64 --self-contained
           powershell -NoLogo -Sta -NoProfile -NonInteractive -ExecutionPolicy Unrestricted -Command 'Compress-Archive -Path Malte2.Server/bin/release/net6.0/win7-x64/* -DestinationPath Malte2.zip'
-    
+
       - name: Upload build
         uses: actions/upload-artifact@v2.3.1
         with:
@@ -55,3 +59,7 @@ jobs:
           # The desired behavior if no files are found using the provided path.
           if-no-files-found: error
       
+      - name: Remove old artifacts
+        uses: c-hive/gha-remove-artifacts@v1
+        with:
+          skip-recent: 3
