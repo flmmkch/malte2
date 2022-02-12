@@ -43,7 +43,7 @@ jobs:
       - name: publish zip
         run: |
           dotnet publish Malte2.Server/Malte2.Server.csproj -c release -r win7-x64 --self-contained
-          powershell -Command 'Compress-Archive -Path Malte2.Server/bin/release/net6.0/win7-x64/* -DestinationPath Malte2.zip'
+          powershell -NoLogo -Sta -NoProfile -NonInteractive -ExecutionPolicy Unrestricted -Command 'Compress-Archive -Path Malte2.Server/bin/release/net6.0/win7-x64/* -DestinationPath Malte2.zip'
     
       - name: Upload build
         uses: actions/upload-artifact@v2.3.1
@@ -53,5 +53,5 @@ jobs:
           # A file, directory or wildcard pattern that describes what to upload
           path: Malte2.zip
           # The desired behavior if no files are found using the provided path.
-          error: Failed to upload 
+          if-no-files-found: error
       
