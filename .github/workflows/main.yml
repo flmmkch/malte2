@@ -54,7 +54,7 @@ jobs:
           # Artifact name
           name: malte2
           # A file, directory or wildcard pattern that describes what to upload
-          path: Malte2.Server/bin/release/net6.0/win7-x64/*
+          path: Malte2.Server/bin/release/net6.0/win7-x64/publish/*
           # The desired behavior if no files are found using the provided path.
           if-no-files-found: error
       
