@@ -1,0 +1,47 @@
+<h1 id="tableLabel">Opérations comptables</h1>
+
+<p *ngIf="!items"><em>Chargement...</em></p>
+
+<div *ngIf="items">
+  <table class="table table-striped table-hover" aria-labelledby="tableLabel">
+    <colgroup>
+      <col span="1" style="width: 4em;">
+      <col span="1" style="width: auto;">
+      <col span="1" style="width: 4em;">
+      <col span="1" style="width: 6em;">
+      <col span="1" style="width: 6em;">
+      <col span="1" style="width: 6em;">
+      <col span="1" style="width: 6em;">
+      <col span="1" style="width: 6em;">
+      <col span="1" style="width: 6em;">
+   </colgroup>
+
+    <thead>
+      <tr>
+        <th scope="col">Montant</th>
+        <th scope="col">Libellé</th>
+        <th scope="col">Date</th>
+        <th scope="col">Opérateur</th>
+        <th scope="col" title="Moyen de paiement" data-toggle="tooltip" data-placement="bottom">Moy. Pay.</th>
+        <th scope="col">Imputation</th>
+        <th scope="col">Pensionnaire</th>
+        <th scope="col"></th>
+        <th scope="col"></th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let item of items">
+        <td>{{ item.label }}</td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td><button class="btn btn-sm btn-secondary visible-on-table-row-hover disabled" (click)="modifyItem(item)">Modifier</button></td>
+        <td><button class="btn btn-sm btn-danger visible-on-table-row-hover disabled" (click)="deleteItem(item)">Supprimer</button></td>
+      </tr>
+    </tbody>
+  </table>  
+
+</div>

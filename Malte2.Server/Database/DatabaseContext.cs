@@ -1,21 +1,40 @@
 using System.Data.SQLite;
-using System.Data;
+using Malte2.Application;
 
 namespace Malte2.Database
 {
 
     public class DatabaseContext : IDisposable
     {
+        public static readonly string CONNECTION_STRING_NAME = "Malte2";
+
+        public string ConnectionString { get; private set; }
+
+        public IConfiguration Configuration { get; private set; }
+
         public SQLiteConnection Connection { get; private set; }
 
-        public DatabaseContext(string connectionString)
-        {
-            Connection = InitializeDatabaseConnection(connectionString);
-        }
 
-        ~DatabaseContext()
+        private readonly ILogger<DatabaseContext> _logger;
+
+        public DatabaseContext(IConfiguration configuration, ILogger<DatabaseContext> logger)
         {
-            Dispose();
+            Configuration = configuration;
+            _logger = logger;
+            ConnectionString = Configuration.GetConnectionString("Malte2");
+            try
+            {
+                Connection = InitializeDatabaseConnection(ConnectionString);
+            }
+            catch
+            {
+                _logger.LogInformation(LogConstants.DATABASE_INITIALIZATION, "Failed to connect using connection string: {0}", ConnectionString);
+                throw;
+            }
+            if (HasForeignKeySupport() != true) {
+                _logger.LogError(LogConstants.DATABASE_INITIALIZATION, "Foreign keys are not supported: {0}", HasForeignKeySupport());
+            }
+            DatabaseUpdater.UpdateDatabase(this);
         }
 
         public void Dispose()

@@ -1,6 +1,7 @@
 using System.IO;
 using PdfSharpCore.Pdf;
 using PdfSharpCore.Drawing;
+using MigraDocCore.DocumentObjectModel;
 
 namespace Malte2.Model.Accounting.Edition
 {

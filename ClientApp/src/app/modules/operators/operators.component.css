@@ -1,0 +1,12 @@
+.operator-add-list {
+    font-style: italic;
+    text-align: center;
+}
+
+.table-hover .visible-on-table-row-hover {
+    visibility: hidden;
+}
+
+.table-hover tr:hover .visible-on-table-row-hover {
+    visibility: unset;
+}

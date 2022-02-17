@@ -1,0 +1,45 @@
+<header>
+  <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light border-bottom box-shadow mb-3">
+    <div class="container">
+      <a class="navbar-brand" [routerLink]="['/']">Malte2</a>
+      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target=".navbar-collapse"
+        aria-label="Toggle navigation" [attr.aria-expanded]="isExpanded" (click)="toggle()">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="navbar-collapse collapse d-sm-inline-flex justify-content-end" [ngClass]="{ show: isExpanded }">
+        <ul class="nav nav-pills flex-grow">
+          <li class="nav-item">
+            <a class="nav-link" [routerLink]="['/']" [routerLinkActive]="['active']"
+              [routerLinkActiveOptions]="{ exact: true }">Accueil</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" [routerLink]="['/operations']" [routerLinkActive]="['active']"
+              [routerLinkActiveOptions]="{ exact: true }">Opérations</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" [routerLink]="['/boarders']" [routerLinkActive]="['active']"
+              [routerLinkActiveOptions]="{ exact: true }">Pensionnaires</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" [routerLink]="['/meals']" [routerLinkActive]="['active']"
+              [routerLinkActiveOptions]="{ exact: true }">Repas</a>
+          </li>
+
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" id="navbarSettingsDropdown" role="button"
+              data-bs-toggle="dropdown" aria-expanded="false">
+              Paramètres
+            </a>
+            <ul class="dropdown-menu" aria-labelledby="navbarSettingsDropdown">
+              <li><a class="dropdown-item" [routerLinkActive]="['active']"
+                  [routerLink]="['/settings/operators']">Opérateurs</a></li>
+              <li><a class="dropdown-item" [routerLinkActive]="['active']"
+                  [routerLink]="['/settings/accounting-entries']">Imputations</a></li>
+              <!--<li><hr class="dropdown-divider"></li>-->
+            </ul>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+</header>
