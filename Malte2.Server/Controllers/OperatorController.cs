@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Malte2.Services;
 using Malte2.Model.Accounting;
-using System.Data.SQLite;
 
 namespace Malte2.Controllers
 {
@@ -21,9 +20,9 @@ namespace Malte2.Controllers
         }
 
         [HttpGet]
-        public IAsyncEnumerable<Operator> Get()
+        public IAsyncEnumerable<Operator> Get([FromQuery] bool onlyEnabled = false)
         {
-            return _operatorService.GetOperators();
+            return _operatorService.GetOperators(onlyEnabled);
         }
 
         [HttpGet]

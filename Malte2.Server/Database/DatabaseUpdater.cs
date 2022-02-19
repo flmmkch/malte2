@@ -35,7 +35,8 @@ CREATE UNIQUE INDEX idx_global_option_key ON global_option(key);
 CREATE TABLE operator(
     operator_id INTEGER PRIMARY KEY,
     enabled INTEGER NOT NULL DEFAULT 1,
-    name TEXT
+    name TEXT,
+    phone TEXT
 );
 CREATE UNIQUE INDEX idx_operator_name ON operator(name);
 CREATE TABLE accounting_entry(

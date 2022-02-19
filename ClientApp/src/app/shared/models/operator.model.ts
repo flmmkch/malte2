@@ -2,11 +2,13 @@ export class Operator {
     public constructor(
         public name: string,
         public readonly id?: number,
+        public phone: string = '',
         public enabled: boolean = true,
     ) { }
 
     public static fromJson(json: OperatorJson): Operator {
-        let operator = new Operator(json.n, json.id);
+        const operator = new Operator(json.n, json.id);
+        operator.phone = json.p || '';
         if (json.e) {
             operator.enabled = json.e;
         }
@@ -17,6 +19,7 @@ export class Operator {
         return {
             id: this.id,
             n: this.name,
+            p: this.phone,
             e: this.enabled,
         }
     }
@@ -25,5 +28,6 @@ export class Operator {
 export interface OperatorJson {
     id?: number,
     n: string,
+    p?: string,
     e?: boolean,
 }

@@ -13,6 +13,8 @@ import { AccountingEntriesComponent } from './modules/accounting-entries/account
 import { MealsComponent } from './modules/meals/meals.component';
 import { OperationsComponent } from './modules/operations/operations.component';
 import { BoardersComponent } from './modules/boarders/boarders.component';
+import { ListTable, ListTableColumn } from './shared/list-table/list-table.component';
+import { CommonModule } from '@angular/common';
 
 @NgModule({
   declarations: [
@@ -24,12 +26,15 @@ import { BoardersComponent } from './modules/boarders/boarders.component';
     BoardersComponent,
     OperatorsComponent,
     AccountingEntriesComponent,
+    ListTable,
+    ListTableColumn,
   ],
   imports: [
     BrowserModule.withServerTransition({ appId: 'ng-cli-universal' }),
     HttpClientModule,
     FormsModule,
     ReactiveFormsModule,
+    CommonModule,
     RouterModule.forRoot([
       { path: '', component: HomeComponent, pathMatch: 'full' },
       { path: 'operations', component: OperationsComponent },

@@ -1,77 +1,56 @@
-import { Component, Inject, ViewEncapsulation } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { AfterViewInit, Component, Inject, ViewChild, ViewEncapsulation } from '@angular/core';
 import { FormControl, FormGroup } from '@angular/forms';
-import { Operator, OperatorJson } from 'src/app/shared/models/operator.model';
+import { Operator } from 'src/app/shared/models/operator.model';
+import { ListTable } from 'src/app/shared/list-table/list-table.component';
+import { OperatorService } from 'src/app/shared/services/operator.service';
 
 @Component({
   selector: 'app-operators',
   templateUrl: './operators.component.html',
-  styleUrls: ['./operators.component.css'],
-  encapsulation: ViewEncapsulation.None,
+  providers: [OperatorService]
 })
-export class OperatorsComponent {
+export class OperatorsComponent implements AfterViewInit {
   public operators: Operator[] = [];
 
   readonly operatorFormGroup = new FormGroup({
     nameControl: new FormControl(),
+    phoneControl: new FormControl(),
   });
 
-  constructor(private readonly _http: HttpClient, @Inject('BASE_URL') readonly baseUrl: string) {
+  constructor(private _operatorService: OperatorService) {
     this.load();
   }
 
-  onSubmit() {
-    let newOperator = <OperatorJson>{
-      n: this.operatorFormGroup.controls.nameControl.value,
-    };
-    this._http.post(this.baseUrl + 'api/operator/createUpdate', [newOperator])
-      .subscribe(() => {
-        this.operatorFormGroup.reset();
-        this.load();
-      }, error => console.error(error));
-    this.cancelEdit();
+  @ViewChild('operatorListTable') operatorListTable!: ListTable;
+
+  onSubmitCreate() {
+    const newOperator = new Operator(this.operatorFormGroup.controls.nameControl.value);
+    newOperator.phone = this.operatorFormGroup.controls.phoneControl.value || '';
+    this._operatorService.createUpdateOperators([newOperator]).subscribe(() => {
+      this.operatorFormGroup.reset();
+      this.operatorListTable.cancelEdit();
+      this.load();
+    }, console.error);
   }
 
   load() {
-    this._http.get<OperatorJson[]>(this.baseUrl + 'api/operator/get').subscribe(result => {
-      this.operators = result.map(o => Operator.fromJson(o));
-    }, error => console.error(error));
+    this._operatorService.getOperators().subscribe(operators => {
+      this.operators = operators;
+      if (this.operators.length == 0) {
+        this.operatorListTable.addItem();
+      }
+    }, console.error);
   }
 
-  addItem() {
-    this.currentEditMode = EditMode.NewItem;
-  }
 
-  modifyItem(operator: Operator) {
-    // TODO
-  }
-
-  deleteItem(operator: Operator) {
+  deleteOperator(operator: Operator) {
     if (operator.id) {
-      const operatorJson = operator.toJson();
-      this._http.delete(this.baseUrl + 'api/operator/delete', { body: [operatorJson] })
-      .subscribe(() => {
-        this.load();
-      }, error => console.error(error));
+      this._operatorService.deleteOperators([operator]).subscribe(() => this.load(), console.error);
     }
   }
 
-  public currentEditMode: EditMode | null = null;
-
-  editingNewItem(): boolean {
-    return this.currentEditMode == EditMode.NewItem;
+  ngAfterViewInit(): void {
+    this.operatorListTable.onDelete.subscribe((operator) => this.deleteOperator(operator as Operator));
+    this.operatorListTable.confirmDeleteMessage = (operator: Operator) => `Supprimer l'opérateur·rice ${operator.name} ?`;
   }
-
-  editing(): boolean {
-    return this.currentEditMode != null;
-  }
-
-  cancelEdit() {
-    this.currentEditMode = null;
-  }
-}
-
-export enum EditMode {
-  NewItem,
-  ModifyItem,
 }

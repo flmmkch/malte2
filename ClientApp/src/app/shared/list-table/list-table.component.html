@@ -1,0 +1,66 @@
+<table class="table table-striped" [class.table-hover]="!editing()">
+    <colgroup>
+        <col *ngFor="let column of columns" [ngStyle]="{'width': column.width}" />
+        <col *ngIf="editable || enableAddRemove" style="width: 6em;" />
+        <col *ngIf="editable || enableAddRemove" style="width: 6em;" />
+    </colgroup>
+
+    <thead>
+        <tr>
+            <th *ngFor="let column of columns" scope="col">{{ column.title }}</th>
+            <th scope="col" *ngIf="editable || enableAddRemove"></th>
+            <th scope="col" *ngIf="editable || enableAddRemove"><button *ngIf="enableAddRemove && !editing()"
+                    class="btn btn-sm btn-primary" (click)="addItem()">Ajouter</button>
+            </th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr *ngIf="editingNewItem()">
+            <td [attr.colspan]="totalColumnCount()">
+                <ng-content [select]="editor"></ng-content>
+            </td>
+        </tr>
+        <tr *ngFor="let item of items">
+            <ng-container *ngFor="let column of columns">
+                <td *ngIf="!column.rowheader">{{ column.displayItemProperty(item) }}</td>
+                <th *ngIf="column.rowheader">{{ column.displayItemProperty(item) }}</th>
+            </ng-container>
+            <td *ngIf="editable || enableAddRemove"><button *ngIf="editable"
+                    class="btn btn-sm btn-secondary visible-on-table-row-hover disabled"
+                    [ngStyle]="{'visibility': editing() ? 'hidden': ''}" (click)="modifyItem(item)">Modifier</button>
+            </td>
+            <td *ngIf="editable || enableAddRemove"><button *ngIf="enableAddRemove"
+                    class="btn btn-sm btn-danger visible-on-table-row-hover"
+                    [ngStyle]="{'visibility': editing() ? 'hidden': ''}"
+                    [attr.data-bs-toggle]="confirmDelete ? 'modal' : ''"
+                    [attr.data-bs-target]="confirmDelete ? '#confirmDeleteModal' : ''"
+                    (click)="confirmDelete ? currentWorkingItem = item : deleteItem(item)">Supprimer</button></td>
+        </tr>
+    </tbody>
+</table>
+
+<!-- Delete confirmation modal -->
+<div *ngIf="confirmDelete" class="modal fade" id="confirmDeleteModal" tabindex="-1" role="dialog"
+    aria-labelledby="confirmDeleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="confirmDeleteModalLabel">Suppression</h5>
+                <!--
+                    <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                -->
+            </div>
+            <div class="modal-body">{{ currentWorkingItem ? confirmDeleteMessageDisplay() : '' }}</div>
+            <div class="modal-footer">
+                <button *ngIf="enableAddRemove" class="btn btn-danger visible-on-table-row-hover"
+                    data-bs-dismiss="modal" [ngStyle]="{'visibility': editing() ? 'hidden': ''}"
+                    [attr.data-toggle]="confirmDelete ? 'modal' : ''"
+                    (click)="deleteItem(currentWorkingItem)">Supprimer</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"
+                    aria-label="Close">Annuler</button>
+            </div>
+        </div>
+    </div>
+</div>
