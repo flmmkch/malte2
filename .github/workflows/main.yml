@@ -41,8 +41,12 @@ jobs:
       - name: Build
         run: dotnet build --no-restore
       
-      - name: Test
+      - name: Server test
         run: dotnet test --no-build --verbosity normal
+
+      - name: Client test
+        run: npm test -- --no-watch --no-progress
+        working-directory: ./ClientApp
           
       - name: Publish zip
         run: |
