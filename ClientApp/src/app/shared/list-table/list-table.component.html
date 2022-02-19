@@ -10,7 +10,7 @@
             <th *ngFor="let column of columns" scope="col">{{ column.title }}</th>
             <th scope="col" *ngIf="editable || enableAddRemove"></th>
             <th scope="col" *ngIf="editable || enableAddRemove"><button *ngIf="enableAddRemove && !editing()"
-                    class="btn btn-sm btn-primary" (click)="addItem()">Ajouter</button>
+                    class="btn btn-primary" (click)="addItem()">Ajouter</button>
             </th>
         </tr>
     </thead>
