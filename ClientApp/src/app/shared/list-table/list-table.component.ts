@@ -1,4 +1,4 @@
-import { Component, ContentChild, ContentChildren, ElementRef, EventEmitter, Input, Output, QueryList, ViewEncapsulation } from '@angular/core';
+import { AfterViewChecked, Component, ContentChild, ContentChildren, ElementRef, EventEmitter, Input, Output, QueryList, ViewEncapsulation } from '@angular/core';
 import { Observable } from 'rxjs';
 
 export enum EditMode {
@@ -39,9 +39,19 @@ export class ListTableColumn {
   encapsulation: ViewEncapsulation.None,
   styleUrls: ['./list-table.component.css']
 })
-export class ListTable {
+export class ListTable implements AfterViewChecked {
 
   constructor() { }
+
+  private readonly _viewCheckedEvent = new EventEmitter();
+
+  get viewChecked(): Observable<Object> {
+    return this._viewCheckedEvent;
+  }
+
+  ngAfterViewChecked(): void {
+    this._viewCheckedEvent.emit();
+  }
 
   @Input() editable: boolean = true;
 
@@ -67,6 +77,15 @@ export class ListTable {
   @ContentChildren(ListTableColumn) columns!: QueryList<ListTableColumn>;
 
   @ContentChild('editor') editor: ElementRef<HTMLElement> | undefined;
+
+  getEditorForm(): HTMLFormElement | null {
+    if (this.editor?.nativeElement instanceof HTMLFormElement) {
+      return this.editor.nativeElement;
+    }
+    else {
+      return this.editor?.nativeElement.querySelector('form') || null;
+    }
+  }
 
   @Output() onSubmitNew: EventEmitter<any> = new EventEmitter();
 
@@ -96,10 +115,16 @@ export class ListTable {
 
   currentWorkingItem: any = null;
 
+  private focusFormOnNextUpdate() {
+    const subscription = this.viewChecked.subscribe(() => {
+      this.getEditorForm()?.querySelector<HTMLInputElement>('input[autofocus]')?.focus();
+      subscription.unsubscribe();
+    });
+  }
+
   addItem() {
-    // TODO
     this.currentEditMode = EditMode.NewItem;
-    this.editor?.nativeElement.focus();
+    this.focusFormOnNextUpdate();
   }
 
   modifyItem(item: any) {
