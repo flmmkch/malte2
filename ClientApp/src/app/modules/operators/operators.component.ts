@@ -1,7 +1,7 @@
 import { AfterViewInit, Component, Inject, ViewChild, ViewEncapsulation } from '@angular/core';
 import { FormControl, FormGroup } from '@angular/forms';
 import { Operator } from 'src/app/shared/models/operator.model';
-import { ListTable } from 'src/app/shared/list-table/list-table.component';
+import { ListTable, SetCurrentWorkingItemEventArgs } from 'src/app/shared/list-table/list-table.component';
 import { OperatorService } from 'src/app/shared/services/operator.service';
 
 @Component({
@@ -54,9 +54,9 @@ export class OperatorsComponent implements AfterViewInit {
 
   ngAfterViewInit(): void {
     this.operatorListTable.onCreate.subscribe(() => this.operatorListTable.currentWorkingItem = new Operator(''));
-    this.operatorListTable.onDelete.subscribe((operator) => this.deleteOperator(operator as Operator));
-    this.operatorListTable.onSetWorkingItem.subscribe(e => {
-      const operator = e.value as Operator | null;
+    this.operatorListTable.onDelete.subscribe((operator: Operator) => this.deleteOperator(operator));
+    this.operatorListTable.onSetWorkingItem.subscribe((e: SetCurrentWorkingItemEventArgs<Operator>) => {
+      const operator = e.value;
       if (operator) {
         this.operatorFormGroup.controls.nameControl.setValue(operator.name);
         this.operatorFormGroup.controls.phoneControl.setValue(operator.phone);

@@ -1,5 +1,6 @@
 import { AfterViewChecked, Component, ContentChild, ContentChildren, ElementRef, EventEmitter, Input, Output, QueryList, ViewEncapsulation } from '@angular/core';
 import { Observable } from 'rxjs';
+import { Modal } from 'bootstrap';
 
 export enum EditMode {
   NewItem,
@@ -100,7 +101,7 @@ export class ListTable implements AfterViewChecked {
 
   @Output() onDelete: EventEmitter<Object> = new EventEmitter();
 
-  @Output() onSetWorkingItem: EventEmitter<SetCurrentWorkingItemEventArgs> = new EventEmitter();
+  @Output() onSetWorkingItem: EventEmitter<SetCurrentWorkingItemEventArgs<Object>> = new EventEmitter();
 
   @Input() confirmDelete: boolean = true;
 
@@ -121,12 +122,14 @@ export class ListTable implements AfterViewChecked {
 
   private _currentWorkingItem: Object | null = null;
 
+  /** Objet en cours d'édition */
   public get currentWorkingItem(): Object | null {
     return this._currentWorkingItem;
   }
 
+  /** Objet en cours d'édition */
   public set currentWorkingItem(value: Object | null) {
-    const eventArgs: SetCurrentWorkingItemEventArgs = { value: value, oldValue: this._currentWorkingItem, preventDefault: false };
+    const eventArgs: SetCurrentWorkingItemEventArgs<Object> = { value: value, oldValue: this._currentWorkingItem, preventDefault: false };
     this.onSetWorkingItem.emit(eventArgs);
     if (!eventArgs.preventDefault) {
       this._currentWorkingItem = value;
@@ -140,22 +143,42 @@ export class ListTable implements AfterViewChecked {
     });
   }
 
+  /** Entrer dans le mode d'ajout d'un nouvel élément */
   addItem() {
     this.onCreate.emit();
     this.currentEditMode = EditMode.NewItem;
     this.focusFormOnNextUpdate();
   }
 
+  /** Entrer dans le mode de modification d'un élément de la liste */
   modifyItem(item: Object) {
     this.currentWorkingItem = item;
     this.currentEditMode = EditMode.ModifyItem;
   }
 
+  /** Supprimer un élément de la liste avec demande de confirmation si nécessaire */
+  askDeleteItem(item: Object) {
+    this.currentWorkingItem = item;
+    if (this.confirmDelete) {
+      const subscription = this.viewChecked.subscribe(() => {
+        const modalElement = document.querySelector('#confirmDeleteModal')!;
+        const modal = new Modal(modalElement, { });
+        modal.show();
+        subscription.unsubscribe();
+      });
+    }
+    else {
+      this.deleteItem(item);
+    }
+  }
+
+  /** Supprimer un élément de la liste */
   deleteItem(item: Object) {
     this.onDelete?.emit(item);
     this.currentWorkingItem = null;
   }
 
+  /** Nombre total de colonnes dans le tableau */
   totalColumnCount(): number {
     return this.columns.length + (this.editable || this.enableAddRemove ? 2 : 0);
   }
@@ -175,8 +198,8 @@ export class ListTable implements AfterViewChecked {
   }
 }
 
-export interface SetCurrentWorkingItemEventArgs {
-  value: Object | null;
-  oldValue: Object | null;
+export interface SetCurrentWorkingItemEventArgs<T extends Object> {
+  value: T | null;
+  oldValue: T | null;
   preventDefault: boolean;
 }

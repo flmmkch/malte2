@@ -24,7 +24,7 @@
             <ng-container [ngTemplateOutlet]="editorRowContent"></ng-container>
         </tr>
         <tr *ngFor="let item of items">
-            <ng-container *ngIf="currentWorkingItem === item; else columnDisplay">
+            <ng-container *ngIf="editing() && currentWorkingItem === item; else columnDisplay">
                 <ng-container [ngTemplateOutlet]="editorRowContent"></ng-container>
             </ng-container>
             <ng-template #columnDisplay>
@@ -46,9 +46,7 @@
                 <td *ngIf="editable || enableAddRemove"><button *ngIf="enableAddRemove"
                         class="btn btn-sm btn-danger visible-on-table-row-hover"
                         [ngStyle]="{'visibility': editing() ? 'hidden': ''}"
-                        [attr.data-bs-toggle]="confirmDelete ? 'modal' : ''"
-                        [attr.data-bs-target]="confirmDelete ? '#confirmDeleteModal' : ''"
-                        (click)="confirmDelete ? currentWorkingItem = item : deleteItem(item)">Supprimer</button></td>
+                        (click)="askDeleteItem(item)">Supprimer</button></td>
 
             </ng-template>
         </tr>
