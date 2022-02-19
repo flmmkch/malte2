@@ -132,6 +132,7 @@ export class ListTable implements AfterViewChecked {
   }
 
   addItem() {
+    this.onCreate.emit();
     this.currentEditMode = EditMode.NewItem;
     this.focusFormOnNextUpdate();
   }
