@@ -23,10 +23,11 @@ export class OperatorsComponent implements AfterViewInit {
 
   @ViewChild('operatorListTable') operatorListTable!: ListTable;
 
-  onSubmitCreate() {
-    const newOperator = new Operator(this.operatorFormGroup.controls.nameControl.value);
-    newOperator.phone = this.operatorFormGroup.controls.phoneControl.value || '';
-    this._operatorService.createUpdateOperators([newOperator]).subscribe(() => {
+  onSubmit() {
+    const operator = this.operatorListTable.currentWorkingItem as Operator;
+    operator.name = this.operatorFormGroup.controls.nameControl.value;
+    operator.phone = this.operatorFormGroup.controls.phoneControl.value || '';
+    this._operatorService.createUpdateOperators([operator]).subscribe(() => {
       this.operatorFormGroup.reset();
       this.operatorListTable.cancelEdit();
       this.load();
@@ -50,7 +51,15 @@ export class OperatorsComponent implements AfterViewInit {
   }
 
   ngAfterViewInit(): void {
+    this.operatorListTable.onCreate.subscribe(() => this.operatorListTable.currentWorkingItem = new Operator(''));
     this.operatorListTable.onDelete.subscribe((operator) => this.deleteOperator(operator as Operator));
+    this.operatorListTable.onSetWorkingItem.subscribe(e => {
+      const operator = e.value as Operator | null;
+      if (operator) {
+        this.operatorFormGroup.controls.nameControl.setValue(operator.name);
+        this.operatorFormGroup.controls.phoneControl.setValue(operator.phone);
+      }
+    });
     this.operatorListTable.confirmDeleteMessage = (operator: Operator) => `Supprimer l'opérateur·rice ${operator.name} ?`;
   }
 }

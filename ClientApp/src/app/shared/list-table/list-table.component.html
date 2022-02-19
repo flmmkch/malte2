@@ -15,32 +15,40 @@
         </tr>
     </thead>
     <tbody>
-        <tr *ngIf="editingNewItem()">
+        <ng-template #editorRowContent>
             <td [attr.colspan]="totalColumnCount()">
                 <ng-content [select]="editor"></ng-content>
             </td>
+        </ng-template>
+        <tr *ngIf="editingNewItem()">
+            <ng-container [ngTemplateOutlet]="editorRowContent"></ng-container>
         </tr>
         <tr *ngFor="let item of items">
-            <ng-container *ngFor="let column of columns">
-                <td *ngIf="!column.rowheader">{{ column.displayItemProperty(item) }}</td>
-                <th *ngIf="column.rowheader">{{ column.displayItemProperty(item) }}</th>
+            <ng-container *ngIf="currentWorkingItem === item; else columnDisplay">
+                <ng-container [ngTemplateOutlet]="editorRowContent"></ng-container>
             </ng-container>
-            <td *ngIf="editable || enableAddRemove"><button *ngIf="editable"
-                    class="btn btn-sm btn-secondary visible-on-table-row-hover disabled"
-                    [ngStyle]="{'visibility': editing() ? 'hidden': ''}" (click)="modifyItem(item)">Modifier</button>
-            </td>
-            <td *ngIf="editable || enableAddRemove"><button *ngIf="enableAddRemove"
-                    class="btn btn-sm btn-danger visible-on-table-row-hover"
-                    [ngStyle]="{'visibility': editing() ? 'hidden': ''}"
-                    [attr.data-bs-toggle]="confirmDelete ? 'modal' : ''"
-                    [attr.data-bs-target]="confirmDelete ? '#confirmDeleteModal' : ''"
-                    (click)="confirmDelete ? currentWorkingItem = item : deleteItem(item)">Supprimer</button></td>
+            <ng-template #columnDisplay>
+                <ng-container *ngFor="let column of columns">
+                    <td *ngIf="!column.rowheader">{{ column.displayItemProperty(item) }}</td>
+                    <th *ngIf="column.rowheader">{{ column.displayItemProperty(item) }}</th>
+                </ng-container>
+                <td *ngIf="editable || enableAddRemove"><button *ngIf="editable"
+                        class="btn btn-sm btn-secondary visible-on-table-row-hover"
+                        [ngStyle]="{'visibility': editing() ? 'hidden': ''}" (click)="modifyItem(item)">Modifier</button>
+                </td>
+                <td *ngIf="editable || enableAddRemove"><button *ngIf="enableAddRemove"
+                        class="btn btn-sm btn-danger visible-on-table-row-hover"
+                        [ngStyle]="{'visibility': editing() ? 'hidden': ''}"
+                        [attr.data-bs-toggle]="confirmDelete ? 'modal' : ''"
+                        [attr.data-bs-target]="confirmDelete ? '#confirmDeleteModal' : ''"
+                        (click)="confirmDelete ? currentWorkingItem = item : deleteItem(item)">Supprimer</button></td>
+            </ng-template>
         </tr>
     </tbody>
 </table>
 
 <!-- Delete confirmation modal -->
-<div *ngIf="confirmDelete" class="modal fade" id="confirmDeleteModal" tabindex="-1" role="dialog"
+<div *ngIf="confirmDelete && currentWorkingItem" class="modal fade" id="confirmDeleteModal" tabindex="-1" role="dialog"
     aria-labelledby="confirmDeleteModalLabel" aria-hidden="true">
     <div class="modal-dialog" role="document">
         <div class="modal-content">

@@ -25,9 +25,9 @@ export class ListTableColumn {
 
   @Input() property: string | undefined;
 
-  displayItemProperty(item: any) {
+  displayItemProperty(item: Object) {
     if (this.property && this.property in item) {
-      return item[this.property];
+      return item[this.property as keyof typeof item];
     }
     return '';
   }
@@ -72,7 +72,7 @@ export class ListTable implements AfterViewChecked {
     }
   }
 
-  @Input() items: any[] = [];
+  @Input() items: Object[] = [];
 
   @ContentChildren(ListTableColumn) columns!: QueryList<ListTableColumn>;
 
@@ -86,12 +86,12 @@ export class ListTable implements AfterViewChecked {
       return this.editor?.nativeElement.querySelector('form') || null;
     }
   }
+  
+  @Output() onCreate: EventEmitter<any> = new EventEmitter();
 
-  @Output() onSubmitNew: EventEmitter<any> = new EventEmitter();
+  @Output() onDelete: EventEmitter<Object> = new EventEmitter();
 
-  @Output() onSubmitEdit: EventEmitter<any> = new EventEmitter();
-
-  @Output() onDelete: EventEmitter<any> = new EventEmitter();
+  @Output() onSetWorkingItem: EventEmitter<SetCurrentWorkingItemEventArgs> = new EventEmitter();
 
   @Input() confirmDelete: boolean = true;
 
@@ -107,13 +107,22 @@ export class ListTable implements AfterViewChecked {
 
   cancelEdit() {
     this.currentEditMode = null;
+    this.currentWorkingItem = null;
   }
 
-  submitNewItem() {
-    this.onSubmitNew?.emit();
+  private _currentWorkingItem: Object | null = null;
+
+  public get currentWorkingItem(): Object | null {
+    return this._currentWorkingItem;
   }
 
-  currentWorkingItem: any = null;
+  public set currentWorkingItem(value: Object | null) {
+    const eventArgs: SetCurrentWorkingItemEventArgs = { value: value, oldValue: this._currentWorkingItem, preventDefault: false };
+    this.onSetWorkingItem.emit(eventArgs);
+    if (!eventArgs.preventDefault) {
+      this._currentWorkingItem = value;
+    }
+  }
 
   private focusFormOnNextUpdate() {
     const subscription = this.viewChecked.subscribe(() => {
@@ -127,11 +136,12 @@ export class ListTable implements AfterViewChecked {
     this.focusFormOnNextUpdate();
   }
 
-  modifyItem(item: any) {
-    // TODO
+  modifyItem(item: Object) {
+    this.currentWorkingItem = item;
+    this.currentEditMode = EditMode.ModifyItem;
   }
 
-  deleteItem(item: any) {
+  deleteItem(item: Object) {
     this.onDelete?.emit(item);
     this.currentWorkingItem = null;
   }
@@ -146,4 +156,17 @@ export class ListTable implements AfterViewChecked {
     }
     return this.confirmDeleteMessage(this.currentWorkingItem);
   }
+
+  get validateButtonLabel(): string {
+    if (this.editingNewItem()) {
+      return 'Ajouter';
+    }
+    return 'Valider';
+  }
+}
+
+export interface SetCurrentWorkingItemEventArgs {
+  value: Object | null;
+  oldValue: Object | null;
+  preventDefault: boolean;
 }

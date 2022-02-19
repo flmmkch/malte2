@@ -21,14 +21,14 @@
       </div>
       <div class="row">
         <div class="col-1">
-          <input form="operatorForm" type="submit" class="btn btn-primary" value="{{ operatorListTable.editingNewItem() ? 'Ajouter' : 'Modifier' }}" />
+          <input form="operatorForm" type="submit" class="btn btn-primary" value="{{ operatorListTable.validateButtonLabel }}" />
         </div>
         <div class="col-1">
           <input form="operatorForm" type="reset" class="btn btn-secondary" (click)="operatorListTable.cancelEdit()"
             value="Annuler" />
         </div>
       </div>
-      <form id="operatorForm" (ngSubmit)="onSubmitCreate()"></form>
+      <form id="operatorForm" (ngSubmit)="onSubmit()"></form>
     </form>
   </list-table>
 

@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Mvc;
 using Malte2.Database;
 using Malte2.Model.Accounting;
 using System.Data.SQLite;
@@ -54,13 +53,11 @@ namespace Malte2.Services
                         using (var command = new SQLiteCommand(@"UPDATE operator
                         SET name = :name,
                         enabled = :enabled,
-                        phone = :phone,
+                        phone = :phone
                         WHERE operator_id = :operator_id", _databaseContext.Connection, transaction))
                         {
-                            command.Parameters.AddWithValue("operator_id", oper.Id.Value);
-                            command.Parameters.AddWithValue("name", oper.Name);
-                            command.Parameters.AddWithValue("enabled", oper.Enabled);
-                            command.Parameters.AddWithValue("phone", oper.PhoneNumber);
+                            command.Parameters.AddWithValue("operator_id", oper.Id!);
+                            MapOperatorParameters(oper, command.Parameters);
                             await command.ExecuteNonQueryAsync();
                         }
                     }
@@ -68,15 +65,20 @@ namespace Malte2.Services
                     {
                         using (var command = new SQLiteCommand("INSERT INTO operator(name, enabled, phone) VALUES (:name, :enabled, :phone)", _databaseContext.Connection, transaction))
                         {
-                            command.Parameters.AddWithValue("name", oper.Name);
-                            command.Parameters.AddWithValue("enabled", oper.Enabled);
-                            command.Parameters.AddWithValue("phone", oper.PhoneNumber);
+                            MapOperatorParameters(oper, command.Parameters);
                             await command.ExecuteNonQueryAsync();
                         }
                     }
                 }
                 await transaction.CommitAsync();
             }
+        }
+
+        private void MapOperatorParameters(Operator oper, SQLiteParameterCollection parameters)
+        {
+            parameters.AddWithValue("name", oper.Name);
+            parameters.AddWithValue("enabled", oper.Enabled);
+            parameters.AddWithValue("phone", oper.PhoneNumber);
         }
 
         public async Task DeleteOperators(IEnumerable<Operator> operators)
