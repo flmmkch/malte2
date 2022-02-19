@@ -29,8 +29,15 @@
             </ng-container>
             <ng-template #columnDisplay>
                 <ng-container *ngFor="let column of columns">
-                    <td *ngIf="!column.rowheader">{{ column.displayItemProperty(item) }}</td>
-                    <th *ngIf="column.rowheader">{{ column.displayItemProperty(item) }}</th>
+                    <td *ngIf="!column.rowheader"><ng-container [ngTemplateOutlet]="itemValue"></ng-container></td>
+                    <th *ngIf="column.rowheader"><ng-container [ngTemplateOutlet]="itemValue"></ng-container></th>
+
+                    <ng-template #itemValue>
+                        <ng-container *ngIf="column.type == 'text'">{{ column.getItemProperty(item) }}</ng-container>
+                        <ng-container *ngIf="column.type == 'checkbox'">
+                            <input type="checkbox" class="form-check-input" disabled [checked]="column.getItemProperty(item) === 'true'"/>
+                        </ng-container>
+                    </ng-template>
                 </ng-container>
                 <td *ngIf="editable || enableAddRemove"><button *ngIf="editable"
                         class="btn btn-sm btn-secondary visible-on-table-row-hover"
@@ -42,6 +49,7 @@
                         [attr.data-bs-toggle]="confirmDelete ? 'modal' : ''"
                         [attr.data-bs-target]="confirmDelete ? '#confirmDeleteModal' : ''"
                         (click)="confirmDelete ? currentWorkingItem = item : deleteItem(item)">Supprimer</button></td>
+
             </ng-template>
         </tr>
     </tbody>

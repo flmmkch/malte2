@@ -23,19 +23,18 @@ namespace Malte2.Services
             if (onlyEnabled) {
                 whereFilter = "WHERE enabled = 1";
             }
-            string commandText = $"SELECT operator_id, name, phone FROM operator {whereFilter} ORDER BY operator_id ASC;";
+            string commandText = $"SELECT operator_id, name, phone, enabled FROM operator {whereFilter} ORDER BY operator_id ASC;";
             using (var command = new SQLiteCommand(commandText, _databaseContext.Connection))
             {
                 using (var reader = await command.ExecuteReaderAsync())
                 {
                     while (await reader.ReadAsync())
                     {
-                        string? operatorName = reader["name"]! as string;
+                        string operatorName = reader.GetString(reader.GetOrdinal("name"));
                         Operator oper = new Operator(operatorName!);
-                        if (reader["phone"] != null) {
-                            oper.PhoneNumber = (reader["phone"] as string)!;
-                        }
-                        oper.Id = reader["operator_id"]! as long?;
+                        oper.PhoneNumber = reader.GetString(reader.GetOrdinal("phone"));
+                        oper.Id = reader.GetInt64(reader.GetOrdinal("operator_id"));
+                        oper.Enabled = reader.GetBoolean(reader.GetOrdinal("enabled"));
                         yield return oper;
                     }
                 }

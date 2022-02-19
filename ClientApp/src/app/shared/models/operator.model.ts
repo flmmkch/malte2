@@ -9,7 +9,7 @@ export class Operator {
     public static fromJson(json: OperatorJson): Operator {
         const operator = new Operator(json.n, json.id);
         operator.phone = json.p || '';
-        if (json.e) {
+        if (json.e !== undefined) {
             operator.enabled = json.e;
         }
         return operator;

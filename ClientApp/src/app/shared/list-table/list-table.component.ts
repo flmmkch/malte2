@@ -25,9 +25,18 @@ export class ListTableColumn {
 
   @Input() property: string | undefined;
 
-  displayItemProperty(item: Object) {
+  @Input() type: string = 'text';
+
+  getItemProperty<T>(item: T): string {
     if (this.property && this.property in item) {
-      return item[this.property as keyof typeof item];
+      const prop = this.property as keyof (typeof item);
+      const value = item[prop];
+      if (typeof value === 'string') {
+        return value;
+      }
+      if (typeof value === 'boolean' || typeof value === 'number' || typeof value === 'bigint') {
+        return value.toString();
+      }
     }
     return '';
   }

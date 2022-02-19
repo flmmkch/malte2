@@ -15,6 +15,7 @@ export class OperatorsComponent implements AfterViewInit {
   readonly operatorFormGroup = new FormGroup({
     nameControl: new FormControl(),
     phoneControl: new FormControl(),
+    enabledControl: new FormControl(),
   });
 
   constructor(private _operatorService: OperatorService) {
@@ -27,6 +28,7 @@ export class OperatorsComponent implements AfterViewInit {
     const operator = this.operatorListTable.currentWorkingItem as Operator;
     operator.name = this.operatorFormGroup.controls.nameControl.value;
     operator.phone = this.operatorFormGroup.controls.phoneControl.value || '';
+    operator.enabled = this.operatorFormGroup.controls.enabledControl.value || false;
     this._operatorService.createUpdateOperators([operator]).subscribe(() => {
       this.operatorFormGroup.reset();
       this.operatorListTable.cancelEdit();
@@ -58,8 +60,19 @@ export class OperatorsComponent implements AfterViewInit {
       if (operator) {
         this.operatorFormGroup.controls.nameControl.setValue(operator.name);
         this.operatorFormGroup.controls.phoneControl.setValue(operator.phone);
+        this.operatorFormGroup.controls.enabledControl.setValue(operator.enabled);
       }
     });
     this.operatorListTable.confirmDeleteMessage = (operator: Operator) => `Supprimer l'opérateur·rice ${operator.name} ?`;
+  }
+
+  displayInactiveOperators: boolean = false;
+
+  get filteredOperators(): Operator[] {
+    let list = this.operators;
+    if (!this.displayInactiveOperators) {
+      list = list.filter(o => o.enabled);
+    }
+    return list;
   }
 }
