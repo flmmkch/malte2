@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, Inject, ViewChild, ViewEncapsulation } from '@angular/core';
+import { AfterViewInit, Component, ViewChild } from '@angular/core';
 import { FormControl, FormGroup } from '@angular/forms';
 import { Operator } from 'src/app/shared/models/operator.model';
 import { ListTable, SetCurrentWorkingItemEventArgs } from 'src/app/shared/list-table/list-table.component';

@@ -15,6 +15,7 @@ import { OperationsComponent } from './modules/operations/operations.component';
 import { BoardersComponent } from './modules/boarders/boarders.component';
 import { ListTable, ListTableColumn } from './shared/list-table/list-table.component';
 import { CommonModule } from '@angular/common';
+import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
 
 @NgModule({
   declarations: [
@@ -42,7 +43,8 @@ import { CommonModule } from '@angular/common';
       { path: 'meals', component: MealsComponent },
       { path: 'settings/operators', component: OperatorsComponent },
       { path: 'settings/accounting-entries', component: AccountingEntriesComponent },
-    ])
+    ]),
+    NgbModule
   ],
   providers: [],
   bootstrap: [AppComponent]
