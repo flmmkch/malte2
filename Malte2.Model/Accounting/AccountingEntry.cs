@@ -12,15 +12,13 @@ namespace Malte2.Model.Accounting
         public long? Id { get; set; } = null;
 
         [JsonPropertyName("l")]
-        public string Label { get; set; }
+        public string Label { get; set; } = "";
 
-        [JsonPropertyName("nb")]
-        public bool NeedsBoarder { get; set; } = false;
+        [JsonPropertyName("b")]
+        public bool HasBoarder { get; set; } = false;
 
-        public AccountingEntry(string label)
-        {
-            Label = label;
-        }
+        [JsonPropertyName("t")]
+        public AccountingEntryType EntryType { get; set; } = AccountingEntryType.Expense;
     }
 
 }

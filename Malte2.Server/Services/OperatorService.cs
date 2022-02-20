@@ -17,13 +17,13 @@ namespace Malte2.Services
             _logger = logger;
         }
 
-        public async IAsyncEnumerable<Operator> GetOperators(bool onlyEnabled = false)
+        public async IAsyncEnumerable<Operator> GetItems(bool onlyEnabled = false)
         {
             string whereFilter = "";
             if (onlyEnabled) {
                 whereFilter = "WHERE enabled = 1";
             }
-            string commandText = $"SELECT operator_id, name, phone, enabled FROM operator {whereFilter} ORDER BY operator_id ASC;";
+            string commandText = $"SELECT operator_id, name, phone_number, enabled FROM operator {whereFilter} ORDER BY operator_id ASC;";
             using (var command = new SQLiteCommand(commandText, _databaseContext.Connection))
             {
                 using (var reader = await command.ExecuteReaderAsync())
@@ -32,7 +32,7 @@ namespace Malte2.Services
                     {
                         string operatorName = reader.GetString(reader.GetOrdinal("name"));
                         Operator oper = new Operator(operatorName!);
-                        oper.PhoneNumber = reader.GetString(reader.GetOrdinal("phone"));
+                        oper.PhoneNumber = reader.GetString(reader.GetOrdinal("phone_number"));
                         oper.Id = reader.GetInt64(reader.GetOrdinal("operator_id"));
                         oper.Enabled = reader.GetBoolean(reader.GetOrdinal("enabled"));
                         yield return oper;
@@ -41,32 +41,29 @@ namespace Malte2.Services
             }
         }
 
-        public async Task CreateUpdateOperators(IEnumerable<Operator> operators)
+        public async Task CreateUpdate(IEnumerable<Operator> operators)
         {
             using (var transaction = _databaseContext.Connection.BeginTransaction())
             {
                 foreach (Operator oper in operators)
                 {
+                    string commandSql;
                     if (oper.Id.HasValue)
                     {
-                        using (var command = new SQLiteCommand(@"UPDATE operator
+                        commandSql = @"UPDATE operator
                         SET name = :name,
                         enabled = :enabled,
-                        phone = :phone
-                        WHERE operator_id = :operator_id", _databaseContext.Connection, transaction))
-                        {
-                            command.Parameters.AddWithValue("operator_id", oper.Id!);
-                            MapOperatorParameters(oper, command.Parameters);
-                            await command.ExecuteNonQueryAsync();
-                        }
+                        phone_number = :phone_number
+                        WHERE operator_id = :operator_id";
                     }
                     else
                     {
-                        using (var command = new SQLiteCommand("INSERT INTO operator(name, enabled, phone) VALUES (:name, :enabled, :phone)", _databaseContext.Connection, transaction))
-                        {
-                            MapOperatorParameters(oper, command.Parameters);
-                            await command.ExecuteNonQueryAsync();
-                        }
+                        commandSql = "INSERT INTO operator(name, enabled, phone_number) VALUES (:name, :enabled, :phone_number)";
+                    }
+                    using (var command = new SQLiteCommand(commandSql, _databaseContext.Connection, transaction))
+                    {
+                        MapOperatorParameters(oper, command.Parameters);
+                        await command.ExecuteNonQueryAsync();
                     }
                 }
                 await transaction.CommitAsync();
@@ -75,12 +72,16 @@ namespace Malte2.Services
 
         private void MapOperatorParameters(Operator oper, SQLiteParameterCollection parameters)
         {
+            if (oper.Id.HasValue)
+            {
+                parameters.AddWithValue("operator_id", oper.Id!);
+            }
             parameters.AddWithValue("name", oper.Name);
             parameters.AddWithValue("enabled", oper.Enabled);
-            parameters.AddWithValue("phone", oper.PhoneNumber);
+            parameters.AddWithValue("phone_number", oper.PhoneNumber);
         }
 
-        public async Task DeleteOperators(IEnumerable<Operator> operators)
+        public async Task Delete(IEnumerable<Operator> operators)
         {
             using (var transaction = _databaseContext.Connection.BeginTransaction())
             {

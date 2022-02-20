@@ -22,7 +22,7 @@ namespace Malte2.Controllers
         [HttpGet]
         public IAsyncEnumerable<Operator> Get([FromQuery] bool onlyEnabled = false)
         {
-            return _operatorService.GetOperators(onlyEnabled);
+            return _operatorService.GetItems(onlyEnabled);
         }
 
         [HttpGet]
@@ -37,13 +37,13 @@ namespace Malte2.Controllers
         [HttpPost]
         public async Task CreateUpdate([FromBody] Operator[] operators)
         {
-            await _operatorService.CreateUpdateOperators(operators);
+            await _operatorService.CreateUpdate(operators);
         }
 
         [HttpDelete]
         public async Task Delete([FromBody] Operator[] operators)
         {
-            await _operatorService.DeleteOperators(operators);
+            await _operatorService.Delete(operators);
         }
     }
 

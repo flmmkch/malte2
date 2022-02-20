@@ -12,18 +12,22 @@ export class OperatorService {
   constructor(private readonly _http: HttpClient, @Inject('BASE_URL') readonly baseUrl: string) {
   }
 
-  getOperators(onlyEnabled: boolean = false): Observable<Operator[]> {
+  get(onlyEnabled: boolean = false): Observable<Operator[]> {
+    let args: string = '?';
+    if (onlyEnabled) {
+      args = args + `onlyEnabled=${onlyEnabled}`;
+    }
     return this._http
-      .get<OperatorJson[]>(this.baseUrl + 'api/operator/get')
+      .get<OperatorJson[]>(this.baseUrl + `api/operator/get${args}`)
       .pipe(map(operatorsJson => operatorsJson.map(operatorFromJson)));
   }
 
-  createUpdateOperators(operators: [Operator]): Observable<Object> {
+  createUpdate(operators: [Operator]): Observable<Object> {
     let operatorsJson = operators.map(operatorToJson);
     return this._http.post(this.baseUrl + 'api/operator/createUpdate', operatorsJson);
   }
 
-  deleteOperators(operators: [Operator]): Observable<Object> {
+  delete(operators: [Operator]): Observable<Object> {
     let operatorsJson = operators.map(operatorToJson);
     return this._http.delete(this.baseUrl + 'api/operator/delete', { body: operatorsJson });
   }

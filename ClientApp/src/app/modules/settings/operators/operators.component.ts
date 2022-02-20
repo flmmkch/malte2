@@ -29,7 +29,7 @@ export class OperatorsComponent implements AfterViewInit {
     operator.name = this.operatorFormGroup.controls.nameControl.value;
     operator.phone = this.operatorFormGroup.controls.phoneControl.value || '';
     operator.enabled = this.operatorFormGroup.controls.enabledControl.value || false;
-    this._operatorService.createUpdateOperators([operator]).subscribe(() => {
+    this._operatorService.createUpdate([operator]).subscribe(() => {
       this.operatorFormGroup.reset();
       this.operatorListTable.cancelEdit();
       this.load();
@@ -37,7 +37,7 @@ export class OperatorsComponent implements AfterViewInit {
   }
 
   load() {
-    this._operatorService.getOperators().subscribe(operators => {
+    this._operatorService.get().subscribe(operators => {
       this.operators = operators;
       if (this.operators.length == 0) {
         this.operatorListTable.addItem();
@@ -45,16 +45,15 @@ export class OperatorsComponent implements AfterViewInit {
     }, console.error);
   }
 
-
-  deleteOperator(operator: Operator) {
+  delete(operator: Operator) {
     if (operator.id) {
-      this._operatorService.deleteOperators([operator]).subscribe(() => this.load(), console.error);
+      this._operatorService.delete([operator]).subscribe(() => this.load(), console.error);
     }
   }
 
   ngAfterViewInit(): void {
     this.operatorListTable.onCreate.subscribe(() => this.operatorListTable.currentWorkingItem = new Operator(''));
-    this.operatorListTable.onDelete.subscribe((operator: Operator) => this.deleteOperator(operator));
+    this.operatorListTable.onDelete.subscribe((operator: Operator) => this.delete(operator));
     this.operatorListTable.onSetWorkingItem.subscribe((e: SetCurrentWorkingItemEventArgs<Operator>) => {
       const operator = e.value;
       if (operator) {

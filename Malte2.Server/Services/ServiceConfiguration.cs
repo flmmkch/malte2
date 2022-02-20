@@ -9,6 +9,7 @@ namespace Malte2.Services
         {
             services.AddScoped<DatabaseContext>();
             services.AddScoped<OperatorService>();
+            services.AddScoped<AccountingEntryService>();
         }
     }
 

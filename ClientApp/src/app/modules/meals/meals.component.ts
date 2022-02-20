@@ -28,6 +28,7 @@ export class MealsComponent {
     nbBoardersControl: new FormControl(),
     nbPatronsControl: new FormControl(),
     nbOthersControl: new FormControl(),
+    nbCaterersControl: new FormControl(),
   });
 
   onSubmit() {

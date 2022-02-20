@@ -15,17 +15,17 @@
     <list-table-column width="auto"></list-table-column>
     <list-table-column width="4em" title="Actif·ve" property="enabled" type="checkbox"></list-table-column>
     <form #editor [formGroup]="operatorFormGroup">
-      <div class="mx-2 mb-2">
+      <div class="form-group">
         <label for="operatorNameInput" class="form-label col-2">Nom</label>
         <input form="operatorForm" type="text" formControlName="nameControl" id="operatorNameInput"
           class="form-control col-offset-2 col-10" placeholder="Nom de l'opérateur..." autofocus />
       </div>
-      <div class="mx-2 mb-2">
+      <div class="form-group">
         <label for="operatorPhoneInput" class="form-label col-2">Téléphone</label>
         <input form="operatorForm" type="tel" pattern="[0-9]{2}\( ?[0-9]{2}\){4}" formControlName="phoneControl"
           id="operatorPhoneInput" class="form-control col-offset-2 col-10" placeholder="Numéro de téléphone..." />
       </div>
-      <div class="mx-2 mb-2 form-check">
+      <div class="form-check">
         <label for="operatorActiveInput" class="form-check-label col-2">Actif·ve</label>
         <input type="checkbox" id="operatorActiveInput" formControlName="enabledControl"
           class="form-check-input col-2" />
