@@ -16,12 +16,15 @@
     </thead>
     <tbody>
         <ng-template #editorRowContent>
-            <td [attr.colspan]="totalColumnCount()">
+            <td [attr.colspan]="totalColumnCount">
                 <ng-content [select]="editor"></ng-content>
             </td>
         </ng-template>
         <tr *ngIf="editingNewItem()">
             <ng-container [ngTemplateOutlet]="editorRowContent"></ng-container>
+        </tr>
+        <tr *ngIf="!items">
+            <td [attr.colspan]="totalColumnCount" class="list-table-loading">Chargement...</td>
         </tr>
         <tr *ngFor="let item of items">
             <ng-container *ngIf="editing() && currentWorkingItem === item; else columnDisplay">

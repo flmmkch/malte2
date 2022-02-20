@@ -82,7 +82,7 @@ export class ListTable implements AfterViewChecked {
     }
   }
 
-  @Input() items: Object[] = [];
+  @Input() items: Object[] | undefined;
 
   @ContentChildren(ListTableColumn) columns!: QueryList<ListTableColumn>;
 
@@ -179,7 +179,7 @@ export class ListTable implements AfterViewChecked {
   }
 
   /** Nombre total de colonnes dans le tableau */
-  totalColumnCount(): number {
+  get totalColumnCount(): number {
     return this.columns.length + (this.editable || this.enableAddRemove ? 2 : 0);
   }
 

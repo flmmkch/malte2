@@ -10,7 +10,7 @@ import { OperatorService } from 'src/app/shared/services/operator.service';
   providers: [OperatorService]
 })
 export class OperatorsComponent implements AfterViewInit {
-  public operators: Operator[] = [];
+  public operators?: Operator[];
 
   readonly operatorFormGroup = new FormGroup({
     nameControl: new FormControl(),
@@ -67,9 +67,9 @@ export class OperatorsComponent implements AfterViewInit {
 
   displayInactiveOperators: boolean = false;
 
-  get filteredOperators(): Operator[] {
+  get filteredOperators(): Operator[] | undefined {
     let list = this.operators;
-    if (!this.displayInactiveOperators) {
+    if (list && !this.displayInactiveOperators) {
       list = list.filter(o => o.enabled);
     }
     return list;

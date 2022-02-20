@@ -1,9 +1,7 @@
 <h1 id="tableLabel">Imputations comptables</h1>
 
-<p [style.display]="items ? 'none' : ''"><em>Chargement...</em></p>
-
-<div [style.display]="items ? '' : 'none'">
-  <list-table #accountingEntryListTable [items]="items || []">
+<div>
+  <list-table #accountingEntryListTable [items]="items">
     <list-table-column width="auto" title="Libellé" property="label"></list-table-column>
     <list-table-column width="8em" title="Type" property="entryTypeString"></list-table-column>
     <list-table-column width="12em" title="Avec pensionnaire" property="dependsOnBoarder" type="checkbox"></list-table-column>
