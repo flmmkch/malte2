@@ -58,7 +58,7 @@ export class AccountBooksComponent implements OnInit, AfterViewInit {
         this.formGroup.controls.labelControl.setValue(accountBook.label);
       }
     });
-    this.listTable.confirmDeleteMessage = (accountBook: AccountBook) => `Supprimer l'imputation comptable ${accountBook.label} ?`;
+    this.listTable.confirmDeleteMessage = (accountBook: AccountBook) => `Supprimer le livre comptable ${accountBook.label} ?`;
   }
 
   onSubmit(): void {

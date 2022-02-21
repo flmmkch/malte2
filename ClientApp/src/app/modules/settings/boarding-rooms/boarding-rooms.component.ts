@@ -58,7 +58,7 @@ export class BoardingRoomsComponent implements OnInit, AfterViewInit {
         this.formGroup.controls.labelControl.setValue(boardingRoom.label);
       }
     });
-    this.listTable.confirmDeleteMessage = (boardingRoom: BoardingRoom) => `Supprimer l'imputation comptable ${boardingRoom.label} ?`;
+    this.listTable.confirmDeleteMessage = (boardingRoom: BoardingRoom) => `Supprimer la chambre ${boardingRoom.label} ?`;
   }
 
   onSubmit(): void {

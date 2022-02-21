@@ -9,8 +9,7 @@
 </div>
 
 <list-table #operatorListTable [items]="filteredOperators">
-  <list-table-column width="4em" title="#" property="id" [rowheader]="true"></list-table-column>
-  <list-table-column width="16em" title="Nom" property="name"></list-table-column>
+  <list-table-column width="16em" title="Nom" property="name" [rowheader]="true"></list-table-column>
   <list-table-column width="8em" title="Téléphone" property="phone"></list-table-column>
   <list-table-column width="auto"></list-table-column>
   <list-table-column width="4em" title="Actif·ve" property="enabled" type="checkbox"></list-table-column>
