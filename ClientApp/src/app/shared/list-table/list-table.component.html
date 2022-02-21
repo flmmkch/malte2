@@ -10,14 +10,16 @@
             <th *ngFor="let column of columns" scope="col">{{ column.title }}</th>
             <th scope="col" *ngIf="editable || enableAddRemove"></th>
             <th scope="col" *ngIf="editable || enableAddRemove"><button *ngIf="enableAddRemove && !editing()"
-                    class="btn btn-primary" (click)="addItem()">Ajouter</button>
+                    class="btn btn-primary" (click)="addItem()" [disabled]="!items">Ajouter</button>
             </th>
         </tr>
     </thead>
     <tbody>
         <ng-template #editorRowContent>
             <td [attr.colspan]="totalColumnCount">
-                <ng-content [select]="editor"></ng-content>
+                <div class="mx-2 my-2">
+                    <ng-content [select]="editor"></ng-content>
+                </div>
             </td>
         </ng-template>
         <tr *ngIf="editingNewItem()">
@@ -57,7 +59,7 @@
 </table>
 
 <!-- Delete confirmation modal -->
-<div *ngIf="confirmDelete && currentWorkingItem" class="modal fade" id="confirmDeleteModal" tabindex="-1" role="dialog"
+<div *ngIf="confirmDelete" class="modal fade" id="confirmDeleteModal" tabindex="-1" role="dialog"
     aria-labelledby="confirmDeleteModalLabel" aria-hidden="true">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
@@ -74,7 +76,7 @@
                 <button *ngIf="enableAddRemove" class="btn btn-danger visible-on-table-row-hover"
                     data-bs-dismiss="modal" [ngStyle]="{'visibility': editing() ? 'hidden': ''}"
                     [attr.data-toggle]="confirmDelete ? 'modal' : ''"
-                    (click)="deleteItem(currentWorkingItem)">Supprimer</button>
+                    (click)="currentWorkingItem && deleteItem(currentWorkingItem)">Supprimer</button>
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"
                     aria-label="Close">Annuler</button>
             </div>

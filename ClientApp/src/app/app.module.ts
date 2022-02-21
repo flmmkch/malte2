@@ -16,6 +16,8 @@ import { BoardersComponent } from './modules/boarders/boarders.component';
 import { ListTable, ListTableColumn } from './shared/list-table/list-table.component';
 import { CommonModule } from '@angular/common';
 import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
+import { AccountBooksComponent } from './modules/settings/account-books/account-books.component';
+import { BoardingRoomsComponent } from './modules/settings/boarding-rooms/boarding-rooms.component';
 
 @NgModule({
   declarations: [
@@ -29,6 +31,8 @@ import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
     AccountingEntriesComponent,
     ListTable,
     ListTableColumn,
+    AccountBooksComponent,
+    BoardingRoomsComponent,
   ],
   imports: [
     BrowserModule.withServerTransition({ appId: 'ng-cli-universal' }),
@@ -43,6 +47,8 @@ import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
       { path: 'meals', component: MealsComponent },
       { path: 'settings/operators', component: OperatorsComponent },
       { path: 'settings/accounting-entries', component: AccountingEntriesComponent },
+      { path: 'settings/account-books', component: AccountBooksComponent },
+      { path: 'settings/boarding-rooms', component: BoardingRoomsComponent },
     ]),
     NgbModule
   ],

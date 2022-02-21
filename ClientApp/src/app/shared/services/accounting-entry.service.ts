@@ -12,7 +12,7 @@ export class AccountingEntryService {
   constructor(private readonly _http: HttpClient, @Inject('BASE_URL') readonly baseUrl: string) {
   }
 
-  get(onlyEnabled: boolean = false): Observable<AccountingEntry[]> {
+  get(): Observable<AccountingEntry[]> {
     return this._http
       .get<AccountingEntryJson[]>(this.baseUrl + 'api/accountingEntry/get')
       .pipe(map(accountingEntriesJson => accountingEntriesJson.map(fromJson)));

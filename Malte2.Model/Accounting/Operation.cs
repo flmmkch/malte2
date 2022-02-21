@@ -20,18 +20,15 @@ namespace Malte2.Model.Accounting
         public long AccountingEntryId { get; set; }
         [JsonPropertyName("pm")]
         public PaymentMethod PaymentMethod { get; set; }
+        [JsonPropertyName("b")]
+        public long AccountBookId { get; set; }
         /// <summary>Numéro de chèque optionnel (uniquement pour les paiements par chèque)</summary>
         [JsonPropertyName("pm")]
-        public string? PaymentCheckNumber { get; set; }
+        public string? PaymentMethodInfo { get; set; }
         [JsonPropertyName("l")]
         public string Label { get; set; } = "";
-        [JsonPropertyName("b")]
+        [JsonPropertyName("bd")]
         public long? BoarderId { get; set; }
-
-        public Operation(long operatorId, DateTime operationDateTime, long accountingEntryId, PaymentMethod paymentMethod)
-        {
-            (OperatorId, OperationDateTime, AccountingEntryId, PaymentMethod) = (operatorId, operationDateTime, accountingEntryId, paymentMethod);
-        }
     }
 
 }

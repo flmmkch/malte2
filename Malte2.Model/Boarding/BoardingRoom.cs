@@ -6,13 +6,13 @@ namespace Malte2.Model.Boarding
     /// <summary>
     /// Pensionnaire
     /// </summary>
-    public class Boarder : IHasObjectId
+    public class BoardingRoom : IHasObjectId
     {
         [JsonPropertyName("id")]
         public long? Id { get; set; } = null;
 
-        [JsonPropertyName("n")]
-        public string Name { get; set; } = "";
+        [JsonPropertyName("l")]
+        public string Label { get; set; } = "";
     }
 
 }

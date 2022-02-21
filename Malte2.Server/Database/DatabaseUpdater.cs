@@ -86,8 +86,8 @@ CREATE TABLE operation(
     accounting_entry_id INTEGER NOT NULL REFERENCES accounting_entry(accounting_entry_id),
     date TEXT NOT NULL,
     label TEXT NOT NULL,
-    payment_means INTEGER NOT NULL,
-    payment_means_info TEXT NOT NULL DEFAULT '',
+    payment_method INTEGER NOT NULL,
+    payment_method_info TEXT NOT NULL DEFAULT '',
     boarder_id INTEGER REFERENCES boarder(boarder_id),
     amount INTEGER NOT NULL
 );

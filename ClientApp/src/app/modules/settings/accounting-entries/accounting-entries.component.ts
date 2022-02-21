@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, OnInit, ViewChild } from '@angular/core';
 import { FormControl, FormGroup } from '@angular/forms';
 import { ListTable, SetCurrentWorkingItemEventArgs } from 'src/app/shared/list-table/list-table.component';
 import { AccountingEntry, EntryType } from 'src/app/shared/models/accounting-entry.model';
@@ -8,7 +8,7 @@ import { AccountingEntryService } from 'src/app/shared/services/accounting-entry
   selector: 'app-accounting-entries',
   templateUrl: './accounting-entries.component.html',
 })
-export class AccountingEntriesComponent implements AfterViewInit {
+export class AccountingEntriesComponent implements OnInit, AfterViewInit {
   public items?: AccountingEntry[];
   
   readonly accountingEntryFormGroup = new FormGroup({
@@ -19,9 +19,7 @@ export class AccountingEntriesComponent implements AfterViewInit {
 
   @ViewChild('accountingEntryListTable') accountingEntryListTable!: ListTable;
 
-  constructor(private readonly _service: AccountingEntryService) {
-    this.load();
-  }
+  constructor(private readonly _service: AccountingEntryService) { }
   
   private _currentLoadingPromise?: Promise<AccountingEntry[]>;
 
@@ -43,6 +41,10 @@ export class AccountingEntriesComponent implements AfterViewInit {
     if (accountingEntry.id) {
       this._service.delete([accountingEntry]).subscribe(() => this.load(), console.error);
     }
+  }
+
+  ngOnInit(): void {
+    this.load();
   }
 
   ngAfterViewInit(): void {

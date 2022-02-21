@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, OnInit, ViewChild } from '@angular/core';
 import { FormControl, FormGroup } from '@angular/forms';
 import { Operator } from 'src/app/shared/models/operator.model';
 import { ListTable, SetCurrentWorkingItemEventArgs } from 'src/app/shared/list-table/list-table.component';
@@ -9,7 +9,7 @@ import { OperatorService } from 'src/app/shared/services/operator.service';
   templateUrl: './operators.component.html',
   providers: [OperatorService]
 })
-export class OperatorsComponent implements AfterViewInit {
+export class OperatorsComponent implements OnInit, AfterViewInit {
   public operators?: Operator[];
 
   readonly operatorFormGroup = new FormGroup({
@@ -23,6 +23,10 @@ export class OperatorsComponent implements AfterViewInit {
   }
 
   @ViewChild('operatorListTable') operatorListTable!: ListTable;
+
+  ngOnInit(): void {
+    this.load();
+  }
 
   onSubmit() {
     const operator = this.operatorListTable.currentWorkingItem as Operator;

@@ -8,8 +8,12 @@ namespace Malte2.Services
         public static void ConfigureServices(IServiceCollection services)
         {
             services.AddScoped<DatabaseContext>();
-            services.AddScoped<OperatorService>();
+            services.AddScoped<AccountBookService>();
             services.AddScoped<AccountingEntryService>();
+            services.AddScoped<BoarderService>();
+            services.AddScoped<BoardingRoomService>();
+            services.AddScoped<OperationService>();
+            services.AddScoped<OperatorService>();
         }
     }
 

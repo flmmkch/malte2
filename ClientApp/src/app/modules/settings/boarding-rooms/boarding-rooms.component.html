@@ -1,0 +1,26 @@
+<h1 id="tableLabel">Chambres de la pension</h1>
+
+<div>
+  <list-table #listTable [items]="items">
+    <list-table-column width="4em" title="#" property="id" [rowheader]="true"></list-table-column>
+    <list-table-column width="auto" title="Nom" property="label"></list-table-column>
+    <form #editor [formGroup]="formGroup">
+      <div class="form-group mb-2">
+        <label for="labelInput" class="form-label col-2">Nom</label>
+        <input form="accountingEntryForm" type="text" formControlName="labelControl" id="labelInput"
+          class="form-control col-offset-2 col-10" placeholder="Nom de la chambre..." autofocus />
+      </div>
+      <div class="row">
+        <div class="col-1">
+          <input form="accountingEntryForm" type="submit" class="btn btn-primary"
+            value="{{ listTable.validateButtonLabel }}" />
+        </div>
+        <div class="col-1">
+          <input form="accountingEntryForm" type="reset" class="btn btn-secondary" (click)="listTable.cancelEdit()"
+            value="Annuler" />
+        </div>
+      </div>
+      <form id="accountingEntryForm" (ngSubmit)="onSubmit()"></form>
+    </form>
+  </list-table>
+</div>
