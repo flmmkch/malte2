@@ -51,36 +51,29 @@ namespace Malte2.Services
             {
                 foreach (Operation operation in accountingEntries)
                 {
+                    string commandSql;
                     if (operation.Id.HasValue)
                     {
-                        using (var command = new SQLiteCommand(@"UPDATE operation
+                        commandSql = @"UPDATE operation
                         SET label = :label,
-                        WHERE operation_id = :operation_id", _databaseContext.Connection, transaction))
-                        {
-                            MapOperationParameters(operation, command.Parameters);
-                            await command.ExecuteNonQueryAsync();
-                        }
+                        WHERE operation_id = :operation_id";
                     }
                     else
                     {
-                        using (var command = new SQLiteCommand("INSERT INTO operation(label) VALUES (:label)", _databaseContext.Connection, transaction))
+                        commandSql = "INSERT INTO operation(label) VALUES (:label)";
+                    }
+                    using (var command = new SQLiteCommand(commandSql, _databaseContext.Connection, transaction))
+                    {
+                        if (operation.Id.HasValue)
                         {
-                            MapOperationParameters(operation, command.Parameters);
-                            await command.ExecuteNonQueryAsync();
+                            command.Parameters.AddWithValue("operation_id", operation.Id!);
                         }
+                        command.Parameters.AddWithValue("label", operation.Label);
+                        await command.ExecuteNonQueryAsync();
                     }
                 }
                 await transaction.CommitAsync();
             }
-        }
-
-        private void MapOperationParameters(Operation operation, SQLiteParameterCollection parameters)
-        {
-            if (operation.Id.HasValue)
-            {
-                parameters.AddWithValue("operation_id", operation.Id!);
-            }
-            parameters.AddWithValue("label", operation.Label);
         }
 
         public async Task Delete(IEnumerable<Operation> accountingEntries)

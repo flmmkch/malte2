@@ -43,36 +43,29 @@ namespace Malte2.Services
             {
                 foreach (BoardingRoom boardingRoom in accountingEntries)
                 {
+                    string commandSql;
                     if (boardingRoom.Id.HasValue)
                     {
-                        using (var command = new SQLiteCommand(@"UPDATE boarding_room
+                        commandSql = @"UPDATE boarding_room
                         SET room_name = :room_name
-                        WHERE boarding_room_id = :boarding_room_id", _databaseContext.Connection, transaction))
-                        {
-                            MapBoardingRoomParameters(boardingRoom, command.Parameters);
-                            await command.ExecuteNonQueryAsync();
-                        }
+                        WHERE boarding_room_id = :boarding_room_id";
                     }
                     else
                     {
-                        using (var command = new SQLiteCommand("INSERT INTO boarding_room(room_name) VALUES (:room_name)", _databaseContext.Connection, transaction))
+                        commandSql = "INSERT INTO boarding_room(room_name) VALUES (:room_name)";
+                    }
+                    using (var command = new SQLiteCommand(commandSql, _databaseContext.Connection, transaction))
+                    {
+                        if (boardingRoom.Id.HasValue)
                         {
-                            MapBoardingRoomParameters(boardingRoom, command.Parameters);
-                            await command.ExecuteNonQueryAsync();
+                            command.Parameters.AddWithValue("boarding_room_id", boardingRoom.Id!);
                         }
+                        command.Parameters.AddWithValue("room_name", boardingRoom.Label);
+                        await command.ExecuteNonQueryAsync();
                     }
                 }
                 await transaction.CommitAsync();
             }
-        }
-
-        private void MapBoardingRoomParameters(BoardingRoom boardingRoom, SQLiteParameterCollection parameters)
-        {
-            if (boardingRoom.Id.HasValue)
-            {
-                parameters.AddWithValue("boarding_room_id", boardingRoom.Id!);
-            }
-            parameters.AddWithValue("room_name", boardingRoom.Label);
         }
 
         public async Task Delete(IEnumerable<BoardingRoom> accountingEntries)

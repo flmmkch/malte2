@@ -45,40 +45,33 @@ namespace Malte2.Services
             {
                 foreach (AccountingEntry accountingEntry in accountingEntries)
                 {
+                    string commandSql;
                     if (accountingEntry.Id.HasValue)
                     {
-                        using (var command = new SQLiteCommand(@"UPDATE accounting_entry
+                        commandSql = @"UPDATE accounting_entry
                         SET label = :label,
                         has_boarder = :has_boarder,
                         accounting_entry_type = :accounting_entry_type
-                        WHERE accounting_entry_id = :accounting_entry_id", _databaseContext.Connection, transaction))
-                        {
-                            MapAccountingEntryParameters(accountingEntry, command.Parameters);
-                            await command.ExecuteNonQueryAsync();
-                        }
+                        WHERE accounting_entry_id = :accounting_entry_id";
                     }
                     else
                     {
-                        using (var command = new SQLiteCommand("INSERT INTO accounting_entry(label, has_boarder, accounting_entry_type) VALUES (:label, :has_boarder, :accounting_entry_type)", _databaseContext.Connection, transaction))
+                        commandSql = "INSERT INTO accounting_entry(label, has_boarder, accounting_entry_type) VALUES (:label, :has_boarder, :accounting_entry_type)";
+                    }
+                    using (var command = new SQLiteCommand(commandSql, _databaseContext.Connection, transaction))
+                    {
+                        if (accountingEntry.Id.HasValue)
                         {
-                            MapAccountingEntryParameters(accountingEntry, command.Parameters);
-                            await command.ExecuteNonQueryAsync();
+                            command.Parameters.AddWithValue("accounting_entry_id", accountingEntry.Id!);
                         }
+                        command.Parameters.AddWithValue("label", accountingEntry.Label);
+                        command.Parameters.AddWithValue("has_boarder", accountingEntry.HasBoarder);
+                        command.Parameters.AddWithValue("accounting_entry_type", accountingEntry.EntryType);
+                        await command.ExecuteNonQueryAsync();
                     }
                 }
                 await transaction.CommitAsync();
             }
-        }
-
-        private void MapAccountingEntryParameters(AccountingEntry accountingEntry, SQLiteParameterCollection parameters)
-        {
-            if (accountingEntry.Id.HasValue)
-            {
-                parameters.AddWithValue("accounting_entry_id", accountingEntry.Id!);
-            }
-            parameters.AddWithValue("label", accountingEntry.Label);
-            parameters.AddWithValue("has_boarder", accountingEntry.HasBoarder);
-            parameters.AddWithValue("accounting_entry_type", accountingEntry.EntryType);
         }
 
         public async Task Delete(IEnumerable<AccountingEntry> accountingEntries)

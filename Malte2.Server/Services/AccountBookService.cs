@@ -43,36 +43,29 @@ namespace Malte2.Services
             {
                 foreach (AccountBook accountBook in accountingEntries)
                 {
+                    string commandSql;
                     if (accountBook.Id.HasValue)
                     {
-                        using (var command = new SQLiteCommand(@"UPDATE account_book
+                        commandSql = @"UPDATE account_book
                         SET label = :label
-                        WHERE account_book_id = :account_book_id", _databaseContext.Connection, transaction))
-                        {
-                            MapAccountBookParameters(accountBook, command.Parameters);
-                            await command.ExecuteNonQueryAsync();
-                        }
+                        WHERE account_book_id = :account_book_id";
                     }
                     else
                     {
-                        using (var command = new SQLiteCommand("INSERT INTO account_book(label) VALUES (:label)", _databaseContext.Connection, transaction))
+                        commandSql = "INSERT INTO account_book(label) VALUES (:label)";
+                    }
+                    using (var command = new SQLiteCommand(commandSql, _databaseContext.Connection, transaction))
+                    {
+                        if (accountBook.Id.HasValue)
                         {
-                            MapAccountBookParameters(accountBook, command.Parameters);
-                            await command.ExecuteNonQueryAsync();
+                            command.Parameters.AddWithValue("account_book_id", accountBook.Id!);
                         }
+                        command.Parameters.AddWithValue("label", accountBook.Label);
+                        await command.ExecuteNonQueryAsync();
                     }
                 }
                 await transaction.CommitAsync();
             }
-        }
-
-        private void MapAccountBookParameters(AccountBook accountBook, SQLiteParameterCollection parameters)
-        {
-            if (accountBook.Id.HasValue)
-            {
-                parameters.AddWithValue("account_book_id", accountBook.Id!);
-            }
-            parameters.AddWithValue("label", accountBook.Label);
         }
 
         public async Task Delete(IEnumerable<AccountBook> accountingEntries)
