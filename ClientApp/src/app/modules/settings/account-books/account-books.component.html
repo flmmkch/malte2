@@ -11,11 +11,11 @@
           class="form-control col-offset-2 col-10" placeholder="Libellé du livre comptable..." autofocus />
       </div>
       <div class="row">
-        <div class="col-1">
+        <div class="col-sm-12 col-lg-1">
           <input form="accountingEntryForm" type="submit" class="btn btn-primary"
             value="{{ listTable.validateButtonLabel }}" />
         </div>
-        <div class="col-1">
+        <div class="col-sm-12 col-lg-1">
           <input form="accountingEntryForm" type="reset" class="btn btn-secondary" (click)="listTable.cancelEdit()"
             value="Annuler" />
         </div>
