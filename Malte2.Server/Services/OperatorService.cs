@@ -62,23 +62,18 @@ namespace Malte2.Services
                     }
                     using (var command = new SQLiteCommand(commandSql, _databaseContext.Connection, transaction))
                     {
-                        MapOperatorParameters(oper, command.Parameters);
+                        if (oper.Id.HasValue)
+                        {
+                            command.Parameters.AddWithValue("operator_id", oper.Id!);
+                        }
+                        command.Parameters.AddWithValue("name", oper.Name);
+                        command.Parameters.AddWithValue("enabled", oper.Enabled);
+                        command.Parameters.AddWithValue("phone_number", oper.PhoneNumber);
                         await command.ExecuteNonQueryAsync();
                     }
                 }
                 await transaction.CommitAsync();
             }
-        }
-
-        private void MapOperatorParameters(Operator oper, SQLiteParameterCollection parameters)
-        {
-            if (oper.Id.HasValue)
-            {
-                parameters.AddWithValue("operator_id", oper.Id!);
-            }
-            parameters.AddWithValue("name", oper.Name);
-            parameters.AddWithValue("enabled", oper.Enabled);
-            parameters.AddWithValue("phone_number", oper.PhoneNumber);
         }
 
         public async Task Delete(IEnumerable<Operator> operators)
