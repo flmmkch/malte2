@@ -6,34 +6,35 @@
     <list-table-column width="auto" title="Libellé" property="label"></list-table-column>
     <list-table-column width="8em" title="Type" property="entryTypeString"></list-table-column>
     <list-table-column width="12em" title="Avec pensionnaire" property="dependsOnBoarder" type="checkbox"></list-table-column>
-    <form #editor [formGroup]="accountingEntryFormGroup">
-      <div class="form-group">
-        <label for="labelInput" class="form-label col-2">Libellé</label>
-        <input form="accountingEntryForm" type="text" formControlName="labelControl" id="labelInput"
-          class="form-control col-offset-2 col-10" placeholder="Libellé de l'imputation comptable..." autofocus />
-      </div>
-      <div class="form-group">
-        <label for="entryTypeSelect" class="form-label col-2">Type</label>
-        <select form="accountingEntryForm" class="form-control col-offset-2 col-10" formControlName="entryTypeControl" id="entryTypeSelect">
-          <option *ngFor="let entryType of getEntryTypes()" value="{{ entryType.toString() }}">{{ getEntryTypeString(entryType) }}</option>
-        </select>
-      </div>
-      <div class="form-check">
-        <label for="hasBoarderInput" class="form-check-label col-2">Avec pensionnaire</label>
-        <input type="checkbox" id="hasBoarderInput" formControlName="hasBoarderControl"
-          class="form-check-input col-2" />
-      </div>
-      <div class="row">
-        <div class="col-sm-12 col-lg-1">
-          <input form="accountingEntryForm" type="submit" class="btn btn-primary"
-            value="{{ accountingEntryListTable.validateButtonLabel }}" />
+    <div list-table-editor>
+      <form [formGroup]="accountingEntryFormGroup" id="accountingEntryForm" (ngSubmit)="onSubmit()">
+        <div class="form-group">
+          <label for="labelInput" class="form-label col-2">Libellé</label>
+          <input type="text" formControlName="labelControl" id="labelInput"
+            class="form-control col-offset-2 col-10" placeholder="Libellé de l'imputation comptable..." autofocus />
         </div>
-        <div class="col-sm-12 col-lg-1">
-          <input form="accountingEntryForm" type="reset" class="btn btn-secondary" (click)="accountingEntryListTable.cancelEdit()"
-            value="Annuler" />
+        <div class="form-group">
+          <label for="entryTypeSelect" class="form-label col-2">Type</label>
+          <select class="form-control col-offset-2 col-10" formControlName="entryTypeControl" id="entryTypeSelect">
+            <option *ngFor="let entryType of getEntryTypes()" value="{{ entryType.toString() }}">{{ getEntryTypeString(entryType) }}</option>
+          </select>
         </div>
-      </div>
-      <form id="accountingEntryForm" (ngSubmit)="onSubmit()"></form>
-    </form>
+        <div class="form-check">
+          <label for="hasBoarderInput" class="form-check-label col-2">Avec pensionnaire</label>
+          <input type="checkbox" id="hasBoarderInput" formControlName="hasBoarderControl"
+            class="form-check-input col-2" />
+        </div>
+        <div class="row">
+          <div class="col-sm-12 col-lg-1">
+            <input type="submit" class="btn btn-primary"
+              value="{{ accountingEntryListTable.validateButtonLabel }}" />
+          </div>
+          <div class="col-sm-12 col-lg-1">
+            <input type="reset" class="btn btn-secondary" (click)="accountingEntryListTable.cancelEdit()"
+              value="Annuler" />
+          </div>
+        </div>
+      </form>
+    </div>
   </list-table>
 </div>

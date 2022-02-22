@@ -1,5 +1,7 @@
 using Malte2.Database;
+using Malte2.Model.Accounting;
 using Malte2.Model.Boarding;
+using System.Data.Common;
 using System.Data.SQLite;
 
 namespace Malte2.Services
@@ -17,11 +19,48 @@ namespace Malte2.Services
             _logger = logger;
         }
 
-        public async IAsyncEnumerable<Boarder> GetItems()
+        public async IAsyncEnumerable<BoarderListItemResponse> GetItemList(DateTime roomOccupancyDateTime)
         {
-            string commandText = $"SELECT boarder_id, label FROM boarder ORDER BY boarder_id ASC;";
+            string commandText = @"SELECT b.boarder_id, b.name, r.room_name
+                FROM boarder b
+                LEFT JOIN occupancy o ON ((o.boarder_id = b.boarder_id) AND (o.date_start IS NULL OR o.date_start <= :occupancy_date) AND (o.date_end IS NULL OR o.date_end >= :occupancy_date))
+                LEFT JOIN boarding_room r ON r.boarding_room_id = o.boarding_room_id
+                ORDER BY b.boarder_id ASC;";
             using (var command = new SQLiteCommand(commandText, _databaseContext.Connection))
             {
+                command.Parameters.AddWithValue("occupancy_date", roomOccupancyDateTime.ToString("s"));
+                using (var reader = await command.ExecuteReaderAsync())
+                {
+                    while (await reader.ReadAsync())
+                    {
+                        BoarderListItemResponse itemResponse = new BoarderListItemResponse
+                        {
+                            BoarderId = reader.GetInt64(reader.GetOrdinal("boarder_id")),
+                            Name = reader.GetString(reader.GetOrdinal("name")),
+                            RoomName = GetNullableStringFromReader(reader, reader.GetOrdinal("room_name")),
+                        };
+                        yield return itemResponse;
+                    }
+                }
+            }
+        }
+
+        public async Task<Boarder?> GetDetails(long boarderId)
+        {
+            string commandText = @"SELECT boarder_id,
+                name,
+                nationality,
+                birth_date,
+                birth_place,
+                phone_number,
+                notes,
+                total_amount_deposited
+                FROM boarder WHERE boarder_id = :boarder_id
+                ORDER BY boarder_id ASC
+                LIMIT 1;";
+            using (var command = new SQLiteCommand(commandText, _databaseContext.Connection))
+            {
+                command.Parameters.AddWithValue("boarder_id", boarderId);
                 using (var reader = await command.ExecuteReaderAsync())
                 {
                     while (await reader.ReadAsync())
@@ -30,11 +69,48 @@ namespace Malte2.Services
                         {
                             Id = reader.GetInt64(reader.GetOrdinal("boarder_id")),
                             Name = reader.GetString(reader.GetOrdinal("name")),
+                            Nationality = reader.GetString(reader.GetOrdinal("nationality")),
+                            PhoneNumber = reader.GetString(reader.GetOrdinal("phone_number")),
+                            BirthDate = GetNullableDateFromReader(reader, reader.GetOrdinal("birth_date")),
+                            BirthPlace = GetNullableStringFromReader(reader, reader.GetOrdinal("birth_place")),
+                            Notes = reader.GetString(reader.GetOrdinal("notes")),
+                            TotalAmountDeposited = Amount.FromString(reader.GetString(reader.GetOrdinal("total_amount_deposited")))
                         };
-                        yield return boarder;
+                        return boarder;
                     }
                 }
             }
+            return null;
+        }
+
+        private static DateTime GetDateFromReader(DbDataReader reader, int columnNumber)
+        {
+            string dateString = reader.GetString(columnNumber);
+            return DateTime.Parse(dateString, System.Globalization.CultureInfo.InvariantCulture);
+        }
+
+        private static DateTime? GetNullableDateFromReader(DbDataReader reader, int columnNumber)
+        {
+            if (reader.IsDBNull(columnNumber)) {
+                return null;
+            }
+            return GetDateFromReader(reader, columnNumber);
+        }
+
+        private static string? GetNullableStringFromReader(DbDataReader reader, int columnNumber)
+        {
+            if (reader.IsDBNull(columnNumber)) {
+                return null;
+            }
+            return reader.GetString(columnNumber);
+        }
+
+        private static string? GetStringFromNullableDate(DateTime? date)
+        {
+            if (date != null) {
+                return date.Value.ToString("s");
+            }
+            return null;
         }
 
         public async Task CreateUpdate(IEnumerable<Boarder> boarders)
@@ -43,36 +119,55 @@ namespace Malte2.Services
             {
                 foreach (Boarder boarder in boarders)
                 {
+                    string commandSql;
                     if (boarder.Id.HasValue)
                     {
-                        using (var command = new SQLiteCommand(@"UPDATE boarder
-                        SET label = :label,
-                        WHERE boarder_id = :boarder_id", _databaseContext.Connection, transaction))
-                        {
-                            MapBoarderParameters(boarder, command.Parameters);
-                            await command.ExecuteNonQueryAsync();
-                        }
+                        commandSql = @"UPDATE boarder
+                        SET name = :name,
+                        nationality = :nationality,
+                        phone_number = :phone_number,
+                        birth_place = :birth_place,
+                        birth_date = :birth_date,
+                        notes = :notes,
+                        total_amount_deposited = :total_amount_deposited
+                        WHERE boarder_id = :boarder_id";
                     }
                     else
                     {
-                        using (var command = new SQLiteCommand("INSERT INTO boarder(label) VALUES (:label)", _databaseContext.Connection, transaction))
+                        commandSql = @"INSERT INTO boarder(name,
+                            nationality,
+                            phone_number,
+                            birth_place,
+                            birth_date,
+                            notes,
+                            total_amount_deposited
+                            ) VALUES (:name,
+                            :nationality,
+                            :phone_number,
+                            :birth_place,
+                            :birth_date,
+                            :notes,
+                            :total_amount_deposited
+                            )";
+                    }
+                    using (var command = new SQLiteCommand(commandSql, _databaseContext.Connection, transaction))
+                    {
+                        if (boarder.Id.HasValue)
                         {
-                            MapBoarderParameters(boarder, command.Parameters);
-                            await command.ExecuteNonQueryAsync();
+                            command.Parameters.AddWithValue("boarder_id", boarder.Id!);
                         }
+                        command.Parameters.AddWithValue("name", boarder.Name);
+                        command.Parameters.AddWithValue("nationality", boarder.Nationality);
+                        command.Parameters.AddWithValue("phone_number", boarder.PhoneNumber);
+                        command.Parameters.AddWithValue("birth_place", boarder.BirthPlace);
+                        command.Parameters.AddWithValue("birth_date", GetStringFromNullableDate(boarder.BirthDate));
+                        command.Parameters.AddWithValue("notes", boarder.Notes);
+                        command.Parameters.AddWithValue("total_amount_deposited", boarder.TotalAmountDeposited.ToString());
+                        await command.ExecuteNonQueryAsync();
                     }
                 }
                 await transaction.CommitAsync();
             }
-        }
-
-        private void MapBoarderParameters(Boarder boarder, SQLiteParameterCollection parameters)
-        {
-            if (boarder.Id.HasValue)
-            {
-                parameters.AddWithValue("boarder_id", boarder.Id!);
-            }
-            parameters.AddWithValue("name", boarder.Name);
         }
 
         public async Task Delete(IEnumerable<Boarder> boarders)

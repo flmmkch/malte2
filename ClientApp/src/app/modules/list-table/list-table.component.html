@@ -7,7 +7,14 @@
 
     <thead>
         <tr>
-            <th *ngFor="let column of columns" scope="col">{{ column.title }}</th>
+            <th *ngFor="let column of columns" scope="col">
+                <ng-container *ngIf="column.headerContent">
+                    <ng-container *ngTemplateOutlet="column.headerContent.templateRef"></ng-container>
+                </ng-container>
+                <ng-container *ngIf="!column.headerContent">
+                    {{ column.title }}
+                </ng-container>
+            </th>
             <th scope="col" *ngIf="editable || enableAddRemove"></th>
             <th scope="col" *ngIf="editable || enableAddRemove"><button *ngIf="enableAddRemove && !editing()"
                     class="btn btn-primary" (click)="addItem()" [disabled]="!items">Ajouter</button>
@@ -18,7 +25,7 @@
         <ng-template #editorRowContent>
             <td [attr.colspan]="totalColumnCount">
                 <div class="mx-2 my-2">
-                    <ng-content [select]="editor"></ng-content>
+                    <ng-content select="[list-table-editor]"></ng-content>
                 </div>
             </td>
         </ng-template>
@@ -26,7 +33,14 @@
             <ng-container [ngTemplateOutlet]="editorRowContent"></ng-container>
         </tr>
         <tr *ngIf="!items">
-            <td [attr.colspan]="totalColumnCount" class="list-table-loading">Chargement...</td>
+            <td [attr.colspan]="totalColumnCount"><div class="list-table-loading">Chargement...</div><td>
+        </tr>
+        <tr *ngIf="items && items.length === 0 && emptyContent">
+            <td [attr.colspan]="totalColumnCount">
+                <div class="mx-2 my-2">
+                    <ng-content select="[list-table-empty]"></ng-content>
+                </div>
+            </td>
         </tr>
         <tr *ngFor="let item of items">
             <ng-container *ngIf="editing() && currentWorkingItem === item; else columnDisplay">
@@ -41,6 +55,11 @@
                         <ng-container *ngIf="column.type == 'text'">{{ column.getItemProperty(item) }}</ng-container>
                         <ng-container *ngIf="column.type == 'checkbox'">
                             <input type="checkbox" class="form-check-input" disabled [checked]="column.getItemProperty(item) === 'true'"/>
+                        </ng-container>
+                        <ng-container *ngIf="column.valueTemplate">
+                            <div [class.visible-on-table-row-hover]="column.valueTemplate.visibleOnlyOnHover">
+                                <ng-container *ngTemplateOutlet="column.valueTemplate.templateRef; context: {item: item}"></ng-container>
+                            </div>
                         </ng-container>
                     </ng-template>
                 </ng-container>
@@ -73,7 +92,7 @@
             </div>
             <div class="modal-body">{{ currentWorkingItem ? confirmDeleteMessageDisplay() : '' }}</div>
             <div class="modal-footer">
-                <button *ngIf="enableAddRemove" class="btn btn-danger visible-on-table-row-hover"
+                <button *ngIf="enableAddRemove" class="btn btn-danger"
                     data-bs-dismiss="modal" [ngStyle]="{'visibility': editing() ? 'hidden': ''}"
                     [attr.data-toggle]="confirmDelete ? 'modal' : ''"
                     (click)="currentWorkingItem && deleteItem(currentWorkingItem)">Supprimer</button>

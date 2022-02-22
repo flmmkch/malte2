@@ -18,6 +18,11 @@ namespace Malte2.Model.Accounting
         /// <summary>Amount * PRECISION</summary>
         private long _amount;
 
+        public Amount()
+        {
+            this._amount = 0;
+        }
+
         private Amount(long amount)
         {
             _amount = amount;

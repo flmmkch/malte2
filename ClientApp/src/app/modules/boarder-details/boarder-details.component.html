@@ -1,0 +1,75 @@
+<h1 *ngIf="boarder">Pensionnaire : {{ boarder.name }}</h1>
+<h1 *ngIf="!boarder">Nouveau pensionnaire</h1>
+<form [formGroup]="boarderFormGroup" (ngSubmit)="onSubmit()">
+    <div class="form-group">
+        <label for="boarderNameInput" class="form-label col-2">Nom</label>
+        <input type="text" formControlName="nameControl" id="boarderNameInput" class="form-control col-offset-2 col-10"
+            placeholder="Nom du pensionnaire..." autofocus [attr.disabled]="edition ? null : ''" />
+    </div>
+    <div class="form-group">
+        <label for="boarderNationalityInput" class="form-label col-2">Nationalité</label>
+        <input type="text" formControlName="nationalityControl" id="boarderNationalityInput"
+            class="form-control col-offset-2 col-10" placeholder="Nationalité du pensionnaire"
+            [attr.disabled]="edition ? null : ''" />
+    </div>
+    <div class="form-group">
+        <label for="boarderPhoneInput" class="form-label col-2">Téléphone</label>
+        <input type="tel" pattern="[0-9]{2}\( ?[0-9]{2}\){4}" formControlName="phoneNumberControl"
+            id="boarderPhoneInput" class="form-control col-offset-2 col-10" placeholder="Numéro de téléphone..."
+            [attr.disabled]="edition ? null : ''" />
+    </div>
+    <div class="form-group">
+        <label for="boarderBirthDateInput" class="form-label col-2">Date de naissance</label>
+        <input type="date" formControlName="birthDateControl" id="boarderBirthDateInput"
+            class="form-control col-offset-2 col-10" [attr.disabled]="edition ? null : ''" />
+        <label for="boarderBirthPlaceInput" class="form-label col-2">Lieu de naissance</label>
+        <input type="text" formControlName="birthPlaceControl" id="boarderBirthPlaceInput"
+            class="form-control col-offset-2 col-10" placeholder="Lieu de naissance..."
+            [attr.disabled]="edition ? null : ''" />
+    </div>
+    <div class="form-group">
+        <label for="boarderNotesInput" class="form-label col-2">Notes</label>
+        <textarea formControlName="notesControl" id="boarderNotesInput" class="form-control col-offset-2 col-10"
+            placeholder="Notes diverses..." [attr.disabled]="edition ? null : ''"></textarea>
+    </div>
+    <div class="form-group my-2 row">
+        <div class="col-sm-12 col-lg-1" *ngIf="!edition">
+            <input type="submit" class="btn btn-primary" (click)="setEditMode(true)" value="Modifier" />
+        </div>
+        <div class="col-sm-12 col-lg-1" *ngIf="edition">
+            <input type="submit" class="btn btn-primary" value="Valider" />
+        </div>
+        <div class="col-sm-12 col-lg-1" *ngIf="edition && boarder">
+            <input type="reset" class="btn btn-secondary" (click)="setEditMode(false)" value="Annuler" />
+        </div>
+        <div class="col-sm-12 col-lg-1" *ngIf="edition && boarder">
+            <input type="submit" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal"
+                value="Supprimer" />
+        </div>
+    </div>
+</form>
+
+<!-- Delete confirmation modal -->
+<div *ngIf="boarder" class="modal fade" id="confirmDeleteModal" tabindex="-1" role="dialog"
+    aria-labelledby="confirmDeleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="confirmDeleteModalLabel">Suppression</h5>
+                <!--
+                    <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                -->
+            </div>
+            <div class="modal-body">Supprimer le·a pensionnaire {{boarder?.name}} ?</div>
+            <div class="modal-footer">
+                <button class="btn btn-danger"
+                    data-bs-dismiss="modal" 
+                    (click)="delete()">Supprimer</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"
+                    aria-label="Close">Annuler</button>
+            </div>
+        </div>
+    </div>
+</div>

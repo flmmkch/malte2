@@ -1,6 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Component, Inject } from '@angular/core';
 import { FormControl, FormGroup } from '@angular/forms';
+import { dateToFormValue } from 'src/app/shared/utils/date-time-form-conversion';
 
 @Component({
   selector: 'app-meals',
@@ -14,9 +15,7 @@ export class MealsComponent {
   public currentDate: Date;
 
   public get currentDateInputValue(): string {
-    let local = new Date(this.currentDate);
-    local.setMinutes(local.getMinutes() - local.getTimezoneOffset());
-    return local.toJSON().slice(0,10);
+    return dateToFormValue(this.currentDate);
   }
 
   public set currentDateInputValue(dateInputValue: string) {

@@ -1,21 +1,41 @@
-import { HttpClient } from '@angular/common/http';
-import { Component, Inject } from '@angular/core';
-import { FormControl, FormGroup } from '@angular/forms';
+
+import { Component, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
+import { ListTable } from 'src/app/modules/list-table/list-table.component';
+import { BoarderListItem } from 'src/app/shared/models/boarder.model';
+import { BoarderService } from 'src/app/shared/services/boarder.service';
 
 @Component({
   selector: 'app-boarders',
   templateUrl: './boarders.component.html',
+  encapsulation: ViewEncapsulation.None,
+  styleUrls: ['./boarders.component.css']
 })
-export class BoardersComponent {
-  constructor(private readonly _http: HttpClient, @Inject('BASE_URL') private readonly baseUrl: string) {
-  }
+export class BoardersComponent implements OnInit {
+  public items?: BoarderListItem[];
   
+  constructor(private readonly _service: BoarderService) { }
 
-  readonly boarderFormGroup = new FormGroup({
-    nameControl: new FormControl(),
-  });
+  @ViewChild('listTable') listTable!: ListTable;
 
-  onSubmit() {
-    // TODO
+  
+  private _currentLoadingPromise?: Promise<BoarderListItem[]>;
+
+  public get currentLoadingPromise(): Promise<BoarderListItem[]> | undefined {
+    return this._currentLoadingPromise;
   }
+
+  load(): Promise<BoarderListItem[]> {
+    const today = new Date();
+    const observable = this._service.list(today);
+    observable.subscribe(items => {
+      this.items = items;
+    });
+    this._currentLoadingPromise = observable.toPromise();
+    return this._currentLoadingPromise;
+  }
+
+  ngOnInit(): void {
+      this.load();
+  }
+
 }

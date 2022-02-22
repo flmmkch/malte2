@@ -62,7 +62,11 @@ CREATE TABLE deposit_type(
 CREATE TABLE boarder(
     boarder_id INTEGER PRIMARY KEY,
     name TEXT NOT NULL,
+    birth_date TEXT,
+    birth_place TEXT,
     phone_number TEXT NOT NULL,
+    nationality TEXT NOT NULL,
+    notes TEXT NOT NULL,
     total_amount_deposited TEXT NOT NULL
 );
 CREATE TABLE boarder_deposit(
@@ -71,12 +75,12 @@ CREATE TABLE boarder_deposit(
     deposit_type_id INTEGER NOT NULL REFERENCES deposit_type(deposit_type_id),
     amount TEXT NOT NULL
 );
-CREATE TABLE boarding(
-    boarding_id INTEGER PRIMARY KEY,
+CREATE TABLE occupancy(
+    occupancy_id INTEGER PRIMARY KEY,
     boarder_id INTEGER NOT NULL REFERENCES boarder(boarder_id),
     boarding_room_id INTEGER NOT NULL REFERENCES boarding_room(boarding_room_id),
-    date_start TEXT NOT NULL,
-    date_end TEXT NOT NULL,
+    date_start TEXT,
+    date_end TEXT,
     start_notes TEXT NOT NULL DEFAULT '',
     end_notes TEXT NOT NULL DEFAULT ''
 );

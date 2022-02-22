@@ -1,15 +1,24 @@
-<h1>Pensionnaires</h1>
+<h1 id="tableLabel">Pensionnaires</h1>
 
-<form [formGroup]="boarderFormGroup" (ngSubmit)="onSubmit()" class="form-horizontal">
-    <div class="form-group">
-        <label for="boarder-form-name" class="col-sm-2 control-label">Nom</label>
-        <div class="col-sm-10">
-            <input id="boarder-form-name" type="text" formControlName="nameControl" class="form-control">
+<div>
+    <list-table #listTable [editable]="false" [enableAddRemove]="false" [items]="items">
+        <list-table-column width="14em" title="Nom" property="name" [rowheader]="true"></list-table-column>
+        <list-table-column width="14em" title="Chambre" property="currentRoomName"></list-table-column>
+        <list-table-column width="auto"></list-table-column>
+        <list-table-column width="16em">
+            <ng-template column-header>
+                <div *ngIf="items && items.length > 0" class="details-column">
+                    <a class="btn btn-primary btn-sm" [routerLink]="['/boarders/add']">Ajouter un pensionnaire</a>
+                </div>
+            </ng-template>
+            <ng-template value-template [visible-on-hover]="true" let-boarder="item">
+                <div class="details-column">
+                    <a class="btn btn-success btn-sm" [routerLink]="['/boarders/details/' + boarder.boarderId]">Détails</a>
+                </div>
+            </ng-template>
+        </list-table-column>
+        <div list-table-empty class="boarders-empty">
+            <a class="btn btn-primary" [routerLink]="['/boarders/add']">Ajouter un pensionnaire</a>
         </div>
-    </div>
-    <div class="form-group">
-        <div class="col-sm-offset-2 col-sm-10">
-            <button type="submit" class="btn btn-primary">Valider</button>
-        </div>
-    </div>
-</form>
+    </list-table>
+</div>

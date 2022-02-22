@@ -1,4 +1,4 @@
-import { AfterViewChecked, Component, ContentChild, ContentChildren, ElementRef, EventEmitter, Input, Output, QueryList, ViewEncapsulation } from '@angular/core';
+import { AfterViewChecked, Component, ContentChild, ContentChildren, Directive, ElementRef, EventEmitter, Input, Output, QueryList, TemplateRef, ViewEncapsulation } from '@angular/core';
 import { Observable } from 'rxjs';
 import { Modal } from 'bootstrap';
 
@@ -9,9 +9,42 @@ export enum EditMode {
 
 export type ObservableLike<T> = Observable<T> | { (): T } | { (): PromiseLike<T> };
 
+@Directive({
+  selector: '[list-table-empty]'
+})
+export class EmptyItemsContentDirective {
+  
+}
+
+@Directive({
+  selector: '[list-table-editor]'
+})
+export class EditorContentDirective {
+  constructor(public elementRef: ElementRef<HTMLElement>) {}
+}
+
+@Directive({
+  selector: '[value-template]',
+  inputs: ['visibleOnlyOnHover: visible-on-hover']
+})
+export class ColumnValueTemplateDirective {
+  constructor(public templateRef: TemplateRef<unknown>) {}
+  
+  visibleOnlyOnHover: boolean = false;
+}
+
+@Directive({
+  selector: '[column-header]',
+})
+export class ColumnHeaderDirective {
+  constructor(public templateRef: TemplateRef<unknown>) {}
+}
+
+export type ListTableColumnType = 'text' | 'checkbox';
+
 @Component({
   selector: 'list-table-column',
-  template: ``
+  template: ''
 })
 export class ListTableColumn {
   @Input() width: string = 'auto';
@@ -24,9 +57,13 @@ export class ListTableColumn {
 
   @Input() placeholder: string = '';
 
-  @Input() property: string | undefined;
+  @Input() property?: string;
 
-  @Input() type: string = 'text';
+  @Input() type: ListTableColumnType = 'text';
+
+  @ContentChild(ColumnValueTemplateDirective) valueTemplate?: ColumnValueTemplateDirective;
+
+  @ContentChild(ColumnHeaderDirective) headerContent?: ColumnHeaderDirective;
 
   getItemProperty<T>(item: T): string {
     if (this.property && this.property in item) {
@@ -86,14 +123,17 @@ export class ListTable implements AfterViewChecked {
 
   @ContentChildren(ListTableColumn) columns!: QueryList<ListTableColumn>;
 
-  @ContentChild('editor') editor: ElementRef<HTMLElement> | undefined;
+  @ContentChild(EditorContentDirective) editor?: EditorContentDirective;
+
+  @ContentChild(EmptyItemsContentDirective) emptyContent?: EmptyItemsContentDirective;
 
   getEditorForm(): HTMLFormElement | null {
-    if (this.editor?.nativeElement instanceof HTMLFormElement) {
-      return this.editor.nativeElement;
+    const editorElement = this.editor?.elementRef.nativeElement;
+    if (editorElement instanceof HTMLFormElement) {
+      return editorElement;
     }
     else {
-      return this.editor?.nativeElement.querySelector('form') || null;
+      return editorElement?.querySelector('form') || null;
     }
   }
   
@@ -138,7 +178,7 @@ export class ListTable implements AfterViewChecked {
 
   private focusFormOnNextUpdate() {
     const subscription = this.viewChecked.subscribe(() => {
-      this.getEditorForm()?.querySelector<HTMLInputElement>('input[autofocus]')?.focus();
+      this.getEditorForm()?.querySelector<HTMLInputElement>('[autofocus]')?.focus();
       subscription.unsubscribe();
     });
   }
@@ -154,6 +194,7 @@ export class ListTable implements AfterViewChecked {
   modifyItem(item: Object) {
     this.currentWorkingItem = item;
     this.currentEditMode = EditMode.ModifyItem;
+    this.focusFormOnNextUpdate();
   }
 
   /** Supprimer un élément de la liste avec demande de confirmation si nécessaire */
