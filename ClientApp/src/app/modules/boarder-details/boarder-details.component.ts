@@ -1,3 +1,4 @@
+import { HttpErrorResponse } from '@angular/common/http';
 import { Component, Input, OnInit } from '@angular/core';
 import { FormControl, FormGroup } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -16,8 +17,6 @@ export class BoarderDetailsComponent implements OnInit {
 
   @Input() edition: boolean = false;
 
-  @Input() boarderId?: number;
-
   boarder?: Boarder;
 
   boarderFormGroup: FormGroup = new FormGroup({
@@ -29,33 +28,23 @@ export class BoarderDetailsComponent implements OnInit {
     notesControl: new FormControl(),
   });
 
-  private getIdFromRoute(): number | undefined
-  {
-    const routeId = this._route.snapshot.paramMap.get('id');
-    if (routeId) {
-      return Number.parseInt(routeId);
-    }
-    return undefined;
-  }
-
   ngOnInit(): void {
-    this.boarderId = this.getIdFromRoute();
-    if (this.boarderId) {
-      const observable = this._service.details(this.boarderId);
-      observable.subscribe(b => {
-        this.boarderFormGroup.controls.nameControl.setValue(b.name);
-        this.boarderFormGroup.controls.nationalityControl.setValue(b.nationality);
-        this.boarderFormGroup.controls.phoneNumberControl.setValue(b.phoneNumber);
-        this.boarderFormGroup.controls.birthDateControl.setValue(b.birthDate ? dateToFormValue(b.birthDate) : undefined);
-        this.boarderFormGroup.controls.birthPlaceControl.setValue(b.birthPlace);
-        this.boarderFormGroup.controls.notesControl.setValue(b.notes);
-        this.boarder = b;
-      });
-    }
-    else {
-      // création : toujours en mode édition
-      this.edition = true;
-    }
+    this._route.data.subscribe(data => {
+      const boarder: Boarder | undefined = data['boarder'];
+      if (boarder) {
+        this.boarderFormGroup.controls.nameControl.setValue(boarder.name);
+        this.boarderFormGroup.controls.nationalityControl.setValue(boarder.nationality);
+        this.boarderFormGroup.controls.phoneNumberControl.setValue(boarder.phoneNumber);
+        this.boarderFormGroup.controls.birthDateControl.setValue(boarder.birthDate ? dateToFormValue(boarder.birthDate) : undefined);
+        this.boarderFormGroup.controls.birthPlaceControl.setValue(boarder.birthPlace);
+        this.boarderFormGroup.controls.notesControl.setValue(boarder.notes);
+        this.boarder = boarder;
+      }
+      else {
+        // création : toujours en mode édition
+        this.edition = true;
+      }
+    }, console.error);
   }
 
   onSubmit() {
@@ -67,7 +56,7 @@ export class BoarderDetailsComponent implements OnInit {
     boarder.birthPlace = this.boarderFormGroup.controls.birthPlaceControl.value;
     boarder.notes = this.boarderFormGroup.controls.notesControl.value || '';
     this._service.createUpdate([boarder]).subscribe(() => {
-      if (this.boarderId !== undefined) {
+      if (this.boarder !== undefined) {
         this.setEditMode(false);
       }
       else {

@@ -10,20 +10,24 @@ import { AccountBooksComponent } from './modules/settings/account-books/account-
 import { AccountingEntriesComponent } from './modules/settings/accounting-entries/accounting-entries.component';
 import { BoardingRoomsComponent } from './modules/settings/boarding-rooms/boarding-rooms.component';
 import { BoarderDetailsComponent } from './modules/boarder-details/boarder-details.component';
+import { PageNotFoundComponent } from './modules/page-not-found/page-not-found.component';
+import { BoarderResolverService } from './shared/services/boarder-resolver.service';
 
 
 const appRoutes: Routes = [
   { path: '', component: HomeComponent, pathMatch: 'full' },
   { path: 'operations', component: OperationsComponent },
   { path: 'boarders/add', component: BoarderDetailsComponent },
-  { path: 'boarders/details/:id', component: BoarderDetailsComponent },
+  { path: 'boarders/details/:id', component: BoarderDetailsComponent, resolve: { boarder: BoarderResolverService } },
   { path: 'boarders/list', component: BoardersComponent },
-  { path: 'boarders',   redirectTo: 'boarders/list', pathMatch: 'full' },
+  { path: 'boarders', redirectTo: 'boarders/list', pathMatch: 'full' },
   { path: 'meals', component: MealsComponent },
   { path: 'settings/operators', component: OperatorsComponent },
   { path: 'settings/accounting-entries', component: AccountingEntriesComponent },
   { path: 'settings/account-books', component: AccountBooksComponent },
   { path: 'settings/boarding-rooms', component: BoardingRoomsComponent },
+
+  { path: '**', pathMatch: 'full', component: PageNotFoundComponent },
 ];
 
 @NgModule({
@@ -36,6 +40,9 @@ const appRoutes: Routes = [
   ],
   exports: [
     RouterModule
+  ],
+  declarations: [
+    PageNotFoundComponent
   ]
 })
 export class AppRoutingModule { }
