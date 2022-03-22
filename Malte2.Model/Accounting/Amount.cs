@@ -23,9 +23,14 @@ namespace Malte2.Model.Accounting
             this._amount = 0;
         }
 
-        private Amount(long amount)
+        public Amount(long amount)
         {
             _amount = amount;
+        }
+
+        public long GetLong()
+        {
+            return _amount;
         }
 
         public override string ToString()

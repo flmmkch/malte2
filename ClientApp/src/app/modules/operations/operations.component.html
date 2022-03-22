@@ -1,47 +1,77 @@
 <h1 id="tableLabel">Opérations comptables</h1>
 
-<p *ngIf="!items"><em>Chargement...</em></p>
-
-<div *ngIf="items">
-  <table class="table table-striped table-hover" aria-labelledby="tableLabel">
-    <colgroup>
-      <col span="1" style="width: 4em;">
-      <col span="1" style="width: auto;">
-      <col span="1" style="width: 4em;">
-      <col span="1" style="width: 6em;">
-      <col span="1" style="width: 6em;">
-      <col span="1" style="width: 6em;">
-      <col span="1" style="width: 6em;">
-      <col span="1" style="width: 6em;">
-      <col span="1" style="width: 6em;">
-   </colgroup>
-
-    <thead>
-      <tr>
-        <th scope="col">Montant</th>
-        <th scope="col">Libellé</th>
-        <th scope="col">Date</th>
-        <th scope="col">Opérateur</th>
-        <th scope="col" title="Moyen de paiement" data-toggle="tooltip" data-placement="bottom">Moy. Pay.</th>
-        <th scope="col">Imputation</th>
-        <th scope="col">Pensionnaire</th>
-        <th scope="col"></th>
-        <th scope="col"></th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr *ngFor="let item of items">
-        <td>{{ item.label }}</td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td><button class="btn btn-sm btn-secondary visible-on-table-row-hover disabled" (click)="modifyItem(item)">Modifier</button></td>
-        <td><button class="btn btn-sm btn-danger visible-on-table-row-hover disabled" (click)="deleteItem(item)">Supprimer</button></td>
-      </tr>
-    </tbody>
-  </table>  
-
+<div>
+    <list-table #listTable
+        [items]="itemsDisplayed"
+        confirmDeleteMessage="Supprimer l'opération ?"
+        >
+        <list-table-column width="8em" title="Date" property="dateTime"></list-table-column>
+        <list-table-column width="8em" title="Montant" property="amount"></list-table-column>
+        <list-table-column width="10em" title="Livre" property="accountBookName"></list-table-column>
+        <list-table-column width="12em" title="Imputation" property="accountingEntryName"></list-table-column>
+        <list-table-column width="auto" title="Libellé" property="label"></list-table-column>
+        <list-table-column width="12em" title="Opérateur" property="operatorName"></list-table-column>
+        <div list-table-editor>
+          <form [formGroup]="opsFormGroup" (ngSubmit)="onSubmit()">
+            <div class="form-group">
+              <label for="dateTimeInput" class="form-label col-2">Date</label>
+              <input type="date" formControlName="dateTimeCtrl" id="dateTimeInput" class="form-control col-offset-2 col-10"/>
+            </div>
+            <div class="form-group">
+              <label for="amountInput" class="form-label col-2">Montant (€)</label>
+              <input type="text" formControlName="amountCtrl" id="amountInput" class="form-control col-offset-2 col-10"
+                placeholder="136,53" autofocus />
+            </div>
+            <div class="form-group">
+              <label for="paymentMethodSelect" class="form-label col-2">Moyen de paiement</label>
+              <select class="form-control col-offset-2 col-10" formControlName="paymentMethodCtrl" id="paymentMethodSelect">
+                <option *ngFor="let paymentMethod of paymentMethods" value="{{ paymentMethod }}">{{ paymentMethodString(paymentMethod) }}</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="bookSelect" class="form-label col-2">Livre comptable</label>
+              <select class="form-control col-offset-2 col-10" formControlName="bookCtrl" id="bookSelect">
+                <option *ngFor="let book of accountBookList" value="{{ book.id }}">{{ book.label }}</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="entrySelect" class="form-label col-2">Imputation comptable</label>
+              <select class="form-control col-offset-2 col-10" formControlName="entryCtrl" id="entrySelect">
+                <option *ngFor="let entry of accountingEntryList" value="{{ entry.id }}">{{ entry.label }}</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="operSelect" class="form-label col-2">Opérateur</label>
+              <select class="form-control col-offset-2 col-10" formControlName="operCtrl" id="operSelect">
+                <option *ngFor="let oper of operatorList" value="{{ oper.id }}">{{ oper.name }}</option>
+              </select>
+            </div>
+            <div class="form-group" [style.display]="workingItemEntryDependsOnBoarder ? '' : 'none'">
+              <label for="boarderSelect" class="form-label col-2">Pensionnaire</label>
+              <select class="form-control col-offset-2 col-10" formControlName="boarderCtrl" id="boarderSelect">
+                <option *ngFor="let boarder of boarderList" value="{{ boarder.boarderId }}">{{ boarder.name }}</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="labelInput" class="form-label col-2">Libellé</label>
+              <input type="text" class="form-control col-offset-2 col-10" formControlName="labelCtrl" id="labelInput"/>
+            </div>
+            <div class="form-group"
+                *ngIf="formValidationErrorMessage"
+                >
+                <p class="form-validation-error-message">
+                    {{ formValidationErrorMessage }}
+                </p>
+            </div>
+            <div class="row">
+              <div class="col-sm-12 col-lg-1">
+                <input type="submit" class="btn btn-primary" value="{{ listTable.validateButtonLabel }}" />
+              </div>
+              <div class="col-sm-12 col-lg-1">
+                <input type="reset" class="btn btn-secondary" (click)="listTable.cancelEdit()" value="Annuler" />
+              </div>
+            </div>
+          </form>
+        </div>
+    </list-table>
 </div>

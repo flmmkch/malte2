@@ -37,7 +37,7 @@ namespace Malte2.Services
                         {
                             BoarderId = reader.GetInt64(reader.GetOrdinal("boarder_id")),
                             Name = reader.GetString(reader.GetOrdinal("name")),
-                            RoomName = GetNullableStringFromReader(reader, reader.GetOrdinal("room_name")),
+                            RoomName = DatabaseValueUtils.GetNullableStringFromReader(reader, reader.GetOrdinal("room_name")),
                         };
                         yield return itemResponse;
                     }
@@ -71,44 +71,14 @@ namespace Malte2.Services
                             Name = reader.GetString(reader.GetOrdinal("name")),
                             Nationality = reader.GetString(reader.GetOrdinal("nationality")),
                             PhoneNumber = reader.GetString(reader.GetOrdinal("phone_number")),
-                            BirthDate = GetNullableDateFromReader(reader, reader.GetOrdinal("birth_date")),
-                            BirthPlace = GetNullableStringFromReader(reader, reader.GetOrdinal("birth_place")),
+                            BirthDate = DateTimeDatabaseUtils.GetNullableDateFromReader(reader, reader.GetOrdinal("birth_date")),
+                            BirthPlace = DatabaseValueUtils.GetNullableStringFromReader(reader, reader.GetOrdinal("birth_place")),
                             Notes = reader.GetString(reader.GetOrdinal("notes")),
                             TotalAmountDeposited = Amount.FromString(reader.GetString(reader.GetOrdinal("total_amount_deposited")))
                         };
                         return boarder;
                     }
                 }
-            }
-            return null;
-        }
-
-        private static DateTime GetDateFromReader(DbDataReader reader, int columnNumber)
-        {
-            string dateString = reader.GetString(columnNumber);
-            return DateTime.Parse(dateString, System.Globalization.CultureInfo.InvariantCulture);
-        }
-
-        private static DateTime? GetNullableDateFromReader(DbDataReader reader, int columnNumber)
-        {
-            if (reader.IsDBNull(columnNumber)) {
-                return null;
-            }
-            return GetDateFromReader(reader, columnNumber);
-        }
-
-        private static string? GetNullableStringFromReader(DbDataReader reader, int columnNumber)
-        {
-            if (reader.IsDBNull(columnNumber)) {
-                return null;
-            }
-            return reader.GetString(columnNumber);
-        }
-
-        private static string? GetStringFromNullableDate(DateTime? date)
-        {
-            if (date != null) {
-                return date.Value.ToString("s");
             }
             return null;
         }
@@ -160,7 +130,7 @@ namespace Malte2.Services
                         command.Parameters.AddWithValue("nationality", boarder.Nationality);
                         command.Parameters.AddWithValue("phone_number", boarder.PhoneNumber);
                         command.Parameters.AddWithValue("birth_place", boarder.BirthPlace);
-                        command.Parameters.AddWithValue("birth_date", GetStringFromNullableDate(boarder.BirthDate));
+                        command.Parameters.AddWithValue("birth_date", DateTimeDatabaseUtils.GetStringFromNullableDate(boarder.BirthDate));
                         command.Parameters.AddWithValue("notes", boarder.Notes);
                         command.Parameters.AddWithValue("total_amount_deposited", boarder.TotalAmountDeposited.ToString());
                         await command.ExecuteNonQueryAsync();

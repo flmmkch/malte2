@@ -17,7 +17,13 @@ export class BoarderDetailsComponent implements OnInit {
 
   @Input() edition: boolean = false;
 
-  boarder?: Boarder;
+  public boarder?: Boarder;
+
+  private _formValidationErrorMessage?: string;
+
+  public get formValidationErrorMessage(): string | undefined {
+    return this._formValidationErrorMessage;
+  }
 
   boarderFormGroup: FormGroup = new FormGroup({
     nameControl: new FormControl(),
@@ -29,6 +35,7 @@ export class BoarderDetailsComponent implements OnInit {
   });
 
   ngOnInit(): void {
+    this.resetValidationErrorMessage();
     this._route.data.subscribe(data => {
       const boarder: Boarder | undefined = data['boarder'];
       if (boarder) {
@@ -44,7 +51,7 @@ export class BoarderDetailsComponent implements OnInit {
         // création : toujours en mode édition
         this.edition = true;
       }
-    }, console.error);
+    }, e => this.resetValidationErrorMessage(e));
   }
 
   onSubmit() {
@@ -58,11 +65,12 @@ export class BoarderDetailsComponent implements OnInit {
     this._service.createUpdate([boarder]).subscribe(() => {
       if (this.boarder !== undefined) {
         this.setEditMode(false);
+        this.resetValidationErrorMessage();
       }
       else {
         this.navigateToBoarderList();
       }
-    }, console.error);
+    }, e => this.resetValidationErrorMessage(e));
   }
 
   setEditMode(edition: boolean) {
@@ -73,11 +81,31 @@ export class BoarderDetailsComponent implements OnInit {
     if (this.boarder) {
       this._service.delete([this.boarder]).subscribe(() => {
         this.navigateToBoarderList();
-      }, console.error);
+      }, e => this.resetValidationErrorMessage(e));
     }
   }
 
   navigateToBoarderList() {
     this._router.navigate(['/boarders']);
+  }
+
+  resetValidationErrorMessage(e?: any) {
+    if (e) {
+      if (typeof e === 'string') {
+        this._formValidationErrorMessage = e;
+      }
+      else if (e instanceof Error) {
+        this._formValidationErrorMessage = e.message;
+      }
+      else if (e instanceof HttpErrorResponse) {
+        this._formValidationErrorMessage = e.statusText;
+      }
+      else {
+        this._formValidationErrorMessage = JSON.stringify(e); 
+      }
+    }
+    else {
+      this._formValidationErrorMessage = undefined;
+    }
   }
 }

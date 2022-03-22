@@ -88,6 +88,7 @@ CREATE TABLE operation(
     operation_id INTEGER PRIMARY KEY,
     operator_id INTEGER NOT NULL REFERENCES operator(operator_id),
     accounting_entry_id INTEGER NOT NULL REFERENCES accounting_entry(accounting_entry_id),
+    account_book_id INTEGER NOT NULL REFERENCES account_book(account_book_id),
     date TEXT NOT NULL,
     label TEXT NOT NULL,
     payment_method INTEGER NOT NULL,

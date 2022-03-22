@@ -11,6 +11,8 @@ namespace Malte2.Model.Accounting
     {
         [JsonPropertyName("id")]
         public long? Id { get; set; } = null;
+        [JsonPropertyName("a")]
+        public Amount Amount { get; set; } = new Amount();
         [JsonPropertyName("op")]
         public long OperatorId { get; set; }
         [JsonPropertyName("dt")]
@@ -23,8 +25,8 @@ namespace Malte2.Model.Accounting
         [JsonPropertyName("b")]
         public long AccountBookId { get; set; }
         /// <summary>Numéro de chèque optionnel (uniquement pour les paiements par chèque)</summary>
-        [JsonPropertyName("pm")]
-        public string? PaymentMethodInfo { get; set; }
+        [JsonPropertyName("pi")]
+        public string PaymentMethodInfo { get; set; } = "";
         [JsonPropertyName("l")]
         public string Label { get; set; } = "";
         [JsonPropertyName("bd")]
