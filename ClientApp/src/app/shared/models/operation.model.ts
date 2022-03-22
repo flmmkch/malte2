@@ -23,5 +23,7 @@ export class Operation {
     /** Pensionnaire */
     public boarderId?: number;
     /** Détails de la méthode de paiement */
-    public paymentMethodInfo: string = '';
+    public checkNumber?: bigint;
+    public cardNumber?: string;
+    public transferNumber?: bigint;
 }

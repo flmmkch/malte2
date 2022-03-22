@@ -20,7 +20,7 @@ import { DictionaryById, listToDictionary, listToDictionaryWithFunc } from 'src/
 import { ListTable, SetCurrentWorkingItemEventArgs } from '../list-table/list-table.component';
 
 export interface OperationDisplay {
-    operation?: Operation;
+    operation: Operation;
     amount: string;
     accountingEntryName: string;
     accountBookName: string;
@@ -77,7 +77,9 @@ export class OperationsComponent implements OnInit, AfterViewInit {
         labelCtrl: new FormControl(),
         boarderCtrl: new FormControl(),
         paymentMethodCtrl: new FormControl(PaymentMethod.Cash),
-        paymentMethodDetailsCtrl: new FormControl(),
+        paymentCheckNbCtrl: new FormControl(),
+        paymentCardNbCtrl: new FormControl(),
+        paymentTransferNbCtrl: new FormControl(),
     });
 
     constructor(private readonly _opService: OperationService,
@@ -114,17 +116,23 @@ export class OperationsComponent implements OnInit, AfterViewInit {
                 this.listTable.addItem();
             }
             const orderedOps = ops.slice();
-            orderedOps.sort((op1, op2) => op2.dateTime.getTime() - op1.dateTime.getTime());
+            orderedOps.sort((op1, op2) => {
+                const timeDiff = op2.dateTime.getTime() - op1.dateTime.getTime();
+                if (timeDiff !== 0) {
+                    return timeDiff;
+                }
+                return (op2.id || 0) - (op1.id || 0);
+            });
             this.itemsDisplayed = orderedOps.map(op => this.createOperationDisplay(op, opers, books, entries, boarders));
         }, console.error);
         return operationsLoaded.toPromise();
     }
 
     createOperationDisplay(op: Operation, opers: DictionaryById<Operator> = this.operators, books: DictionaryById<AccountBook> = this.accountBooks, entries: DictionaryById<AccountingEntry> = this.accountingEntries, boarders: DictionaryById<BoarderListItem> = this.boarders): OperationDisplay {
-        const accountBookName = books[op.accountBookId].label;
-        const accountingEntryName = entries[op.accountingEntryId].label;
-        const operatorName = op.operatorId ? opers[op.operatorId].name : '';
-        const boarderName = op.boarderId ? boarders[op.boarderId].name : '';
+        const accountBookName = op.accountBookId in books ? books[op.accountBookId].label : '';
+        const accountingEntryName = op.accountingEntryId in entries ? entries[op.accountingEntryId].label : '';
+        const operatorName = op.operatorId in opers ? opers[op.operatorId].name : '';
+        const boarderName = op.boarderId && op.boarderId in boarders ? boarders[op.boarderId].name : '';
         const opDisplay: OperationDisplay = {
             operation: op,
             amount: op.amount.toStringLocale(),
@@ -139,19 +147,30 @@ export class OperationsComponent implements OnInit, AfterViewInit {
         return opDisplay;
     }
 
+    private createNewOpDisplay(copyOldOpDisplay?: OperationDisplay): OperationDisplay {
+        let operation = new Operation(undefined, Amount.from(0)!, -1, PaymentMethod.Card, -1, -1);
+        if (copyOldOpDisplay && copyOldOpDisplay.operation) {
+            operation.accountBookId = copyOldOpDisplay.operation.accountBookId;
+            operation.accountingEntryId = copyOldOpDisplay.operation.accountingEntryId;
+            operation.boarderId = copyOldOpDisplay.operation.boarderId;
+            operation.dateTime = copyOldOpDisplay.operation.dateTime;
+            operation.label = copyOldOpDisplay.operation.label;
+            operation.operatorId = copyOldOpDisplay.operation.operatorId;
+            operation.paymentMethod = copyOldOpDisplay.operation.paymentMethod;
+            operation.checkNumber = copyOldOpDisplay.operation.checkNumber ? copyOldOpDisplay.operation.checkNumber + BigInt(1) : undefined;
+            operation.cardNumber = copyOldOpDisplay.operation.cardNumber;
+            operation.transferNumber = copyOldOpDisplay.operation.transferNumber ? copyOldOpDisplay.operation.transferNumber + BigInt(1) : undefined;
+        }
+        const opDisplay = this.createOperationDisplay(operation);
+        opDisplay.amount = '';
+        return opDisplay;
+    }
+
     ngAfterViewInit(): void {
-        this.listTable.onCreate.subscribe((): OperationDisplay => {
-            return {
-                amount: '',
-                accountBookName: '',
-                accountingEntryName: '',
-                boarderName: '',
-                dateTime: new Date().toLocaleDateString(),
-                label: '',
-                operation: undefined,
-                operatorName: '',
-                paymentMethod: PaymentMethod[this.opsFormGroup.controls.paymentMethodCtrl.value],
-            };
+        this.listTable.onCreate.subscribe(() => {
+            let oldOpDisplay = this.itemsDisplayed.length > 0 ? this.itemsDisplayed[0] : undefined;
+            let opDisplay: OperationDisplay = this.createNewOpDisplay(oldOpDisplay);
+            this.listTable.currentWorkingItem = opDisplay;
         });
         this.listTable.onDelete.subscribe((op: OperationDisplay) => this.delete(op));
         this.listTable.onSetWorkingItem.subscribe((e: SetCurrentWorkingItemEventArgs<OperationDisplay>) => {
@@ -165,6 +184,9 @@ export class OperationsComponent implements OnInit, AfterViewInit {
                 this.opsFormGroup.controls.boarderCtrl.setValue(e.value.operation.boarderId !== undefined ? e.value.operation.boarderId : undefined);
                 this.opsFormGroup.controls.paymentMethodCtrl.setValue(e.value.operation.paymentMethod);
                 this.opsFormGroup.controls.labelCtrl.setValue(e.value.operation.label);
+                this.opsFormGroup.controls.paymentCheckNbCtrl.setValue(e.value.operation.checkNumber?.toString());
+                this.opsFormGroup.controls.paymentCardNbCtrl.setValue(e.value.operation.cardNumber);
+                this.opsFormGroup.controls.paymentTransferNbCtrl.setValue(e.value.operation.transferNumber?.toString());
             }
             else {
                 this.opsFormGroup.controls.dateTimeCtrl.setValue(dateToFormValue(new Date()));
@@ -177,71 +199,107 @@ export class OperationsComponent implements OnInit, AfterViewInit {
     public onSubmit() {
         const isNewItem = this.listTable.editingNewItem();
         const opDisplay = this.listTable.currentWorkingItem as OperationDisplay | null;
-        const amount = this.opsFormGroup.controls.amountCtrl.value ? Amount.fromStringLocale(this.opsFormGroup.controls.amountCtrl.value) : undefined;
-        if (!amount) {
-            this.resetValidationErrorMessage(`Le montant est invalide.`);
-            return;
-        }
-        const accountBookId = Number.parseInt(this.opsFormGroup.controls.bookCtrl.value);
-        if (!(accountBookId in this.accountBooks)) {
-            this.resetValidationErrorMessage(`Le livre comptable est invalide.`);
-            return;
-        }
-        const accountingEntryId = Number.parseInt(this.opsFormGroup.controls.entryCtrl.value);
-        if (!(accountingEntryId in this.accountingEntries)) {
-            this.resetValidationErrorMessage(`L'imputation comptable est invalide.`);
-            return;
-        }
-        const paymentMethod: PaymentMethod = Number.parseInt(this.opsFormGroup.controls.paymentMethodCtrl.value);
-        if (!(paymentMethod in PaymentMethod)) {
-            this.resetValidationErrorMessage(`Le moyen de paiement est invalide.`);
-            return;
-        }
-        const operatorId = Number.parseInt(this.opsFormGroup.controls.operCtrl.value);
-        if (!(operatorId in this.operators)) {
-            this.resetValidationErrorMessage(`L'opérateur est invalide.`);
-            return;
-        }
-        let op = opDisplay?.operation;
-        if (!op) {
-            op = new Operation(undefined, amount, accountingEntryId, paymentMethod, accountBookId, operatorId);
-            if (opDisplay) {
-                opDisplay.operation = op;
+        if (opDisplay) {
+            const amount = this.opsFormGroup.controls.amountCtrl.value ? Amount.fromStringLocale(this.opsFormGroup.controls.amountCtrl.value) : undefined;
+            if (!amount) {
+                this.resetValidationErrorMessage(`Le montant est invalide.`);
+                return;
             }
-        }
-        else {
+            const accountBookId = Number.parseInt(this.opsFormGroup.controls.bookCtrl.value);
+            if (!(accountBookId in this.accountBooks)) {
+                this.resetValidationErrorMessage(`Le livre comptable est invalide.`);
+                return;
+            }
+            const accountingEntryId = Number.parseInt(this.opsFormGroup.controls.entryCtrl.value);
+            if (!(accountingEntryId in this.accountingEntries)) {
+                this.resetValidationErrorMessage(`L'imputation comptable est invalide.`);
+                return;
+            }
+            const paymentMethod: PaymentMethod = Number.parseInt(this.opsFormGroup.controls.paymentMethodCtrl.value);
+            if (!(paymentMethod in PaymentMethod)) {
+                this.resetValidationErrorMessage(`Le moyen de paiement est invalide.`);
+                return;
+            }
+            const operatorId = Number.parseInt(this.opsFormGroup.controls.operCtrl.value);
+            if (!(operatorId in this.operators)) {
+                this.resetValidationErrorMessage(`L'opérateur est invalide.`);
+                return;
+            }
+            let op = opDisplay.operation;
             op.amount = amount;
             op.accountBookId = accountBookId;
             op.accountingEntryId = accountingEntryId;
             op.paymentMethod = paymentMethod;
             op.operatorId = operatorId;
-        }
-        if (!this.opsFormGroup.controls.dateTimeCtrl.value) {
-            this.resetValidationErrorMessage(`La date est invalide.`);
-            return;
-        }
-        op.dateTime = formValueToDate(this.opsFormGroup.controls.dateTimeCtrl.value);
-        const accountingEntry = this.accountingEntries[op.accountingEntryId];
-        if (accountingEntry.dependsOnBoarder && this.opsFormGroup.controls.boarderCtrl.value && this.opsFormGroup.controls.boarderCtrl.value != "") {
-            op.boarderId = Number.parseInt(this.opsFormGroup.controls.boarderCtrl.value);
-        }
-        else {
-            op.boarderId = undefined;
-        }
-        op.label = this.opsFormGroup.controls.labelCtrl.value || '';
-
-        this._opService.createUpdate([op]).subscribe(() => {
-            this.resetValidationErrorMessage();
-            if (isNewItem) {
-                this.listTable.addItem();
-                this.opsFormGroup.controls.amountCtrl.setValue(undefined);
+            if (!this.opsFormGroup.controls.dateTimeCtrl.value) {
+                this.resetValidationErrorMessage(`La date est invalide.`);
+                return;
+            }
+            op.dateTime = formValueToDate(this.opsFormGroup.controls.dateTimeCtrl.value);
+            const accountingEntry = this.accountingEntries[op.accountingEntryId];
+            if (accountingEntry.dependsOnBoarder && this.opsFormGroup.controls.boarderCtrl.value && this.opsFormGroup.controls.boarderCtrl.value != "") {
+                op.boarderId = Number.parseInt(this.opsFormGroup.controls.boarderCtrl.value);
             }
             else {
-                this.opsFormGroup.reset();
-                this.listTable.cancelEdit();
+                op.boarderId = undefined;
             }
-            this.load();
-        }, err => this.resetValidationErrorMessage(err));
+            op.label = this.opsFormGroup.controls.labelCtrl.value || '';
+            // détails du paiement
+            if (op.paymentMethod === PaymentMethod.Check) {
+                op.checkNumber = undefined;
+                if (this.opsFormGroup.controls.paymentCheckNbCtrl.value) {
+                    try {
+                        op.checkNumber = BigInt(this.opsFormGroup.controls.paymentCheckNbCtrl.value)
+                    }
+                    catch {
+                        // nothing
+                    }
+                }
+                if (op.checkNumber === undefined) {
+                    this.resetValidationErrorMessage(`Le numéro de chèque est invalide.`);
+                    return;
+                }
+            }
+            else {
+                op.checkNumber = undefined;
+            }
+
+            if (op.paymentMethod === PaymentMethod.Card) {
+                op.cardNumber = this.opsFormGroup.controls.paymentCardNbCtrl.value;
+            }
+            else {
+                op.cardNumber = undefined;
+            }
+
+            if (op.paymentMethod === PaymentMethod.Transfer) {
+                op.transferNumber = undefined;
+                if (this.opsFormGroup.controls.paymentTransferNbCtrl.value) {
+                    try {
+                        op.transferNumber = BigInt(this.opsFormGroup.controls.paymentTransferNbCtrl.value)
+                    }
+                    catch {
+                        // nothing
+                    }
+                }
+            }
+            else {
+                op.transferNumber = undefined;
+            }
+    
+            this._opService.createUpdate([op]).subscribe(() => {
+                this.resetValidationErrorMessage();
+                if (isNewItem) {
+                    this.listTable.addItem();
+                    const oldOpDisplay = this.createOperationDisplay(op!);
+                    let opDisplay: OperationDisplay = this.createNewOpDisplay(oldOpDisplay);
+                    this.listTable.currentWorkingItem = opDisplay;
+                }
+                else {
+                    this.listTable.cancelEdit();
+                }
+                this.load();
+            }, err => this.resetValidationErrorMessage(err));
+        }
     }
 
     public delete(opDisplay: OperationDisplay) {
@@ -259,6 +317,28 @@ export class OperationsComponent implements OnInit, AfterViewInit {
             }
         }
         return false;
+    }
+
+    public get workingItemIsCheckPayment(): boolean {
+        return this.workingItemPaymentMethod == PaymentMethod.Check;
+    }
+
+    public get workingItemIsCardPayment(): boolean {
+        return this.workingItemPaymentMethod == PaymentMethod.Card;
+    }
+
+    public get workingItemIsTransferPayment(): boolean {
+        return this.workingItemPaymentMethod == PaymentMethod.Transfer;
+    }
+
+    public get workingItemPaymentMethod(): PaymentMethod | undefined {
+        if (this.opsFormGroup.controls.paymentMethodCtrl.value !== undefined) {
+            const paymentMethod: PaymentMethod = Number.parseInt(this.opsFormGroup.controls.paymentMethodCtrl.value);
+            if (paymentMethod in PaymentMethod) {
+                return paymentMethod;
+            }
+        }
+        return undefined;
     }
 
     private _formValidationErrorMessage?: string;

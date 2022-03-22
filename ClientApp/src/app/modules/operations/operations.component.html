@@ -7,6 +7,7 @@
         >
         <list-table-column width="8em" title="Date" property="dateTime"></list-table-column>
         <list-table-column width="8em" title="Montant" property="amount"></list-table-column>
+        <list-table-column width="8em" title="Moy. Pay." property="paymentMethod"></list-table-column>
         <list-table-column width="10em" title="Livre" property="accountBookName"></list-table-column>
         <list-table-column width="12em" title="Imputation" property="accountingEntryName"></list-table-column>
         <list-table-column width="auto" title="Libellé" property="label"></list-table-column>
@@ -51,6 +52,21 @@
               <select class="form-control col-offset-2 col-10" formControlName="boarderCtrl" id="boarderSelect">
                 <option *ngFor="let boarder of boarderList" value="{{ boarder.boarderId }}">{{ boarder.name }}</option>
               </select>
+            </div>
+            <div class="form-group" [style.display]="workingItemIsCheckPayment ? '' : 'none'">
+              <label for="paymentCheckNbInput" class="form-label col-2">Numéro de chèque</label>
+              <input type="text" class="form-control col-offset-2 col-10" formControlName="paymentCheckNbCtrl" id="paymentCheckNbInput"
+              />
+            </div>
+            <div class="form-group" [style.display]="workingItemIsCardPayment ? '' : 'none'">
+              <label for="paymentCardNbInput" class="form-label col-2">Numéro de carte</label>
+              <input type="text" class="form-control col-offset-2 col-10" formControlName="paymentCardNbCtrl" id="paymentCardNbInput"
+              />
+            </div>
+            <div class="form-group" [style.display]="workingItemIsTransferPayment ? '' : 'none'">
+              <label for="paymentTransferNbInput" class="form-label col-2">Numéro de virement</label>
+              <input type="text" class="form-control col-offset-2 col-10" formControlName="paymentTransferNbCtrl" id="paymentTransferNbInput"
+              />
             </div>
             <div class="form-group">
               <label for="labelInput" class="form-label col-2">Libellé</label>

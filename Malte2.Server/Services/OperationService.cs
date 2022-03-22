@@ -27,7 +27,9 @@ namespace Malte2.Services
             label,
             boarder_id,
             payment_method,
-            payment_method_info,
+            check_number,
+            transfer_number,
+            card_number,
             account_book_id,
             amount
             FROM operation ORDER BY operation_id ASC;";
@@ -46,7 +48,9 @@ namespace Malte2.Services
                             Label = reader.GetString(reader.GetOrdinal("label")),
                             BoarderId = DatabaseValueUtils.GetNullableInt64FromReader(reader, reader.GetOrdinal("boarder_id")),
                             PaymentMethod = (PaymentMethod) Enum.ToObject(typeof(PaymentMethod), reader.GetInt64(reader.GetOrdinal("payment_method"))),
-                            PaymentMethodInfo = reader.GetString(reader.GetOrdinal("payment_method_info")),
+                            CheckNumber = DatabaseValueUtils.GetNullableInt64FromReader(reader, reader.GetOrdinal("check_number")),
+                            TransferNumber = DatabaseValueUtils.GetNullableInt64FromReader(reader, reader.GetOrdinal("transfer_number")),
+                            CardNumber = DatabaseValueUtils.GetNullableStringFromReader(reader, reader.GetOrdinal("card_number")),
                             AccountBookId = reader.GetInt64(reader.GetOrdinal("account_book_id")),
                             Amount = new Amount(reader.GetInt64(reader.GetOrdinal("amount"))),
                         };
@@ -72,7 +76,9 @@ namespace Malte2.Services
                         label = :label,
                         boarder_id = :boarder_id,
                         payment_method = :payment_method,
-                        payment_method_info = :payment_method_info,
+                        check_number = :check_number,
+                        card_number = :card_number,
+                        transfer_number = :transfer_number,
                         account_book_id = :account_book_id,
                         amount = :amount
                         WHERE operation_id = :operation_id";
@@ -86,7 +92,9 @@ namespace Malte2.Services
                             label,
                             boarder_id,
                             payment_method,
-                            payment_method_info,
+                            check_number,
+                            card_number,
+                            transfer_number,
                             account_book_id,
                             amount
                             ) VALUES (
@@ -96,7 +104,9 @@ namespace Malte2.Services
                             :label,
                             :boarder_id,
                             :payment_method,
-                            :payment_method_info,
+                            :check_number,
+                            :card_number,
+                            :transfer_number,
                             :account_book_id,
                             :amount
                             )";
@@ -113,7 +123,9 @@ namespace Malte2.Services
                         command.Parameters.AddWithValue("label", operation.Label);
                         command.Parameters.AddWithValue("boarder_id", operation.BoarderId);
                         command.Parameters.AddWithValue("payment_method", operation.PaymentMethod);
-                        command.Parameters.AddWithValue("payment_method_info", operation.PaymentMethodInfo);
+                        command.Parameters.AddWithValue("check_number", operation.CheckNumber);
+                        command.Parameters.AddWithValue("card_number", operation.CardNumber);
+                        command.Parameters.AddWithValue("transfer_number", operation.TransferNumber);
                         command.Parameters.AddWithValue("account_book_id", operation.AccountBookId);
                         command.Parameters.AddWithValue("amount", operation.Amount.GetLong());
                         await command.ExecuteNonQueryAsync();

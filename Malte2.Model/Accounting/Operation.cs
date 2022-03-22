@@ -24,13 +24,16 @@ namespace Malte2.Model.Accounting
         public PaymentMethod PaymentMethod { get; set; }
         [JsonPropertyName("b")]
         public long AccountBookId { get; set; }
-        /// <summary>Numéro de chèque optionnel (uniquement pour les paiements par chèque)</summary>
-        [JsonPropertyName("pi")]
-        public string PaymentMethodInfo { get; set; } = "";
         [JsonPropertyName("l")]
         public string Label { get; set; } = "";
         [JsonPropertyName("bd")]
         public long? BoarderId { get; set; }
+        [JsonPropertyName("pkn")]
+        public long? CheckNumber { get; set; }
+        [JsonPropertyName("ptn")]
+        public long? TransferNumber { get; set; }
+        [JsonPropertyName("pcn")]
+        public string? CardNumber { get; set; }
     }
 
 }

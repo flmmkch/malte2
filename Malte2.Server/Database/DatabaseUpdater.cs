@@ -94,7 +94,11 @@ CREATE TABLE operation(
     payment_method INTEGER NOT NULL,
     payment_method_info TEXT NOT NULL DEFAULT '',
     boarder_id INTEGER REFERENCES boarder(boarder_id),
-    amount INTEGER NOT NULL
+    amount INTEGER NOT NULL,
+    check_number INTEGER NULL UNIQUE,
+    transfer_number INTEGER NULL UNIQUE,
+    card_number TEXT NULL,
+    CHECK (payment_method <> 1 OR check_number IS NOT NULL)
 );
 CREATE TABLE meal(
     meal_id INTEGER PRIMARY KEY,
