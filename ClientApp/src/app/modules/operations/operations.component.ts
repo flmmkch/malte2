@@ -1,8 +1,9 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { AfterViewInit, Component, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, EventEmitter, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
 import { FormControl, FormGroup } from '@angular/forms';
-import { Observable } from 'rxjs';
-import { map } from 'rxjs/internal/operators/map';
+import { NgbDate, NgbDatepicker, NgbDatepickerI18n, NgbDatepickerI18nDefault, NgbDatepickerNavigateEvent } from '@ng-bootstrap/ng-bootstrap';
+import { BehaviorSubject, forkJoin, Observable } from 'rxjs';
+import { combineLatestWith, map } from 'rxjs/operators';
 import { AccountBook } from 'src/app/shared/models/account-book.model';
 import { AccountingEntry } from 'src/app/shared/models/accounting-entry.model';
 import { Amount } from 'src/app/shared/models/amount.model';
@@ -15,7 +16,7 @@ import { AccountingEntryService } from 'src/app/shared/services/accounting-entry
 import { BoarderService } from 'src/app/shared/services/boarder.service';
 import { OperationService } from 'src/app/shared/services/operation.service';
 import { OperatorService } from 'src/app/shared/services/operator.service';
-import { dateToFormValue, formValueToDate } from 'src/app/shared/utils/date-time-form-conversion';
+import { datePickerValueToDate, dateRangeFromDatepickerDate, dateRangeFromDatepickerMonthYear, dateToDatePickerValue } from 'src/app/shared/utils/date-time-form-conversion';
 import { DictionaryById, listToDictionary, listToDictionaryWithFunc } from 'src/app/shared/utils/dictionary-by-id';
 import { ListTable, SetCurrentWorkingItemEventArgs } from '../list-table/list-table.component';
 
@@ -31,9 +32,18 @@ export interface OperationDisplay {
     paymentMethod: string;
 }
 
+export interface ContextDicts {
+    operators: DictionaryById<Operator>;
+    books: DictionaryById<AccountBook>;
+    entries: DictionaryById<AccountingEntry>;
+    boarders: DictionaryById<BoarderListItem>;
+}
+
 @Component({
     selector: 'app-operations',
     templateUrl: './operations.component.html',
+    styleUrls: ['./operations.component.css'],
+    providers: [{ provide: NgbDatepickerI18n, useClass: NgbDatepickerI18nDefault }]
 })
 export class OperationsComponent implements OnInit, AfterViewInit {
     public items: Operation[] = [];
@@ -72,7 +82,7 @@ export class OperationsComponent implements OnInit, AfterViewInit {
         amountCtrl: new FormControl(),
         entryCtrl: new FormControl(),
         bookCtrl: new FormControl(),
-        dateTimeCtrl: new FormControl(dateToFormValue(new Date())),
+        dateTimeCtrl: new FormControl(),
         operCtrl: new FormControl(),
         labelCtrl: new FormControl(),
         boarderCtrl: new FormControl(),
@@ -89,43 +99,93 @@ export class OperationsComponent implements OnInit, AfterViewInit {
         private readonly _boarderService: BoarderService,
 
     ) {
+        this._contexts = this.loadContext();
     }
+
+    private _contexts: Observable<ContextDicts>;
+
+    private _reloader = new BehaviorSubject(null);
+
+    private _dateNavigation: EventEmitter<[Date, Date]> = new EventEmitter();
+
+    private _currentDateRange!: [Date, Date];
 
     ngOnInit(): void {
-        this.loadContext()
-            .then(ctxt => this.load(ctxt));
-    }
-
-    public loadContext(): Promise<[DictionaryById<Operator>, DictionaryById<AccountBook>, DictionaryById<AccountingEntry>, DictionaryById<BoarderListItem>]> {
-        const operatorsLoaded = this._operatorService.get().pipe(map(listToDictionary));
-        operatorsLoaded.subscribe(opers => this.operators = opers, console.error);
-        const accountBooksLoaded = this._accountBookService.get().pipe(map(listToDictionary));
-        accountBooksLoaded.subscribe(books => this.accountBooks = books, console.error);
-        const accountingEntriesLoaded = this._accountingEntryService.get().pipe(map(listToDictionary));
-        accountingEntriesLoaded.subscribe(entries => this.accountingEntries = entries, console.error);
-        const boardersLoaded = this._boarderService.list().pipe(map(l => listToDictionaryWithFunc(l, boarderItem => boarderItem.boarderId)));
-        boardersLoaded.subscribe(boarders => this.boarders = boarders, console.error);
-        return Promise.all([operatorsLoaded.toPromise(), accountBooksLoaded.toPromise(), accountingEntriesLoaded.toPromise(), boardersLoaded.toPromise()]);
-    }
-
-    public load([opers, books, entries, boarders]: [DictionaryById<Operator>, DictionaryById<AccountBook>, DictionaryById<AccountingEntry>, DictionaryById<BoarderListItem>] = [this.operators, this.accountBooks, this.accountingEntries, this.boarders]): Promise<Operation[]> {
-        const operationsLoaded: Observable<Operation[]> = this._opService.get();
-        operationsLoaded.subscribe(ops => {
-            this.items = ops;
-            if (ops.length === 0) {
-                this.listTable.addItem();
-            }
-            const orderedOps = ops.slice();
-            orderedOps.sort((op1, op2) => {
-                const timeDiff = op2.dateTime.getTime() - op1.dateTime.getTime();
-                if (timeDiff !== 0) {
-                    return timeDiff;
-                }
-                return (op2.id || 0) - (op1.id || 0);
+        const operationsLoaded: Observable<Operation[]> = this._opService.getOnDateRange(this._dateNavigation);
+        operationsLoaded
+            .pipe(combineLatestWith(this._contexts, this._reloader))
+            .subscribe({
+                next: ([ops, context]) => this.rebuildOperations(ops, context),
+                error: console.error,
             });
-            this.itemsDisplayed = orderedOps.map(op => this.createOperationDisplay(op, opers, books, entries, boarders));
-        }, console.error);
-        return operationsLoaded.toPromise();
+            
+        this._dateNavigation.subscribe(([dateBegin, dateEnd]) => this._currentDateRange = [dateBegin, dateEnd]);
+    }
+
+    public loadContext(): Observable<ContextDicts> {
+        const operatorsLoaded = this._operatorService.get().pipe(map(listToDictionary));
+        operatorsLoaded.subscribe({ next: opers => this.operators = opers, error: console.error });
+        const accountBooksLoaded = this._accountBookService.get().pipe(map(listToDictionary));
+        accountBooksLoaded.subscribe({ next: books => this.accountBooks = books, error: console.error });
+        const accountingEntriesLoaded = this._accountingEntryService.get().pipe(map(listToDictionary));
+        accountingEntriesLoaded.subscribe({ next: entries => this.accountingEntries = entries, error: console.error });
+        const boardersLoaded = this._boarderService.list().pipe(map(l => listToDictionaryWithFunc(l, boarderItem => boarderItem.boarderId)));
+        boardersLoaded.subscribe({ next: boarders => this.boarders = boarders, error: console.error });
+        return forkJoin({
+            operators: operatorsLoaded,
+            books: accountBooksLoaded,
+            entries: accountingEntriesLoaded,
+            boarders: boardersLoaded,
+        });
+    }
+
+    private rebuildOperations(ops: Operation[], { operators, books, entries, boarders }: ContextDicts) {
+        this.items = ops;
+        if (ops.length === 0) {
+            this.listTable.addItem();
+        }
+        else {
+            this.listTable.cancelEdit();
+        }
+        const orderedOps = ops.slice();
+        orderedOps.sort((op1, op2) => {
+            const timeDiff = op2.dateTime.getTime() - op1.dateTime.getTime();
+            if (timeDiff !== 0) {
+                return timeDiff;
+            }
+            return (op2.id || 0) - (op1.id || 0);
+        });
+        this.itemsDisplayed = orderedOps.map(op => this.createOperationDisplay(op, operators, books, entries, boarders));
+    }
+
+    public dateNavigation(event: NgbDatepickerNavigateEvent) {
+        const [dateBegin, dateEnd] = dateRangeFromDatepickerMonthYear(event.next);
+        const date = this.opsFormGroup.controls.dateTimeCtrl.value ? datePickerValueToDate(this.opsFormGroup.controls.dateTimeCtrl.value) : undefined;
+        if (date && dateBegin.getMonth() != date.getMonth()) {
+            this.opsFormGroup.controls.dateTimeCtrl.setValue(dateToDatePickerValue(dateBegin));
+        }
+        this._lastOperationEntered = undefined;
+        this._dateNavigation.emit([dateBegin, dateEnd]);
+    }
+
+    @ViewChild('dateNavigator') dateNavigator!: NgbDatepicker;
+
+    dateNavigatorFormCtrl = new FormControl();
+
+    public dateSelection(eventDate: NgbDate) {
+        this.opsFormGroup.controls.dateTimeCtrl.setValue(eventDate);
+        const [dateBegin, dateEnd] = dateRangeFromDatepickerDate(eventDate);
+        if (this._currentDateRange[0].getTime() === dateBegin.getTime() && this._currentDateRange[1].getTime() === dateEnd.getTime()) {
+            dateBegin.setDate(1);
+            dateEnd.setMonth(dateBegin.getMonth() + 1);
+            dateEnd.setSeconds(dateEnd.getSeconds() - 1);
+            this._dateNavigation.emit([dateBegin, dateEnd]);
+            this.dateNavigator.writeValue(new NgbDate(1, 1, 1));
+            this.dateNavigatorFormCtrl.reset();
+        }
+        else {
+            this._dateNavigation.emit([dateBegin, dateEnd]);
+        }
     }
 
     createOperationDisplay(op: Operation, opers: DictionaryById<Operator> = this.operators, books: DictionaryById<AccountBook> = this.accountBooks, entries: DictionaryById<AccountingEntry> = this.accountingEntries, boarders: DictionaryById<BoarderListItem> = this.boarders): OperationDisplay {
@@ -161,22 +221,26 @@ export class OperationsComponent implements OnInit, AfterViewInit {
             operation.cardNumber = copyOldOpDisplay.operation.cardNumber;
             operation.transferNumber = copyOldOpDisplay.operation.transferNumber ? copyOldOpDisplay.operation.transferNumber + BigInt(1) : undefined;
         }
+        else {
+            operation.dateTime = this.opsFormGroup.controls.dateTimeCtrl.value ? datePickerValueToDate(this.opsFormGroup.controls.dateTimeCtrl.value) : new Date();
+        }
         const opDisplay = this.createOperationDisplay(operation);
         opDisplay.amount = '';
         return opDisplay;
     }
 
+    private _lastOperationEntered?: OperationDisplay;
+
     ngAfterViewInit(): void {
         this.listTable.onCreate.subscribe(() => {
-            let oldOpDisplay = this.itemsDisplayed.length > 0 ? this.itemsDisplayed[0] : undefined;
-            let opDisplay: OperationDisplay = this.createNewOpDisplay(oldOpDisplay);
+            let opDisplay: OperationDisplay = this.createNewOpDisplay(this._lastOperationEntered);
             this.listTable.currentWorkingItem = opDisplay;
         });
         this.listTable.onDelete.subscribe((op: OperationDisplay) => this.delete(op));
         this.listTable.onSetWorkingItem.subscribe((e: SetCurrentWorkingItemEventArgs<OperationDisplay>) => {
             this.resetValidationErrorMessage();
             if (e.value && e.value.operation) {
-                this.opsFormGroup.controls.dateTimeCtrl.setValue(dateToFormValue(e.value.operation.dateTime));
+                this.opsFormGroup.controls.dateTimeCtrl.setValue(dateToDatePickerValue(e.value.operation.dateTime));
                 this.opsFormGroup.controls.amountCtrl.setValue(e.value.amount);
                 this.opsFormGroup.controls.bookCtrl.setValue(e.value.operation.accountBookId);
                 this.opsFormGroup.controls.entryCtrl.setValue(e.value.operation.accountingEntryId);
@@ -189,7 +253,6 @@ export class OperationsComponent implements OnInit, AfterViewInit {
                 this.opsFormGroup.controls.paymentTransferNbCtrl.setValue(e.value.operation.transferNumber?.toString());
             }
             else {
-                this.opsFormGroup.controls.dateTimeCtrl.setValue(dateToFormValue(new Date()));
                 this.opsFormGroup.controls.amountCtrl.setValue(undefined);
             }
         });
@@ -235,7 +298,7 @@ export class OperationsComponent implements OnInit, AfterViewInit {
                 this.resetValidationErrorMessage(`La date est invalide.`);
                 return;
             }
-            op.dateTime = formValueToDate(this.opsFormGroup.controls.dateTimeCtrl.value);
+            op.dateTime = datePickerValueToDate(this.opsFormGroup.controls.dateTimeCtrl.value);
             const accountingEntry = this.accountingEntries[op.accountingEntryId];
             if (accountingEntry.dependsOnBoarder && this.opsFormGroup.controls.boarderCtrl.value && this.opsFormGroup.controls.boarderCtrl.value != "") {
                 op.boarderId = Number.parseInt(this.opsFormGroup.controls.boarderCtrl.value);
@@ -285,26 +348,34 @@ export class OperationsComponent implements OnInit, AfterViewInit {
             else {
                 op.transferNumber = undefined;
             }
-    
-            this._opService.createUpdate([op]).subscribe(() => {
-                this.resetValidationErrorMessage();
-                if (isNewItem) {
-                    this.listTable.addItem();
-                    const oldOpDisplay = this.createOperationDisplay(op!);
-                    let opDisplay: OperationDisplay = this.createNewOpDisplay(oldOpDisplay);
-                    this.listTable.currentWorkingItem = opDisplay;
-                }
-                else {
-                    this.listTable.cancelEdit();
-                }
-                this.load();
-            }, err => this.resetValidationErrorMessage(err));
+            this._lastOperationEntered = opDisplay;
+
+            this._opService.createUpdate([op]).subscribe({
+                next: () => {
+                    this.resetValidationErrorMessage();
+                    if (isNewItem) {
+                        this.listTable.addItem();
+                        const oldOpDisplay = this.createOperationDisplay(op!);
+                        let opDisplay: OperationDisplay = this.createNewOpDisplay(oldOpDisplay);
+                        this.listTable.currentWorkingItem = opDisplay;
+                    }
+                    else {
+                        this.listTable.cancelEdit();
+                    }
+                    this.reload();
+                },
+                error: err => this.resetValidationErrorMessage(err)
+            });
         }
+    }
+
+    public reload() {
+        this._reloader.next(null);
     }
 
     public delete(opDisplay: OperationDisplay) {
         if (opDisplay.operation?.id !== undefined) {
-            this._opService.delete([opDisplay.operation]).subscribe(() => this.load(), console.error);
+            this._opService.delete([opDisplay.operation]).subscribe({ next: () => this.reload(), error: console.error });
         }
     }
 

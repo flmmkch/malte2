@@ -17,7 +17,7 @@ namespace Malte2.Services
             _logger = logger;
         }
 
-        public async IAsyncEnumerable<Operation> GetItems()
+        public async IAsyncEnumerable<Operation> GetItems(DateTime? dateStart, DateTime? dateEnd)
         {
             string commandText = @"SELECT
             operation_id,
@@ -32,9 +32,14 @@ namespace Malte2.Services
             card_number,
             account_book_id,
             amount
-            FROM operation ORDER BY operation_id ASC;";
+            FROM operation
+            WHERE (:date_start IS NULL OR :date_start <= date) AND (:date_end IS NULL OR :date_end >= date)
+            ORDER BY operation_id ASC;";
+            commandText = commandText + @" ORDER BY operation_id ASC;";
             using (var command = new SQLiteCommand(commandText, _databaseContext.Connection))
             {
+                command.Parameters.AddWithValue("date_start", DateTimeDatabaseUtils.GetStringFromNullableDate(dateStart));
+                command.Parameters.AddWithValue("date_end", DateTimeDatabaseUtils.GetStringFromNullableDate(dateEnd));
                 using (var reader = await command.ExecuteReaderAsync())
                 {
                     while (await reader.ReadAsync())

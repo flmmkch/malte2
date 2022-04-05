@@ -22,11 +22,7 @@ namespace Malte2.Controllers
         [HttpGet]
         public IAsyncEnumerable<BoarderListItemResponse> List([FromQuery(Name = "occupancyDate")] string? roomOccupancyDateTimeString = null)
         {
-            DateTime roomOccupancyDateTime = DateTime.Now;
-            if (roomOccupancyDateTimeString != null)
-            {
-                roomOccupancyDateTime = DateTime.Parse(roomOccupancyDateTimeString);
-            }
+            DateTime roomOccupancyDateTime = roomOccupancyDateTimeString != null ? DateTime.Parse(roomOccupancyDateTimeString) : DateTime.Now;
             return _boarderService.GetItemList(roomOccupancyDateTime);
         }
 

@@ -10,6 +10,9 @@
           "strict": true
         }
       },
+      "i18n": {
+        "sourceLocale": "fr"
+      },
       "root": "",
       "sourceRoot": "src",
       "prefix": "app",
@@ -29,7 +32,8 @@
             "styles": [
               "node_modules/bootstrap/dist/css/bootstrap.min.css",
               "src/styles.css"
-            ]
+            ],
+            "localize": true
           },
           "configurations": {
             "production": {

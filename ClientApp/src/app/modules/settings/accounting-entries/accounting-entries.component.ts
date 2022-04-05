@@ -1,5 +1,6 @@
 import { AfterViewInit, Component, OnInit, ViewChild } from '@angular/core';
 import { FormControl, FormGroup } from '@angular/forms';
+import { Observable } from 'rxjs';
 import { ListTable, SetCurrentWorkingItemEventArgs } from 'src/app/modules/list-table/list-table.component';
 import { AccountingEntry, EntryType } from 'src/app/shared/models/accounting-entry.model';
 import { AccountingEntryService } from 'src/app/shared/services/accounting-entry.service';
@@ -27,13 +28,12 @@ export class AccountingEntriesComponent implements OnInit, AfterViewInit {
     return this._currentLoadingPromise;
   }
 
-  load(): Promise<AccountingEntry[]> {
+  load(): Observable<AccountingEntry[]> {
     let observable = this._service.get();
     observable.subscribe(i => {
       this.items = i;
     });
-    this._currentLoadingPromise = observable.toPromise();
-    return this._currentLoadingPromise;
+    return observable;
   }
 
 

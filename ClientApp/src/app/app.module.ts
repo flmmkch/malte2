@@ -1,5 +1,5 @@
 import { BrowserModule } from '@angular/platform-browser';
-import { NgModule } from '@angular/core';
+import { LOCALE_ID, NgModule } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HttpClientModule } from '@angular/common/http';
 import { ReactiveFormsModule } from '@angular/forms';  
@@ -13,7 +13,7 @@ import { MealsComponent } from './modules/meals/meals.component';
 import { OperationsComponent } from './modules/operations/operations.component';
 import { BoardersComponent } from './modules/boarders/boarders.component';
 import { CommonModule } from '@angular/common';
-import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
+import { NgbDatepickerModule, NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { AccountBooksComponent } from './modules/settings/account-books/account-books.component';
 import { BoardingRoomsComponent } from './modules/settings/boarding-rooms/boarding-rooms.component';
 import { BoarderDetailsComponent } from './modules/boarder-details/boarder-details.component';
@@ -44,7 +44,7 @@ import { ListTableModule } from './modules/list-table/list-table.module';
     AppRoutingModule,
     ListTableModule,
   ],
-  providers: [],
+  providers: [{provide: LOCALE_ID, useValue: 'fr'}],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

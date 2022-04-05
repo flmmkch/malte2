@@ -1,5 +1,5 @@
-<h1 *ngIf="boarder">Pensionnaire : {{ boarder.name }}</h1>
-<h1 *ngIf="!boarder">Nouveau pensionnaire</h1>
+<h1 *ngIf="boarder" class="d-flex justify-content-center mb-4">Pensionnaire : {{ boarder.name }}</h1>
+<h1 *ngIf="!boarder" class="d-flex justify-content-center mb-4">Nouveau pensionnaire</h1>
 <form [formGroup]="boarderFormGroup" (ngSubmit)="onSubmit()">
     <div class="form-group">
         <label for="boarderNameInput" class="form-label col-2">Nom</label>

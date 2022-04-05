@@ -1,5 +1,6 @@
 import { AfterViewInit, Component, OnInit, ViewChild } from '@angular/core';
 import { FormControl, FormGroup } from '@angular/forms';
+import { Observable } from 'rxjs';
 import { ListTable, SetCurrentWorkingItemEventArgs } from 'src/app/modules/list-table/list-table.component';
 import { BoardingRoom } from 'src/app/shared/models/boarding-room.model';
 import { BoardingRoomService } from 'src/app/shared/services/boarding-room.service';
@@ -19,14 +20,7 @@ export class BoardingRoomsComponent implements OnInit, AfterViewInit {
 
   @ViewChild('listTable') listTable!: ListTable;
 
-  
-  private _currentLoadingPromise?: Promise<BoardingRoom[]>;
-
-  public get currentLoadingPromise(): Promise<BoardingRoom[]> | undefined {
-    return this._currentLoadingPromise;
-  }
-
-  load(): Promise<BoardingRoom[]> {
+  load(): Observable<BoardingRoom[]> {
     let observable = this._service.get();
     observable.subscribe(items => {
       this.items = items;
@@ -34,10 +28,8 @@ export class BoardingRoomsComponent implements OnInit, AfterViewInit {
         this.listTable.addItem();
       }
     });
-    this._currentLoadingPromise = observable.toPromise();
-    return this._currentLoadingPromise;
+    return observable;
   }
-
 
   delete(boardingRoom: BoardingRoom) {
     if (boardingRoom.id) {

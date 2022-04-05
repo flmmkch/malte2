@@ -1,5 +1,6 @@
 import { AfterViewInit, Component, OnInit, ViewChild } from '@angular/core';
 import { FormControl, FormGroup } from '@angular/forms';
+import { Observable } from 'rxjs';
 import { ListTable, SetCurrentWorkingItemEventArgs } from 'src/app/modules/list-table/list-table.component';
 import { AccountBook } from 'src/app/shared/models/account-book.model';
 import { AccountBookService } from 'src/app/shared/services/account-book.service';
@@ -10,7 +11,7 @@ import { AccountBookService } from 'src/app/shared/services/account-book.service
 })
 export class AccountBooksComponent implements OnInit, AfterViewInit {
   public items?: AccountBook[];
-  
+
   readonly formGroup = new FormGroup({
     labelControl: new FormControl(),
   });
@@ -19,14 +20,7 @@ export class AccountBooksComponent implements OnInit, AfterViewInit {
 
   @ViewChild('listTable') listTable!: ListTable;
 
-  
-  private _currentLoadingPromise?: Promise<AccountBook[]>;
-
-  public get currentLoadingPromise(): Promise<AccountBook[]> | undefined {
-    return this._currentLoadingPromise;
-  }
-
-  load(): Promise<AccountBook[]> {
+  load(): Observable<AccountBook[]> {
     let observable = this._service.get();
     observable.subscribe(items => {
       this.items = items;
@@ -34,19 +28,18 @@ export class AccountBooksComponent implements OnInit, AfterViewInit {
         this.listTable.addItem();
       }
     });
-    this._currentLoadingPromise = observable.toPromise();
-    return this._currentLoadingPromise;
+    return observable;
   }
 
 
   delete(accountBook: AccountBook) {
     if (accountBook.id) {
-      this._service.delete([accountBook]).subscribe(() => this.load(), console.error);
+      this._service.delete([accountBook]).subscribe({ next: () => this.load(), error: console.error });
     }
   }
 
   ngOnInit(): void {
-      this.load();
+    this.load();
   }
 
   ngAfterViewInit(): void {

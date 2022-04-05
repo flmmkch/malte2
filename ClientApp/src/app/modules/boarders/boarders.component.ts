@@ -1,5 +1,6 @@
 
 import { Component, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
+import { Observable } from 'rxjs';
 import { ListTable } from 'src/app/modules/list-table/list-table.component';
 import { BoarderListItem } from 'src/app/shared/models/boarder.model';
 import { BoarderService } from 'src/app/shared/services/boarder.service';
@@ -17,21 +18,13 @@ export class BoardersComponent implements OnInit {
 
   @ViewChild('listTable') listTable!: ListTable;
 
-  
-  private _currentLoadingPromise?: Promise<BoarderListItem[]>;
-
-  public get currentLoadingPromise(): Promise<BoarderListItem[]> | undefined {
-    return this._currentLoadingPromise;
-  }
-
-  load(): Promise<BoarderListItem[]> {
+  load(): Observable<BoarderListItem[]> {
     const today = new Date();
     const observable = this._service.list(today);
     observable.subscribe(items => {
       this.items = items;
     });
-    this._currentLoadingPromise = observable.toPromise();
-    return this._currentLoadingPromise;
+    return observable;
   }
 
   ngOnInit(): void {

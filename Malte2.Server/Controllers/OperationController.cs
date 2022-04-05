@@ -20,9 +20,11 @@ namespace Malte2.Controllers
         }
 
         [HttpGet]
-        public IAsyncEnumerable<Operation> Get()
+        public IAsyncEnumerable<Operation> Get([FromQuery(Name = "dateStart")] string? dateStartString = null, [FromQuery(Name = "dateEnd")] string? dateEndString = null)
         {
-            return _operationService.GetItems();
+            DateTime? dateStart = dateStartString != null ? DateTime.Parse(dateStartString) : null;
+            DateTime? dateEnd = dateEndString != null ? DateTime.Parse(dateEndString) : null;
+            return _operationService.GetItems(dateStart, dateEnd);
         }
 
         [HttpPost]

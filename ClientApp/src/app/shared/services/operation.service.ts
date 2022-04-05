@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { exhaustAll, map } from 'rxjs/operators';
 import { Amount } from '../models/amount.model';
 import { Operation } from '../models/operation.model';
 import { PaymentMethod } from '../models/payment-method.model';
@@ -14,11 +14,21 @@ export class OperationService {
   constructor(private readonly _http: HttpClient, @Inject('BASE_URL') readonly baseUrl: string) {
   }
 
-  get(): Observable<Operation[]> {
+  get(dateRange?: [Date?, Date?]): Observable<Operation[]> {
     let args: string = '?';
+    if (dateRange && dateRange[0]) {
+      args = args + `&dateStart=${dateRange[0].toISOString()}`;
+    }
+    if (dateRange && dateRange[1]) {
+      args = args + `&dateEnd=${dateRange[1].toISOString()}`;
+    }
     return this._http
       .get<OperationJson[]>(this.baseUrl + `api/operation/get${args}`)
       .pipe(map(operationsJson => operationsJson.map(fromJson)));
+  }
+
+  getOnDateRange(dateRangeObservable: Observable<[Date, Date]>): Observable<Operation[]> {
+    return dateRangeObservable.pipe(map((dateRange) => this.get(dateRange)), exhaustAll());
   }
 
   createUpdate(operations: [Operation]): Observable<Object> {
