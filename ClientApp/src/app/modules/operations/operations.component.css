@@ -1,0 +1,16 @@
+.amount-total-label {
+    font-weight: bold;
+}
+
+.amount-total-value {
+    color: darkslategray;
+    font-weight: bold;
+}
+
+.amount-total-value.plus {
+    color: darkgreen;
+}
+
+.amount-total-value.minus {
+    color: darkred;
+}

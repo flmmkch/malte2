@@ -5,7 +5,7 @@ import { NgbDate, NgbDatepicker, NgbDatepickerI18n, NgbDatepickerI18nDefault, Ng
 import { BehaviorSubject, forkJoin, Observable } from 'rxjs';
 import { combineLatestWith, map } from 'rxjs/operators';
 import { AccountBook } from 'src/app/shared/models/account-book.model';
-import { AccountingEntry } from 'src/app/shared/models/accounting-entry.model';
+import { AccountingEntry, EntryType } from 'src/app/shared/models/accounting-entry.model';
 import { Amount } from 'src/app/shared/models/amount.model';
 import { BoarderListItem } from 'src/app/shared/models/boarder.model';
 import { Operation } from 'src/app/shared/models/operation.model';
@@ -160,6 +160,7 @@ export class OperationsComponent implements OnInit, AfterViewInit {
             return (op2.id || 0) - (op1.id || 0);
         });
         this.itemsDisplayed = orderedOps.map(op => this.createOperationDisplay(op, operators, books, entries, boarders));
+        this.recalculateTotals(orderedOps);
     }
 
     public dateNavigation(event: NgbDatepickerNavigateEvent) {
@@ -199,7 +200,7 @@ export class OperationsComponent implements OnInit, AfterViewInit {
         const boarderName = op.boarderId && op.boarderId in boarders ? boarders[op.boarderId].name : '';
         const opDisplay: OperationDisplay = {
             operation: op,
-            amount: op.amount.toStringLocale(),
+            amount: op.amount.toLocaleString(),
             accountBookName: accountBookName,
             accountingEntryName: accountingEntryName,
             dateTime: op.dateTime.toLocaleDateString(),
@@ -441,4 +442,29 @@ export class OperationsComponent implements OnInit, AfterViewInit {
             this._formValidationErrorMessage = undefined;
         }
     }
+
+    private calculateTotal(ops: Operation[], entryType: EntryType): Amount {
+        interface OpEntry {
+            operation: Operation,
+            accountingEntry: AccountingEntry,
+        }
+        return ops
+            .map(op => <OpEntry> { operation: op, accountingEntry: this.accountingEntries[op.accountingEntryId] })
+            .filter(({ accountingEntry }) => accountingEntry.entryType == entryType)
+            .map(({ operation }) => operation.amount)
+            .reduce((prev, cur) => prev.add(cur), Amount.from(0)!)
+            ;
+    }
+
+    private recalculateTotals(ops: Operation[]) {
+        this.totalDisplayedRevenue = this.calculateTotal(ops, EntryType.Revenue);
+        this.totalDisplayedExpense = this.calculateTotal(ops, EntryType.Expense);
+        this.totalDisplayedBalance = this.totalDisplayedRevenue.substract(this.totalDisplayedExpense);
+    }
+  
+    totalDisplayedRevenue: Amount = Amount.from(0)!;
+
+    totalDisplayedExpense: Amount = Amount.from(0)!;
+
+    totalDisplayedBalance: Amount = Amount.from(0)!;
 }

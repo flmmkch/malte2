@@ -56,7 +56,23 @@ export class Amount {
         return valueString;
     }
 
-    public toStringLocale(): string {
+    public toLocaleString(): string {
         return this.toString().replace(Amount.GLOBAL_DECIMAL_SEPARATOR, Amount.LOCAL_DECIMAL_SEPARATOR);
+    }
+
+    public add(amount: Amount): Amount {
+        return new Amount(this._value + amount._value);
+    }
+
+    public substract(amount: Amount): Amount {
+        return new Amount(this._value - amount._value);
+    }
+
+    public isStrictPositive(): boolean {
+        return this._value > 0;
+    }
+
+    public isStrictNegative(): boolean {
+        return this._value < 0;
     }
 }

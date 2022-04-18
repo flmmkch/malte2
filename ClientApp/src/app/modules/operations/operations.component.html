@@ -7,6 +7,38 @@
   [formControl]="dateNavigatorFormCtrl"></ngb-datepicker>
 </div>
 
+<div class="row mb-2">
+  <div class="col-sm-1 amount-total-label">
+    Recettes
+  </div>
+  <div class="col-sm-1 amount-total-value"
+    [class.plus]="totalDisplayedRevenue.isStrictPositive()"
+    >
+    {{ totalDisplayedRevenue.toLocaleString() }}
+  </div>
+</div>
+<div class="row mb-2">
+  <div class="col-sm-1 amount-total-label">
+    Dépenses
+  </div>
+  <div class="col-sm-1 amount-total-value"
+    [class.minus]="totalDisplayedExpense.isStrictPositive()"
+    >
+    {{ totalDisplayedExpense.toLocaleString() }}
+  </div>
+</div>
+<div class="row mb-2">
+  <div class="col-sm-1 amount-total-label">
+    Total
+  </div>
+  <div class="col-sm-1 amount-total-value"
+  [class.plus]="totalDisplayedBalance.isStrictPositive()"
+  [class.minus]="totalDisplayedBalance.isStrictNegative()"
+  >
+    {{ totalDisplayedBalance.toLocaleString() }}
+  </div>
+</div>
+
 <div>
     <list-table #listTable
         [items]="itemsDisplayed"
