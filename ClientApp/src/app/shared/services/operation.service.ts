@@ -18,10 +18,10 @@ export class OperationService {
   get(dateRange?: [Date?, Date?]): Observable<Operation[]> {
     let args: string = '?';
     if (dateRange && dateRange[0]) {
-      args = args + `&dateStart=${dateRange[0].toDateString()}`;
+      args = args + `&dateStart=${dateToSerializationString(dateRange[0])}`;
     }
     if (dateRange && dateRange[1]) {
-      args = args + `&dateEnd=${dateRange[1].toDateString()}`;
+      args = args + `&dateEnd=${dateToSerializationString(dateRange[1])}`;
     }
     return this._http
       .get<OperationJson[]>(this.baseUrl + `api/operation/get${args}`)

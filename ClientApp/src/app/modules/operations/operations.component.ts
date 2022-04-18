@@ -104,8 +104,6 @@ export class OperationsComponent implements OnInit, AfterViewInit {
 
     private _contexts: Observable<ContextDicts>;
 
-    private _reloader = new BehaviorSubject(null);
-
     private _dateNavigation: EventEmitter<[Date, Date]> = new EventEmitter();
 
     private _currentDateRange!: [Date, Date];
@@ -117,7 +115,7 @@ export class OperationsComponent implements OnInit, AfterViewInit {
     ngOnInit(): void {
         const operationsLoaded: Observable<Operation[]> = this._opService.getOnDateRange(this._dateNavigation);
         operationsLoaded
-            .pipe(combineLatestWith(this._contexts, this._reloader))
+            .pipe(combineLatestWith(this._contexts))
             .subscribe({
                 next: ([ops, context]) => this.rebuildOperations(ops, context),
                 error: console.error,
@@ -375,7 +373,7 @@ export class OperationsComponent implements OnInit, AfterViewInit {
     }
 
     public reload() {
-        this._reloader.next(null);
+        this._dateNavigation.emit(this._currentDateRange);
     }
 
     public delete(opDisplay: OperationDisplay) {
