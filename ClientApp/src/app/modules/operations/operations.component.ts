@@ -110,6 +110,10 @@ export class OperationsComponent implements OnInit, AfterViewInit {
 
     private _currentDateRange!: [Date, Date];
 
+    public get currentDateRange(): [Date, Date] {
+        return this._currentDateRange;
+    }
+
     ngOnInit(): void {
         const operationsLoaded: Observable<Operation[]> = this._opService.getOnDateRange(this._dateNavigation);
         operationsLoaded

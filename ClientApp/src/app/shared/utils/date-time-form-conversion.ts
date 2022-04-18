@@ -33,3 +33,7 @@ export function dateRangeFromDatepickerMonthYear(datepickerMonthYear: { month: n
     dateEnd.setSeconds(dateEnd.getSeconds() - 1);
     return [dateBegin, dateEnd];
 }
+
+export function dateToSerializationString(date: Date) {
+    return `${date.getUTCFullYear().toString().padStart(4, '0')}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}T00:00:00`;
+}

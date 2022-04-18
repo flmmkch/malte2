@@ -5,6 +5,7 @@ import { exhaustAll, map } from 'rxjs/operators';
 import { Amount } from '../models/amount.model';
 import { Operation } from '../models/operation.model';
 import { PaymentMethod } from '../models/payment-method.model';
+import { dateToSerializationString } from '../utils/date-time-form-conversion';
 
 @Injectable({
   providedIn: 'root'
@@ -17,10 +18,10 @@ export class OperationService {
   get(dateRange?: [Date?, Date?]): Observable<Operation[]> {
     let args: string = '?';
     if (dateRange && dateRange[0]) {
-      args = args + `&dateStart=${dateRange[0].toISOString()}`;
+      args = args + `&dateStart=${dateRange[0].toDateString()}`;
     }
     if (dateRange && dateRange[1]) {
-      args = args + `&dateEnd=${dateRange[1].toISOString()}`;
+      args = args + `&dateEnd=${dateRange[1].toDateString()}`;
     }
     return this._http
       .get<OperationJson[]>(this.baseUrl + `api/operation/get${args}`)
@@ -78,7 +79,7 @@ export function toJson(operation: Operation): OperationJson {
     id: operation.id,
     a: operation.amount.toString(),
     op: operation.operatorId,
-    dt: operation.dateTime.toISOString(),
+    dt: dateToSerializationString(operation.dateTime),
     ae: operation.accountingEntryId,
     b: operation.accountBookId,
     pm: operation.paymentMethod,

@@ -3,6 +3,7 @@ import { Inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { Boarder, BoarderListItem } from '../models/boarder.model';
+import { dateToSerializationString } from '../utils/date-time-form-conversion';
 
 @Injectable({
   providedIn: 'root'
@@ -21,7 +22,7 @@ export class BoarderService {
   list(occupancyDate?: Date): Observable<BoarderListItem[]> {
     let urlSuffix: string = '';
     if (occupancyDate) {
-      urlSuffix = `?occupancyDate=${occupancyDate.toISOString()}`;
+      urlSuffix = `?occupancyDate=${dateToSerializationString(occupancyDate)}`;
     }
     return this._http
       .get<BoarderListItemJson[]>(this.baseUrl + `api/boarder/list${urlSuffix}`)
@@ -67,7 +68,7 @@ export function toJson(boarder: Boarder): BoarderJson {
     id: boarder.id,
     n: boarder.name,
     na: boarder.nationality,
-    bd: boarder.birthDate?.toISOString(),
+    bd: boarder.birthDate? dateToSerializationString(boarder.birthDate) : undefined,
     bp: boarder.birthPlace,
     p: boarder.phoneNumber,
     m: boarder.notes,
