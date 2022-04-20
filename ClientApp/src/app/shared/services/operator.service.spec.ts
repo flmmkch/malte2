@@ -9,7 +9,7 @@ describe('OperatorService', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [HttpClientModule],
-      providers: [{ provide: 'BASE_URL', useValue: 'http://localhost/', deps: [] }]
+      providers: [{ provide: 'API_BASE_URL', useValue: 'http://localhost/', deps: [] }]
     });
     service = TestBed.inject(OperatorService);
   });

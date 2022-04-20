@@ -7,7 +7,7 @@ import { saveAs } from 'file-saver';
   templateUrl: './home.component.html',
 })
 export class HomeComponent {
-  constructor(private readonly _http: HttpClient, @Inject('BASE_URL') private readonly baseUrl: string) {
+  constructor(private readonly _http: HttpClient, @Inject('API_BASE_URL') private readonly baseUrl: string) {
   }
 
   generateEditionDownload() {

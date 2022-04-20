@@ -9,7 +9,7 @@ import { Operator } from '../models/operator.model';
 })
 export class OperatorService {
 
-  constructor(private readonly _http: HttpClient, @Inject('BASE_URL') readonly baseUrl: string) {
+  constructor(private readonly _http: HttpClient, @Inject('API_BASE_URL') readonly baseUrl: string) {
   }
 
   get(onlyEnabled: boolean = false): Observable<Operator[]> {

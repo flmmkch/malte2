@@ -12,7 +12,7 @@ import { dateToSerializationString } from '../utils/date-time-form-conversion';
 })
 export class OperationService {
 
-  constructor(private readonly _http: HttpClient, @Inject('BASE_URL') readonly baseUrl: string) {
+  constructor(private readonly _http: HttpClient, @Inject('API_BASE_URL') readonly baseUrl: string) {
   }
 
   get(dateRange?: [Date?, Date?]): Observable<Operation[]> {

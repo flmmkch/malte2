@@ -9,7 +9,7 @@ import { AccountingEntry, EntryType } from '../models/accounting-entry.model';
 })
 export class AccountingEntryService {
 
-  constructor(private readonly _http: HttpClient, @Inject('BASE_URL') readonly baseUrl: string) {
+  constructor(private readonly _http: HttpClient, @Inject('API_BASE_URL') readonly baseUrl: string) {
   }
 
   get(): Observable<AccountingEntry[]> {

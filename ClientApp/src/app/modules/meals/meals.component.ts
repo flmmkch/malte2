@@ -8,7 +8,7 @@ import { dateToFormValue } from 'src/app/shared/utils/date-time-form-conversion'
   templateUrl: './meals.component.html',
 })
 export class MealsComponent {
-  constructor(private readonly _http: HttpClient, @Inject('BASE_URL') private readonly baseUrl: string) {
+  constructor(private readonly _http: HttpClient, @Inject('API_BASE_URL') private readonly baseUrl: string) {
     this.currentDate = new Date();
   }
 
