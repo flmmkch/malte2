@@ -62,9 +62,3 @@ jobs:
           path: Malte2.zip
           # The desired behavior if no files are found using the provided path.
           if-no-files-found: error
-      
-      - name: Remove old artifacts
-        uses: c-hive/gha-remove-artifacts@v1
-        with:
-          age: '3 days'
-          skip-recent: 3
