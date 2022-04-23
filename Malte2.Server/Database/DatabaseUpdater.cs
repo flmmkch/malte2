@@ -5,6 +5,8 @@ namespace Malte2.Database
 
     public static class DatabaseUpdater
     {
+        public static readonly int DATABASE_VERSION = 2;
+
         public static void UpdateDatabase(DatabaseContext databaseContext)
         {
             var currentVersion = databaseContext.GetDatabaseVersion();
@@ -14,11 +16,20 @@ namespace Malte2.Database
                 if (!currentVersion.HasValue || currentVersion.Value < 0)
                 {
                     DatabaseUpdater.CreateDatabase(databaseContext, transaction);
+                    currentVersion = databaseContext.GetDatabaseVersion();
                     commitTransaction = true;
                 }
-                if (commitTransaction)
+                if (currentVersion == 1) {
+                    DatabaseUpdater.UpdateV1ToV2(databaseContext, transaction);
+                    currentVersion = databaseContext.GetDatabaseVersion();
+                    commitTransaction = true;
+                }
+                if (commitTransaction && currentVersion == DATABASE_VERSION)
                 {
                     transaction.Commit();
+                }
+                else if (commitTransaction) {
+                    throw new Exception($"Failed to update database version from {currentVersion}");
                 }
             }
         }
@@ -71,7 +82,7 @@ CREATE TABLE boarder(
 );
 CREATE TABLE boarder_deposit(
     boarder_deposit_id INTEGER PRIMARY KEY,
-    boarder_id NTEGER NOT NULL REFERENCES boarder(boarder_id),
+    boarder_id INTEGER NOT NULL REFERENCES boarder(boarder_id),
     deposit_type_id INTEGER NOT NULL REFERENCES deposit_type(deposit_type_id),
     amount TEXT NOT NULL
 );
@@ -92,7 +103,6 @@ CREATE TABLE operation(
     date TEXT NOT NULL,
     label TEXT NOT NULL,
     payment_method INTEGER NOT NULL,
-    payment_method_info TEXT NOT NULL DEFAULT '',
     boarder_id INTEGER REFERENCES boarder(boarder_id),
     amount INTEGER NOT NULL,
     check_number INTEGER NULL UNIQUE,
@@ -139,12 +149,57 @@ CREATE TABLE remission_cash(
             // default values
             databaseContext.UpdateDatabaseVersion(1, transaction);
         }
+
         private static void applyCommand(DatabaseContext databaseContext, SQLiteTransaction transaction, string commandSql)
         {
             using (SQLiteCommand command = new SQLiteCommand(commandSql, databaseContext.Connection, transaction))
             {
                 command.ExecuteNonQuery();
             }
+        }
+
+        private static void UpdateV1ToV2(DatabaseContext databaseContext, SQLiteTransaction transaction)
+        {
+            // upgrade tables
+            applyCommand(databaseContext, transaction, @"
+CREATE TABLE accounting_category(
+    accounting_category_id INTEGER PRIMARY KEY,
+    label TEXT NOT NULL
+);
+
+DROP TABLE boarder_deposit;
+
+CREATE TABLE boarder_deposit(
+    boarder_deposit_id INTEGER PRIMARY KEY,
+    boarder_id INTEGER NOT NULL REFERENCES boarder(boarder_id),
+    deposit_type_id INTEGER NOT NULL REFERENCES deposit_type(deposit_type_id),
+    amount TEXT NOT NULL
+);
+CREATE UNIQUE INDEX idx_boarder_deposit ON boarder_deposit(boarder_id, deposit_type_id);
+
+ALTER TABLE operation ADD COLUMN category_id INTEGER NULL REFERENCES accounting_category(accounting_category_id);
+
+ALTER TABLE operation ADD COLUMN card_ticket_number INTEGER NULL;
+
+UPDATE operation SET card_ticket_number = CAST(card_number as INTEGER) WHERE card_number IS NOT NULL; 
+
+ALTER TABLE operation DROP COLUMN card_number;
+
+CREATE INDEX idx_operation_by_boarder ON operation(boarder_id, date) WHERE boarder_id NOT NULL;
+
+CREATE INDEX idx_operation_by_payment_method ON operation(payment_method, date);
+
+CREATE INDEX idx_operation_by_date ON operation(date, operation_id);
+
+ALTER TABLE operation ADD COLUMN details TEXT NOT NULL DEFAULT '';
+
+ALTER TABLE operation ADD COLUMN invoice TEXT;
+
+ALTER TABLE operation DROP COLUMN payment_method_info;
+
+");
+            // update database version
+            databaseContext.UpdateDatabaseVersion(2, transaction);
         }
 
     }

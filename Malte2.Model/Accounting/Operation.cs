@@ -20,6 +20,8 @@ namespace Malte2.Model.Accounting
         /// <summary>Imputation comptable</summary>
         [JsonPropertyName("ae")]
         public long AccountingEntryId { get; set; }
+        [JsonPropertyName("ac")]
+        public long? AccountingCategoryId { get; set; }
         [JsonPropertyName("pm")]
         public PaymentMethod PaymentMethod { get; set; }
         [JsonPropertyName("b")]
@@ -32,8 +34,12 @@ namespace Malte2.Model.Accounting
         public long? CheckNumber { get; set; }
         [JsonPropertyName("ptn")]
         public long? TransferNumber { get; set; }
-        [JsonPropertyName("pcn")]
-        public string? CardNumber { get; set; }
+        [JsonPropertyName("ctn")]
+        public long? CardTicketNumber { get; set; }
+        [JsonPropertyName("d")]
+        public string Details { get; set; } = "";
+        [JsonPropertyName("iv")]
+        public string? Invoice { get; set; }
     }
 
 }

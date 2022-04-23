@@ -23,14 +23,17 @@ namespace Malte2.Services
             operation_id,
             operator_id,
             accounting_entry_id,
+            category_id,
             date,
             label,
             boarder_id,
             payment_method,
             check_number,
             transfer_number,
-            card_number,
+            card_ticket_number,
             account_book_id,
+            details,
+            invoice,
             amount
             FROM operation
             WHERE (:date_start IS NULL OR :date_start <= date) AND (:date_end IS NULL OR :date_end >= date)
@@ -49,14 +52,17 @@ namespace Malte2.Services
                             Id = reader.GetInt64(reader.GetOrdinal("operation_id")),
                             OperatorId = reader.GetInt64(reader.GetOrdinal("operator_id")),
                             AccountingEntryId = reader.GetInt64(reader.GetOrdinal("accounting_entry_id")),
+                            AccountingCategoryId = DatabaseValueUtils.GetNullableInt64FromReader(reader, reader.GetOrdinal("category_id")),
                             OperationDateTime = DateTime.Parse(reader.GetString(reader.GetOrdinal("date"))!),
                             Label = reader.GetString(reader.GetOrdinal("label")),
                             BoarderId = DatabaseValueUtils.GetNullableInt64FromReader(reader, reader.GetOrdinal("boarder_id")),
                             PaymentMethod = (PaymentMethod) Enum.ToObject(typeof(PaymentMethod), reader.GetInt64(reader.GetOrdinal("payment_method"))),
                             CheckNumber = DatabaseValueUtils.GetNullableInt64FromReader(reader, reader.GetOrdinal("check_number")),
                             TransferNumber = DatabaseValueUtils.GetNullableInt64FromReader(reader, reader.GetOrdinal("transfer_number")),
-                            CardNumber = DatabaseValueUtils.GetNullableStringFromReader(reader, reader.GetOrdinal("card_number")),
+                            CardTicketNumber = DatabaseValueUtils.GetNullableInt64FromReader(reader, reader.GetOrdinal("card_ticket_number")),
                             AccountBookId = reader.GetInt64(reader.GetOrdinal("account_book_id")),
+                            Details = reader.GetString(reader.GetOrdinal("details")),
+                            Invoice = DatabaseValueUtils.GetNullableStringFromReader(reader, reader.GetOrdinal("invoice")),
                             Amount = new Amount(reader.GetInt64(reader.GetOrdinal("amount"))),
                         };
                         yield return operation;
@@ -77,14 +83,17 @@ namespace Malte2.Services
                         commandSql = @"UPDATE operation
                         SET operator_id = :operator_id,
                         accounting_entry_id = :accounting_entry_id,
+                        category_id = :category_id,
                         date = :date,
                         label = :label,
                         boarder_id = :boarder_id,
                         payment_method = :payment_method,
                         check_number = :check_number,
-                        card_number = :card_number,
+                        card_ticket_number = :card_ticket_number,
                         transfer_number = :transfer_number,
                         account_book_id = :account_book_id,
+                        details = :details,
+                        invoice = :invoice,
                         amount = :amount
                         WHERE operation_id = :operation_id";
                     }
@@ -93,26 +102,32 @@ namespace Malte2.Services
                         commandSql = @"INSERT INTO operation(
                             operator_id,
                             accounting_entry_id,
+                            category_id,
                             date,
                             label,
                             boarder_id,
                             payment_method,
                             check_number,
-                            card_number,
+                            card_ticket_number,
                             transfer_number,
                             account_book_id,
+                            details,
+                            invoice,
                             amount
                             ) VALUES (
                             :operator_id,
                             :accounting_entry_id,
+                            :category_id,
                             :date,
                             :label,
                             :boarder_id,
                             :payment_method,
                             :check_number,
-                            :card_number,
+                            :card_ticket_number,
                             :transfer_number,
                             :account_book_id,
+                            :details,
+                            :invoice,
                             :amount
                             )";
                     }
@@ -124,14 +139,17 @@ namespace Malte2.Services
                         }
                         command.Parameters.AddWithValue("operator_id", operation.OperatorId);
                         command.Parameters.AddWithValue("accounting_entry_id", operation.AccountingEntryId);
+                        command.Parameters.AddWithValue("category_id", operation.AccountingCategoryId);
                         command.Parameters.AddWithValue("date", DateTimeDatabaseUtils.GetStringFromDate(operation.OperationDateTime));
                         command.Parameters.AddWithValue("label", operation.Label);
                         command.Parameters.AddWithValue("boarder_id", operation.BoarderId);
                         command.Parameters.AddWithValue("payment_method", operation.PaymentMethod);
                         command.Parameters.AddWithValue("check_number", operation.CheckNumber);
-                        command.Parameters.AddWithValue("card_number", operation.CardNumber);
+                        command.Parameters.AddWithValue("card_ticket_number", operation.CardTicketNumber);
                         command.Parameters.AddWithValue("transfer_number", operation.TransferNumber);
                         command.Parameters.AddWithValue("account_book_id", operation.AccountBookId);
+                        command.Parameters.AddWithValue("details", operation.Details);
+                        command.Parameters.AddWithValue("invoice", operation.Invoice);
                         command.Parameters.AddWithValue("amount", operation.Amount.GetLong());
                         await command.ExecuteNonQueryAsync();
                     }
@@ -158,7 +176,20 @@ namespace Malte2.Services
                 await transaction.CommitAsync();
             }
         }
+
+        public async IAsyncEnumerable<string> GetLabels()
+        {
+            string commandText = @"SELECT DISTINCT label FROM operation;";
+            using (var command = new SQLiteCommand(commandText, _databaseContext.Connection))
+            {
+                using (var reader = await command.ExecuteReaderAsync())
+                {
+                    while (await reader.ReadAsync())
+                    {
+                        yield return reader.GetString(reader.GetOrdinal("label"));
+                    }
+                }
+            }
+        }
     }
-
-
 }

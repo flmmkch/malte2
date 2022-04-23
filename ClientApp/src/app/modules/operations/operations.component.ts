@@ -5,6 +5,7 @@ import { NgbDate, NgbDatepicker, NgbDatepickerI18n, NgbDatepickerI18nDefault, Ng
 import { BehaviorSubject, forkJoin, Observable } from 'rxjs';
 import { combineLatestWith, map } from 'rxjs/operators';
 import { AccountBook } from 'src/app/shared/models/account-book.model';
+import { AccountingCategory } from 'src/app/shared/models/accounting-category.model';
 import { AccountingEntry, EntryType } from 'src/app/shared/models/accounting-entry.model';
 import { Amount } from 'src/app/shared/models/amount.model';
 import { BoarderListItem } from 'src/app/shared/models/boarder.model';
@@ -12,6 +13,7 @@ import { Operation } from 'src/app/shared/models/operation.model';
 import { Operator } from 'src/app/shared/models/operator.model';
 import { allPaymentMethods, PaymentMethod, paymentMethodString } from 'src/app/shared/models/payment-method.model';
 import { AccountBookService } from 'src/app/shared/services/account-book.service';
+import { AccountingCategoryService } from 'src/app/shared/services/accounting-category.service';
 import { AccountingEntryService } from 'src/app/shared/services/accounting-entry.service';
 import { BoarderService } from 'src/app/shared/services/boarder.service';
 import { OperationService } from 'src/app/shared/services/operation.service';
@@ -24,6 +26,7 @@ export interface OperationDisplay {
     operation: Operation;
     amount: string;
     accountingEntryName: string;
+    categoryName: string;
     accountBookName: string;
     dateTime: string;
     operatorName: string;
@@ -36,6 +39,7 @@ export interface ContextDicts {
     operators: DictionaryById<Operator>;
     books: DictionaryById<AccountBook>;
     entries: DictionaryById<AccountingEntry>;
+    categories: DictionaryById<AccountingCategory>;
     boarders: DictionaryById<BoarderListItem>;
 }
 
@@ -50,6 +54,7 @@ export class OperationsComponent implements OnInit, AfterViewInit {
 
     public accountBooks: DictionaryById<AccountBook> = [];
     public accountingEntries: DictionaryById<AccountingEntry> = [];
+    public categories: DictionaryById<AccountingCategory> = [];
     public operators: DictionaryById<Operator> = [];
     public boarders: DictionaryById<BoarderListItem> = [];
 
@@ -59,6 +64,10 @@ export class OperationsComponent implements OnInit, AfterViewInit {
 
     public get accountingEntryList(): AccountingEntry[] {
         return Object.values(this.accountingEntries);
+    }
+
+    public get categoryList(): (AccountingCategory | null)[] {
+        return [null, ... Object.values(this.categories) ];
     }
 
     public get operatorList(): Operator[] {
@@ -72,7 +81,18 @@ export class OperationsComponent implements OnInit, AfterViewInit {
 
     public paymentMethods: PaymentMethod[] = allPaymentMethods();
 
-    paymentMethodString = paymentMethodString;
+    public readonly paymentMethodString = paymentMethodString;
+
+    private _currentFilteringPaymentMethod: PaymentMethod | null = null;
+
+    public get filteringPaymentMethod(): PaymentMethod | null {
+        return this._currentFilteringPaymentMethod;
+    }
+
+    public set filteringPaymentMethod(value: PaymentMethod | null) {
+        this._currentFilteringPaymentMethod = value;
+        this.rebuildOperations();
+    }
 
     public itemsDisplayed: OperationDisplay[] = [];
 
@@ -81,19 +101,23 @@ export class OperationsComponent implements OnInit, AfterViewInit {
     public readonly opsFormGroup = new FormGroup({
         amountCtrl: new FormControl(),
         entryCtrl: new FormControl(),
+        categoryCtrl: new FormControl(),
         bookCtrl: new FormControl(),
         dateTimeCtrl: new FormControl(),
         operCtrl: new FormControl(),
         labelCtrl: new FormControl(),
+        detailsCtrl: new FormControl(),
+        invoiceCtrl: new FormControl(),
         boarderCtrl: new FormControl(),
         paymentMethodCtrl: new FormControl(PaymentMethod.Cash),
         paymentCheckNbCtrl: new FormControl(),
-        paymentCardNbCtrl: new FormControl(),
+        paymentCardTicketNbCtrl: new FormControl(),
         paymentTransferNbCtrl: new FormControl(),
     });
 
-    constructor(private readonly _opService: OperationService,
+    constructor(readonly opService: OperationService,
         private readonly _accountingEntryService: AccountingEntryService,
+        private readonly _categoryService: AccountingCategoryService,
         private readonly _accountBookService: AccountBookService,
         private readonly _operatorService: OperatorService,
         private readonly _boarderService: BoarderService,
@@ -113,13 +137,18 @@ export class OperationsComponent implements OnInit, AfterViewInit {
     }
 
     ngOnInit(): void {
-        const operationsLoaded: Observable<Operation[]> = this._opService.getOnDateRange(this._dateNavigation);
+        const operationsLoaded: Observable<Operation[]> = this.opService.getOnDateRange(this._dateNavigation);
         operationsLoaded
             .pipe(combineLatestWith(this._contexts))
             .subscribe({
-                next: ([ops, context]) => this.rebuildOperations(ops, context),
+                next: ([ops, context]) => {
+                    this.items = ops;
+                    this.rebuildOperations(ops, context);
+                },
                 error: console.error,
             });
+
+        operationsLoaded.subscribe(() => this.rebuildLabels());
             
         this._dateNavigation.subscribe(([dateBegin, dateEnd]) => this._currentDateRange = [dateBegin, dateEnd]);
     }
@@ -131,18 +160,20 @@ export class OperationsComponent implements OnInit, AfterViewInit {
         accountBooksLoaded.subscribe({ next: books => this.accountBooks = books, error: console.error });
         const accountingEntriesLoaded = this._accountingEntryService.get().pipe(map(listToDictionary));
         accountingEntriesLoaded.subscribe({ next: entries => this.accountingEntries = entries, error: console.error });
+        const categoriesLoaded = this._categoryService.get().pipe(map(listToDictionary));
+        categoriesLoaded.subscribe({ next: categories => this.categories = categories, error: console.error });
         const boardersLoaded = this._boarderService.list().pipe(map(l => listToDictionaryWithFunc(l, boarderItem => boarderItem.boarderId)));
         boardersLoaded.subscribe({ next: boarders => this.boarders = boarders, error: console.error });
         return forkJoin({
             operators: operatorsLoaded,
             books: accountBooksLoaded,
             entries: accountingEntriesLoaded,
+            categories: categoriesLoaded,
             boarders: boardersLoaded,
         });
     }
 
-    private rebuildOperations(ops: Operation[], { operators, books, entries, boarders }: ContextDicts) {
-        this.items = ops;
+    private rebuildOperations(ops: Operation[] = this.items, { operators, books, entries, categories, boarders }: ContextDicts =  { books: this.accountBooks, entries: this.accountingEntries, categories: this.categories, operators: this.operators, boarders: this.boarders }) {
         if (ops.length === 0) {
             this.listTable.addItem();
         }
@@ -157,8 +188,10 @@ export class OperationsComponent implements OnInit, AfterViewInit {
             }
             return (op2.id || 0) - (op1.id || 0);
         });
-        this.itemsDisplayed = orderedOps.map(op => this.createOperationDisplay(op, operators, books, entries, boarders));
-        this.recalculateTotals(orderedOps);
+        this.itemsDisplayed = orderedOps
+            .filter(op => this.filteringPaymentMethod === null || this.filteringPaymentMethod === op.paymentMethod)
+            .map(op => this.createOperationDisplay(op, { operators, books, entries, categories, boarders }));
+        this.recalculateTotals(this.itemsDisplayed.map(itemDisplayed => itemDisplayed.operation));
     }
 
     public dateNavigation(event: NgbDatepickerNavigateEvent) {
@@ -191,19 +224,21 @@ export class OperationsComponent implements OnInit, AfterViewInit {
         }
     }
 
-    createOperationDisplay(op: Operation, opers: DictionaryById<Operator> = this.operators, books: DictionaryById<AccountBook> = this.accountBooks, entries: DictionaryById<AccountingEntry> = this.accountingEntries, boarders: DictionaryById<BoarderListItem> = this.boarders): OperationDisplay {
+    createOperationDisplay(op: Operation, { books, entries, categories, operators, boarders }: ContextDicts = { books: this.accountBooks, entries: this.accountingEntries, categories: this.categories, operators: this.operators, boarders: this.boarders }): OperationDisplay {
         const accountBookName = op.accountBookId in books ? books[op.accountBookId].label : '';
         const accountingEntryName = op.accountingEntryId in entries ? entries[op.accountingEntryId].label : '';
-        const operatorName = op.operatorId in opers ? opers[op.operatorId].name : '';
+        const categoryName = (op.categoryId !== undefined && op.categoryId in categories) ? categories[op.categoryId].label : '';
+        const operatorName = op.operatorId in operators ? operators[op.operatorId].name : '';
         const boarderName = op.boarderId && op.boarderId in boarders ? boarders[op.boarderId].name : '';
         const opDisplay: OperationDisplay = {
             operation: op,
             amount: op.amount.toLocaleString(),
-            accountBookName: accountBookName,
-            accountingEntryName: accountingEntryName,
+            accountBookName,
+            categoryName,
+            accountingEntryName,
             dateTime: op.dateTime.toLocaleDateString(),
-            operatorName: operatorName,
-            boarderName: boarderName,
+            operatorName,
+            boarderName,
             label: op.label,
             paymentMethod: paymentMethodString(op.paymentMethod),
         };
@@ -215,17 +250,29 @@ export class OperationsComponent implements OnInit, AfterViewInit {
         if (copyOldOpDisplay && copyOldOpDisplay.operation) {
             operation.accountBookId = copyOldOpDisplay.operation.accountBookId;
             operation.accountingEntryId = copyOldOpDisplay.operation.accountingEntryId;
+            operation.categoryId = copyOldOpDisplay.operation.categoryId;
             operation.boarderId = copyOldOpDisplay.operation.boarderId;
             operation.dateTime = copyOldOpDisplay.operation.dateTime;
             operation.label = copyOldOpDisplay.operation.label;
             operation.operatorId = copyOldOpDisplay.operation.operatorId;
             operation.paymentMethod = copyOldOpDisplay.operation.paymentMethod;
             operation.checkNumber = copyOldOpDisplay.operation.checkNumber ? copyOldOpDisplay.operation.checkNumber + BigInt(1) : undefined;
-            operation.cardNumber = copyOldOpDisplay.operation.cardNumber;
+            operation.cardTicketNumber = copyOldOpDisplay.operation.cardTicketNumber ? copyOldOpDisplay.operation.cardTicketNumber + BigInt(1) : undefined;
             operation.transferNumber = copyOldOpDisplay.operation.transferNumber ? copyOldOpDisplay.operation.transferNumber + BigInt(1) : undefined;
         }
         else {
-            operation.dateTime = this.opsFormGroup.controls.dateTimeCtrl.value ? datePickerValueToDate(this.opsFormGroup.controls.dateTimeCtrl.value) : new Date();
+            if (this.opsFormGroup.controls.dateTimeCtrl.value) {
+                operation.dateTime = datePickerValueToDate(this.opsFormGroup.controls.dateTimeCtrl.value);
+            }
+            else {
+                const today = new Date();
+                if (today >= this._currentDateRange[0] && today <= this._currentDateRange[1]) {
+                    operation.dateTime = today;
+                }
+                else {
+                    operation.dateTime = this._currentDateRange[0];
+                }
+            }
         }
         const opDisplay = this.createOperationDisplay(operation);
         opDisplay.amount = '';
@@ -247,16 +294,25 @@ export class OperationsComponent implements OnInit, AfterViewInit {
                 this.opsFormGroup.controls.amountCtrl.setValue(e.value.amount);
                 this.opsFormGroup.controls.bookCtrl.setValue(e.value.operation.accountBookId);
                 this.opsFormGroup.controls.entryCtrl.setValue(e.value.operation.accountingEntryId);
+                this.opsFormGroup.controls.categoryCtrl.setValue(e.value.operation.categoryId);
                 this.opsFormGroup.controls.operCtrl.setValue(e.value.operation.operatorId);
                 this.opsFormGroup.controls.boarderCtrl.setValue(e.value.operation.boarderId !== undefined ? e.value.operation.boarderId : undefined);
                 this.opsFormGroup.controls.paymentMethodCtrl.setValue(e.value.operation.paymentMethod);
                 this.opsFormGroup.controls.labelCtrl.setValue(e.value.operation.label);
+                this.opsFormGroup.controls.detailsCtrl.setValue(e.value.operation.details);
+                this.opsFormGroup.controls.invoiceCtrl.setValue(e.value.operation.invoice);
                 this.opsFormGroup.controls.paymentCheckNbCtrl.setValue(e.value.operation.checkNumber?.toString());
-                this.opsFormGroup.controls.paymentCardNbCtrl.setValue(e.value.operation.cardNumber);
+                this.opsFormGroup.controls.paymentCardTicketNbCtrl.setValue(e.value.operation.cardTicketNumber?.toString());
                 this.opsFormGroup.controls.paymentTransferNbCtrl.setValue(e.value.operation.transferNumber?.toString());
             }
             else {
                 this.opsFormGroup.controls.amountCtrl.setValue(undefined);
+                this.opsFormGroup.controls.labelCtrl.setValue(undefined);
+                this.opsFormGroup.controls.detailsCtrl.setValue(undefined);
+                this.opsFormGroup.controls.invoiceCtrl.setValue(undefined);
+                this.opsFormGroup.controls.paymentMethodCtrl.setValue(undefined);
+                this.opsFormGroup.controls.entryCtrl.setValue(undefined);
+                this.opsFormGroup.controls.categoryCtrl.setValue(undefined);
             }
         });
         this.listTable.confirmDeleteMessage = (operator: Operator) => `Supprimer l'opération ?`;
@@ -281,6 +337,11 @@ export class OperationsComponent implements OnInit, AfterViewInit {
                 this.resetValidationErrorMessage(`L'imputation comptable est invalide.`);
                 return;
             }
+            const categoryId = this.opsFormGroup.controls.categoryCtrl.value ? Number.parseInt(this.opsFormGroup.controls.categoryCtrl.value) : undefined;
+            if (typeof categoryId === 'number' && !(categoryId in this.categories)) {
+                this.resetValidationErrorMessage(`La catégorie est invalide.`);
+                return;
+            }
             const paymentMethod: PaymentMethod = Number.parseInt(this.opsFormGroup.controls.paymentMethodCtrl.value);
             if (!(paymentMethod in PaymentMethod)) {
                 this.resetValidationErrorMessage(`Le moyen de paiement est invalide.`);
@@ -295,6 +356,7 @@ export class OperationsComponent implements OnInit, AfterViewInit {
             op.amount = amount;
             op.accountBookId = accountBookId;
             op.accountingEntryId = accountingEntryId;
+            op.categoryId = categoryId;
             op.paymentMethod = paymentMethod;
             op.operatorId = operatorId;
             if (!this.opsFormGroup.controls.dateTimeCtrl.value) {
@@ -310,6 +372,9 @@ export class OperationsComponent implements OnInit, AfterViewInit {
                 op.boarderId = undefined;
             }
             op.label = this.opsFormGroup.controls.labelCtrl.value || '';
+            op.details = this.opsFormGroup.controls.detailsCtrl.value || '';
+            op.invoice = this.opsFormGroup.controls.invoiceCtrl.value;
+            
             // détails du paiement
             if (op.paymentMethod === PaymentMethod.Check) {
                 op.checkNumber = undefined;
@@ -331,10 +396,21 @@ export class OperationsComponent implements OnInit, AfterViewInit {
             }
 
             if (op.paymentMethod === PaymentMethod.Card) {
-                op.cardNumber = this.opsFormGroup.controls.paymentCardNbCtrl.value;
+                if (this.opsFormGroup.controls.paymentCardTicketNbCtrl.value) {
+                    try {
+                        op.cardTicketNumber = BigInt(this.opsFormGroup.controls.paymentCardTicketNbCtrl.value);
+                    }
+                    catch {
+                        // nothing
+                    }
+                    if (op.cardTicketNumber === undefined) {
+                        this.resetValidationErrorMessage(`Le numéro de ticket de carte est invalide.`);
+                        return;
+                    }
+                }
             }
             else {
-                op.cardNumber = undefined;
+                op.cardTicketNumber = undefined;
             }
 
             if (op.paymentMethod === PaymentMethod.Transfer) {
@@ -353,7 +429,7 @@ export class OperationsComponent implements OnInit, AfterViewInit {
             }
             this._lastOperationEntered = opDisplay;
 
-            this._opService.createUpdate([op]).subscribe({
+            this.opService.createUpdate([op]).subscribe({
                 next: () => {
                     this.resetValidationErrorMessage();
                     if (isNewItem) {
@@ -378,7 +454,7 @@ export class OperationsComponent implements OnInit, AfterViewInit {
 
     public delete(opDisplay: OperationDisplay) {
         if (opDisplay.operation?.id !== undefined) {
-            this._opService.delete([opDisplay.operation]).subscribe({ next: () => this.reload(), error: console.error });
+            this.opService.delete([opDisplay.operation]).subscribe({ next: () => this.reload(), error: console.error });
         }
     }
 
@@ -459,10 +535,32 @@ export class OperationsComponent implements OnInit, AfterViewInit {
         this.totalDisplayedExpense = this.calculateTotal(ops, EntryType.Expense);
         this.totalDisplayedBalance = this.totalDisplayedRevenue.substract(this.totalDisplayedExpense);
     }
-  
+
     totalDisplayedRevenue: Amount = Amount.from(0)!;
 
     totalDisplayedExpense: Amount = Amount.from(0)!;
 
     totalDisplayedBalance: Amount = Amount.from(0)!;
+
+    public labels: string[] = [];
+
+    private rebuildLabels() {
+        this.opService.getLabels()
+            .subscribe({
+                next: labels => {
+                    this.labels = labels;
+                },
+                error: console.error,
+            });
+    }
+
+    public get invoices(): string[] {
+        const invoices: string[] = [];
+        for (const op of this.itemsDisplayed.map(displayOp => displayOp.operation)) {
+            if (op.invoice && !invoices.includes(op.invoice)) {
+                invoices.push(op.invoice);
+            }
+        }
+        return invoices;
+    }
 }

@@ -54,7 +54,7 @@
   </Target>
 
   <ItemGroup>
-    <Content Include="StartMalte2.bat" CopyToPublishDirectory="PreserveNewest"/>
+    <Content Include="StartMalte2.bat" CopyToPublishDirectory="PreserveNewest" />
 
     <Content Include="..\LICENSE.txt" CopyToPublishDirectory="PreserveNewest" />
     <Content Include="..\THIRD_PARTY.txt" CopyToPublishDirectory="PreserveNewest" />

@@ -25,15 +25,6 @@ namespace Malte2.Controllers
             return _operatorService.GetItems(onlyEnabled);
         }
 
-        [HttpGet]
-        public IActionResult GenerateEdition([FromQuery] long id)
-        {
-            var editionStream = Malte2.Model.Accounting.Edition.OperatorEdition.CreateEdition();
-            string contentType = "application/pdf";
-            string fileName = "Opérateurs.pdf";
-            return File(editionStream, contentType, fileName);
-        }
-
         [HttpPost]
         public async Task CreateUpdate([FromBody] Operator[] operators)
         {

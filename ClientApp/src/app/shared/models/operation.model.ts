@@ -20,10 +20,15 @@ export class Operation {
     public dateTime: Date;
     /** Libellé */
     public label: string = '';
+    public details: string = '';
+    /** Facture */
+    public invoice?: string;
     /** Pensionnaire */
     public boarderId?: number;
+    /** Catégorie */
+    public categoryId?: number;
     /** Détails de la méthode de paiement */
     public checkNumber?: bigint;
-    public cardNumber?: string;
+    public cardTicketNumber?: bigint;
     public transferNumber?: bigint;
 }
