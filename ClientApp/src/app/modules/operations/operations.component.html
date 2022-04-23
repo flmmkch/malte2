@@ -83,7 +83,7 @@
                 <option *ngFor="let book of accountBookList" value="{{ book.id }}">{{ book.label }}</option>
               </select>
             </div>
-            <div class="form-group">
+            <div class="form-group row">
               <label for="entrySelect" class="form-label col-2">Imputation comptable</label>
               <select class="form-control col-offset-2 col-10" formControlName="entryCtrl" id="entrySelect">
                 <option *ngFor="let entry of accountingEntryList" value="{{ entry.id }}">{{ entry.label }}</option>
