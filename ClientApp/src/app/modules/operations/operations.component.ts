@@ -81,7 +81,18 @@ export class OperationsComponent implements OnInit, AfterViewInit {
 
     public paymentMethods: PaymentMethod[] = allPaymentMethods();
 
-    paymentMethodString = paymentMethodString;
+    public readonly paymentMethodString = paymentMethodString;
+
+    private _currentFilteringPaymentMethod: PaymentMethod | null = null;
+
+    public get filteringPaymentMethod(): PaymentMethod | null {
+        return this._currentFilteringPaymentMethod;
+    }
+
+    public set filteringPaymentMethod(value: PaymentMethod | null) {
+        this._currentFilteringPaymentMethod = value;
+        this.rebuildOperations();
+    }
 
     public itemsDisplayed: OperationDisplay[] = [];
 
@@ -130,7 +141,10 @@ export class OperationsComponent implements OnInit, AfterViewInit {
         operationsLoaded
             .pipe(combineLatestWith(this._contexts))
             .subscribe({
-                next: ([ops, context]) => this.rebuildOperations(ops, context),
+                next: ([ops, context]) => {
+                    this.items = ops;
+                    this.rebuildOperations(ops, context);
+                },
                 error: console.error,
             });
 
@@ -159,8 +173,7 @@ export class OperationsComponent implements OnInit, AfterViewInit {
         });
     }
 
-    private rebuildOperations(ops: Operation[], { operators, books, entries, categories, boarders }: ContextDicts) {
-        this.items = ops;
+    private rebuildOperations(ops: Operation[] = this.items, { operators, books, entries, categories, boarders }: ContextDicts =  { books: this.accountBooks, entries: this.accountingEntries, categories: this.categories, operators: this.operators, boarders: this.boarders }) {
         if (ops.length === 0) {
             this.listTable.addItem();
         }
@@ -175,7 +188,9 @@ export class OperationsComponent implements OnInit, AfterViewInit {
             }
             return (op2.id || 0) - (op1.id || 0);
         });
-        this.itemsDisplayed = orderedOps.map(op => this.createOperationDisplay(op, { operators, books, entries, categories, boarders }));
+        this.itemsDisplayed = orderedOps
+            .filter(op => this.filteringPaymentMethod === null || this.filteringPaymentMethod === op.paymentMethod)
+            .map(op => this.createOperationDisplay(op, { operators, books, entries, categories, boarders }));
         this.recalculateTotals(orderedOps);
     }
 
