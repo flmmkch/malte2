@@ -246,7 +246,7 @@ export class OperationsComponent implements OnInit, AfterViewInit {
     }
 
     private createNewOpDisplay(copyOldOpDisplay?: OperationDisplay): OperationDisplay {
-        let operation = new Operation(undefined, Amount.from(0)!, -1, PaymentMethod.Card, -1, -1);
+        let operation = new Operation(undefined, Amount.from(0)!, -1, this.filteringPaymentMethod || PaymentMethod.Cash, -1, -1);
         if (copyOldOpDisplay && copyOldOpDisplay.operation) {
             operation.accountBookId = copyOldOpDisplay.operation.accountBookId;
             operation.accountingEntryId = copyOldOpDisplay.operation.accountingEntryId;
