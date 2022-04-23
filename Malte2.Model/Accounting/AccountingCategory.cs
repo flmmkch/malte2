@@ -13,6 +13,9 @@ namespace Malte2.Model.Accounting
 
         [JsonPropertyName("l")]
         public string Label { get; set; } = "";
+
+        [JsonPropertyName("ae")]
+        public long? AccountingEntryId { get; set; }
     }
 
 }

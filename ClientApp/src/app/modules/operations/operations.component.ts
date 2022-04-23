@@ -70,6 +70,15 @@ export class OperationsComponent implements OnInit, AfterViewInit {
         return [null, ... Object.values(this.categories) ];
     }
 
+    public categoryListForEntry(accountingEntryId?: number | string): (AccountingCategory | null)[] {
+        if (typeof accountingEntryId === 'string') {
+            accountingEntryId = Number.parseInt(accountingEntryId);
+        }
+        const entryCategories = Object.values(this.categories)
+            .filter(category => category.accountingEntryId == null || (typeof accountingEntryId === 'number' && category.accountingEntryId === accountingEntryId));
+        return [null, ... entryCategories];
+    }
+
     public get operatorList(): Operator[] {
         return Object.values(this.operators);
     }

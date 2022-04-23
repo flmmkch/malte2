@@ -164,6 +164,7 @@ CREATE TABLE remission_cash(
             applyCommand(databaseContext, transaction, @"
 CREATE TABLE accounting_category(
     accounting_category_id INTEGER PRIMARY KEY,
+    accounting_entry_id INTEGER NULL REFERENCES accounting_entry(accounting_entry_id),
     label TEXT NOT NULL
 );
 
@@ -178,6 +179,20 @@ CREATE TABLE boarder_deposit(
 CREATE UNIQUE INDEX idx_boarder_deposit ON boarder_deposit(boarder_id, deposit_type_id);
 
 ALTER TABLE operation ADD COLUMN category_id INTEGER NULL REFERENCES accounting_category(accounting_category_id);
+
+CREATE TRIGGER ck_operation_category_entry
+BEFORE UPDATE OF category_id, accounting_entry_id ON operation
+FOR EACH ROW WHEN NEW.accounting_entry_id NOT IN (SELECT accounting_entry_id FROM accounting_category WHERE accounting_category_id = NEW.category_id)
+BEGIN
+    SELECT RAISE(FAIL, 'Operations must have the same accounting entry as their category');
+END;
+
+CREATE TRIGGER ck_category_entry_operations
+BEFORE UPDATE OF accounting_entry_id ON accounting_category
+FOR EACH ROW WHEN ((SELECT COUNT(*) FROM operation WHERE operation.category_id = NEW.accounting_category_id AND operation.accounting_entry_id <> NEW.accounting_entry_id) > 0)
+BEGIN
+    SELECT RAISE(FAIL, 'Operations must have the same accounting entry as their category');
+END;
 
 ALTER TABLE operation ADD COLUMN card_ticket_number INTEGER NULL;
 

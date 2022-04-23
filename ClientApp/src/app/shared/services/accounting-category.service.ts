@@ -32,12 +32,14 @@ export class AccountingCategoryService {
 export interface AccountingCategoryJson {
   id?: number,
   l: string,
+  ae?: number,
 }
 
 /** Conversion depuis l'objet JSON */
 export function fromJson(json: AccountingCategoryJson): AccountingCategory {
   const accountingCategory = new AccountingCategory(json.id);
   accountingCategory.label = json.l;
+  accountingCategory.accountingEntryId = json.ae;
   return accountingCategory;
 }
 
@@ -46,5 +48,6 @@ export function toJson(accountingCategory: AccountingCategory): AccountingCatego
   return {
     id: accountingCategory.id,
     l: accountingCategory.label,
+    ae: accountingCategory.accountingEntryId,
   };
 }
