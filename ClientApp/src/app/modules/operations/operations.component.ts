@@ -191,7 +191,7 @@ export class OperationsComponent implements OnInit, AfterViewInit {
         this.itemsDisplayed = orderedOps
             .filter(op => this.filteringPaymentMethod === null || this.filteringPaymentMethod === op.paymentMethod)
             .map(op => this.createOperationDisplay(op, { operators, books, entries, categories, boarders }));
-        this.recalculateTotals(orderedOps);
+        this.recalculateTotals(this.itemsDisplayed.map(itemDisplayed => itemDisplayed.operation));
     }
 
     public dateNavigation(event: NgbDatepickerNavigateEvent) {
