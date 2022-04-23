@@ -19,7 +19,7 @@ namespace Malte2.Services
 
         public async IAsyncEnumerable<AccountingCategory> GetItems()
         {
-            string commandText = $"SELECT accounting_category_id, label FROM accounting_category ORDER BY accounting_category_id ASC;";
+            string commandText = $"SELECT accounting_category_id, label, accounting_entry_id FROM accounting_category ORDER BY accounting_category_id ASC;";
             using (var command = new SQLiteCommand(commandText, _databaseContext.Connection))
             {
                 using (var reader = await command.ExecuteReaderAsync())
@@ -30,6 +30,7 @@ namespace Malte2.Services
                         {
                             Id = reader.GetInt64(reader.GetOrdinal("accounting_category_id")),
                             Label = reader.GetString(reader.GetOrdinal("label")),
+                            AccountingEntryId = DatabaseValueUtils.GetNullableInt64FromReader(reader, reader.GetOrdinal("accounting_entry_id")),
                         };
                         yield return accountingCategory;
                     }
@@ -47,12 +48,13 @@ namespace Malte2.Services
                     if (accountingCategory.Id.HasValue)
                     {
                         commandSql = @"UPDATE accounting_category
-                        SET label = :label
+                        SET label = :label,
+                        accounting_entry_id = :accounting_entry_id
                         WHERE accounting_category_id = :accounting_category_id";
                     }
                     else
                     {
-                        commandSql = "INSERT INTO accounting_category(label) VALUES (:label)";
+                        commandSql = "INSERT INTO accounting_category(label, accounting_entry_id) VALUES (:label, :accounting_entry_id)";
                     }
                     using (var command = new SQLiteCommand(commandSql, _databaseContext.Connection, transaction))
                     {
@@ -61,6 +63,7 @@ namespace Malte2.Services
                             command.Parameters.AddWithValue("accounting_category_id", accountingCategory.Id!);
                         }
                         command.Parameters.AddWithValue("label", accountingCategory.Label);
+                        command.Parameters.AddWithValue("accounting_entry_id", accountingCategory.AccountingEntryId);
                         await command.ExecuteNonQueryAsync();
                     }
                 }

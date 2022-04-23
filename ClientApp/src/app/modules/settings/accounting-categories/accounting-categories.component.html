@@ -1,15 +1,23 @@
 <h1 id="tableLabel" class="d-flex justify-content-center mb-4">Catégories d'opérations comptables</h1>
 
 <div>
-  <list-table #categoryListTable [items]="items">
+  <list-table #categoryListTable [items]="displayItems">
     <list-table-column width="4em" title="#" property="id" [rowheader]="true"></list-table-column>
     <list-table-column width="auto" title="Libellé" property="label"></list-table-column>
+    <list-table-column width="16em" title="Imputation" property="accountingEntryName"></list-table-column>
     <div list-table-editor>
       <form [formGroup]="categoryFormGroup" id="categoryForm" (ngSubmit)="onSubmit()">
         <div class="form-group row mb-2">
           <label for="labelInput" class="form-label col-2">Libellé</label>
           <input type="text" formControlName="labelControl" id="labelInput"
             class="form-control col-offset-2 col-10" placeholder="Libellé de la catégorie" autofocus />
+        </div>
+        <div class="form-group row">
+          <label for="entrySelect" class="form-label col-2">Imputation comptable</label>
+          <select class="form-control col-offset-2 col-10" formControlName="entryControl" id="entrySelect">
+            <option value=""></option>
+            <option *ngFor="let entry of accountingEntryList" value="{{ entry.id }}">{{ entry.label }}</option>
+          </select>
         </div>
         <div class="row mt-2">
           <div class="col-sm-12 col-lg-1">

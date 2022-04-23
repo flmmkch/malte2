@@ -108,7 +108,7 @@
             <div class="form-group row">
               <label for="categorySelect" class="form-label col-2">Catégorie</label>
               <select class="form-control col-offset-2 col-10" formControlName="categoryCtrl" id="categorySelect">
-                <option *ngFor="let category of categoryList" value="{{ category?.id }}">{{ category?.label }}</option>
+                <option *ngFor="let category of categoryListForEntry(opsFormGroup.controls.entryCtrl.value)" value="{{ category?.id }}">{{ category?.label }}</option>
               </select>
             </div>
             <div class="form-group row">
