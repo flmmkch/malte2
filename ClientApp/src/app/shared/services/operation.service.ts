@@ -65,6 +65,8 @@ export interface OperationJson {
   ctn?: string,
   ptn?: string,
   l: string,
+  d: string,
+  iv?: string,
   bd?: number,
 }
 
@@ -77,6 +79,8 @@ export function fromJson(json: OperationJson): Operation {
     operation.dateTime = new Date(json.dt);
     operation.categoryId = json.ac;
     operation.label = json.l;
+    operation.details = json.d;
+    operation.invoice = json.iv;
     operation.boarderId = json.bd;
     operation.checkNumber = json.pkn ? BigInt(json.pkn) : undefined;
     operation.cardTicketNumber = json.ctn ? BigInt(json.ctn) : undefined;
@@ -100,5 +104,7 @@ export function toJson(operation: Operation): OperationJson {
     ptn: operation.transferNumber?.toString(),
     bd: operation.boarderId,
     l: operation.label,
+    d: operation.details,
+    iv: operation.invoice,
   };
 }

@@ -95,6 +95,8 @@ export class OperationsComponent implements OnInit, AfterViewInit {
         dateTimeCtrl: new FormControl(),
         operCtrl: new FormControl(),
         labelCtrl: new FormControl(),
+        detailsCtrl: new FormControl(),
+        invoiceCtrl: new FormControl(),
         boarderCtrl: new FormControl(),
         paymentMethodCtrl: new FormControl(PaymentMethod.Cash),
         paymentCheckNbCtrl: new FormControl(),
@@ -282,6 +284,8 @@ export class OperationsComponent implements OnInit, AfterViewInit {
                 this.opsFormGroup.controls.boarderCtrl.setValue(e.value.operation.boarderId !== undefined ? e.value.operation.boarderId : undefined);
                 this.opsFormGroup.controls.paymentMethodCtrl.setValue(e.value.operation.paymentMethod);
                 this.opsFormGroup.controls.labelCtrl.setValue(e.value.operation.label);
+                this.opsFormGroup.controls.detailsCtrl.setValue(e.value.operation.details);
+                this.opsFormGroup.controls.invoiceCtrl.setValue(e.value.operation.invoice);
                 this.opsFormGroup.controls.paymentCheckNbCtrl.setValue(e.value.operation.checkNumber?.toString());
                 this.opsFormGroup.controls.paymentCardTicketNbCtrl.setValue(e.value.operation.cardTicketNumber?.toString());
                 this.opsFormGroup.controls.paymentTransferNbCtrl.setValue(e.value.operation.transferNumber?.toString());
@@ -289,6 +293,8 @@ export class OperationsComponent implements OnInit, AfterViewInit {
             else {
                 this.opsFormGroup.controls.amountCtrl.setValue(undefined);
                 this.opsFormGroup.controls.labelCtrl.setValue(undefined);
+                this.opsFormGroup.controls.detailsCtrl.setValue(undefined);
+                this.opsFormGroup.controls.invoiceCtrl.setValue(undefined);
                 this.opsFormGroup.controls.paymentMethodCtrl.setValue(undefined);
                 this.opsFormGroup.controls.entryCtrl.setValue(undefined);
                 this.opsFormGroup.controls.categoryCtrl.setValue(undefined);
@@ -351,6 +357,9 @@ export class OperationsComponent implements OnInit, AfterViewInit {
                 op.boarderId = undefined;
             }
             op.label = this.opsFormGroup.controls.labelCtrl.value || '';
+            op.details = this.opsFormGroup.controls.detailsCtrl.value || '';
+            op.invoice = this.opsFormGroup.controls.invoiceCtrl.value;
+            
             // détails du paiement
             if (op.paymentMethod === PaymentMethod.Check) {
                 op.checkNumber = undefined;
@@ -528,5 +537,15 @@ export class OperationsComponent implements OnInit, AfterViewInit {
                 },
                 error: console.error,
             });
+    }
+
+    public get invoices(): string[] {
+        const invoices: string[] = [];
+        for (const op of this.itemsDisplayed.map(displayOp => displayOp.operation)) {
+            if (op.invoice && !invoices.includes(op.invoice)) {
+                invoices.push(op.invoice);
+            }
+        }
+        return invoices;
     }
 }

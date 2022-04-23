@@ -20,6 +20,9 @@ export class Operation {
     public dateTime: Date;
     /** Libellé */
     public label: string = '';
+    public details: string = '';
+    /** Facture */
+    public invoice?: string;
     /** Pensionnaire */
     public boarderId?: number;
     /** Catégorie */

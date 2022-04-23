@@ -36,6 +36,10 @@ namespace Malte2.Model.Accounting
         public long? TransferNumber { get; set; }
         [JsonPropertyName("ctn")]
         public long? CardTicketNumber { get; set; }
+        [JsonPropertyName("d")]
+        public string Details { get; set; } = "";
+        [JsonPropertyName("iv")]
+        public string? Invoice { get; set; }
     }
 
 }

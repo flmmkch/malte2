@@ -62,22 +62,22 @@
         <list-table-column width="12em" title="Opérateur·rice" property="operatorName"></list-table-column>
         <div list-table-editor>
           <form [formGroup]="opsFormGroup" (ngSubmit)="onSubmit()">
-            <div class="form-group">
+            <div class="form-group row">
               <label for="dateTimeInput" class="form-label col-2">Date</label>
               <input type="text" formControlName="dateTimeCtrl" id="dateTimeInput" class="form-control col-offset-2 col-10" ngbDatepicker #dateInput="ngbDatepicker" (click)="dateInput.toggle()" hint="AAAA-MM-JJ"/>
             </div>
-            <div class="form-group">
+            <div class="form-group row">
               <label for="amountInput" class="form-label col-2">Montant (€)</label>
               <input type="text" formControlName="amountCtrl" id="amountInput" class="form-control col-offset-2 col-10"
                 placeholder="136,53" autofocus />
             </div>
-            <div class="form-group">
+            <div class="form-group row">
               <label for="paymentMethodSelect" class="form-label col-2">Moyen de paiement</label>
               <select class="form-control col-offset-2 col-10" formControlName="paymentMethodCtrl" id="paymentMethodSelect">
                 <option *ngFor="let paymentMethod of paymentMethods" value="{{ paymentMethod }}">{{ paymentMethodString(paymentMethod) }}</option>
               </select>
             </div>
-            <div class="form-group">
+            <div class="form-group row">
               <label for="bookSelect" class="form-label col-2">Livre comptable</label>
               <select class="form-control col-offset-2 col-10" formControlName="bookCtrl" id="bookSelect">
                 <option *ngFor="let book of accountBookList" value="{{ book.id }}">{{ book.label }}</option>
@@ -89,53 +89,63 @@
                 <option *ngFor="let entry of accountingEntryList" value="{{ entry.id }}">{{ entry.label }}</option>
               </select>
             </div>
-            <div class="form-group">
+            <div class="form-group row">
               <label for="categorySelect" class="form-label col-2">Catégorie</label>
               <select class="form-control col-offset-2 col-10" formControlName="categoryCtrl" id="categorySelect">
                 <option *ngFor="let category of categoryList" value="{{ category?.id }}">{{ category?.label }}</option>
               </select>
             </div>
-            <div class="form-group">
+            <div class="form-group row">
               <label for="operSelect" class="form-label col-2">Opérateur·rice</label>
               <select class="form-control col-offset-2 col-10" formControlName="operCtrl" id="operSelect">
                 <option *ngFor="let oper of operatorList" value="{{ oper.id }}">{{ oper.name }}</option>
               </select>
             </div>
-            <div class="form-group" [style.display]="workingItemEntryDependsOnBoarder ? '' : 'none'">
+            <div class="form-group row" [style.display]="workingItemEntryDependsOnBoarder ? '' : 'none'">
               <label for="boarderSelect" class="form-label col-2">Pensionnaire</label>
               <select class="form-control col-offset-2 col-10" formControlName="boarderCtrl" id="boarderSelect">
                 <option *ngFor="let boarder of boarderList" value="{{ boarder.boarderId }}">{{ boarder.name }}</option>
               </select>
             </div>
-            <div class="form-group" [style.display]="workingItemIsCheckPayment ? '' : 'none'">
+            <div class="form-group row" [style.display]="workingItemIsCheckPayment ? '' : 'none'">
               <label for="paymentCheckNbInput" class="form-label col-2">Numéro de chèque</label>
               <input type="text" class="form-control col-offset-2 col-10" formControlName="paymentCheckNbCtrl" id="paymentCheckNbInput"
               />
             </div>
-            <div class="form-group" [style.display]="workingItemIsCardPayment ? '' : 'none'">
+            <div class="form-group row" [style.display]="workingItemIsCardPayment ? '' : 'none'">
               <label for="paymentCardNbInput" class="form-label col-2">Numéro de ticket de carte</label>
               <input type="text" class="form-control col-offset-2 col-10" formControlName="paymentCardTicketNbCtrl" id="paymentCardNbInput"
               />
             </div>
-            <div class="form-group" [style.display]="workingItemIsTransferPayment ? '' : 'none'">
+            <div class="form-group row" [style.display]="workingItemIsTransferPayment ? '' : 'none'">
               <label for="paymentTransferNbInput" class="form-label col-2">Numéro de virement</label>
               <input type="text" class="form-control col-offset-2 col-10" formControlName="paymentTransferNbCtrl" id="paymentTransferNbInput"
               />
             </div>
-            <div class="form-group">
+            <div class="form-group row">
+              <label for="invoiceInput" class="form-label col-2">Facture</label>
+              <input type="text" class="form-control col-offset-2 col-10" formControlName="invoiceCtrl" id="invoiceInput"
+                list="invoicesList" autocomplete="off"
+                />
+            </div>
+            <div class="form-group row">
               <label for="labelInput" class="form-label col-2">Libellé</label>
               <input type="text" class="form-control col-offset-2 col-10" formControlName="labelCtrl" id="labelInput"
                 list="allLabels" autocomplete="off"
                 />
             </div>
-            <div class="form-group"
+            <div class="form-group row">
+              <label for="detailsInput" class="form-label col-2">Détails</label>
+              <textarea class="form-control col-offset-2 col-10" formControlName="detailsCtrl" id="detailsInput"></textarea>
+            </div>
+            <div class="form-group row"
                 *ngIf="formValidationErrorMessage"
                 >
                 <p class="form-validation-error-message">
                     {{ formValidationErrorMessage }}
                 </p>
             </div>
-            <div class="row">
+            <div class="row mt-2">
               <div class="col-sm-12 col-lg-1">
                 <input type="submit" class="btn btn-primary" value="{{ listTable.validateButtonLabel }}" />
               </div>
@@ -151,4 +161,9 @@
 <datalist id="allLabels">
   <!-- Complété dynamiquement -->
   <option *ngFor="let label of labels" value="{{ label }}"></option>
+</datalist>
+
+<datalist id="invoicesList">
+  <!-- Complété dynamiquement -->
+  <option *ngFor="let invoice of invoices" value="{{ invoice }}"></option>
 </datalist>

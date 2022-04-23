@@ -32,6 +32,8 @@ namespace Malte2.Services
             transfer_number,
             card_ticket_number,
             account_book_id,
+            details,
+            invoice,
             amount
             FROM operation
             WHERE (:date_start IS NULL OR :date_start <= date) AND (:date_end IS NULL OR :date_end >= date)
@@ -59,6 +61,8 @@ namespace Malte2.Services
                             TransferNumber = DatabaseValueUtils.GetNullableInt64FromReader(reader, reader.GetOrdinal("transfer_number")),
                             CardTicketNumber = DatabaseValueUtils.GetNullableInt64FromReader(reader, reader.GetOrdinal("card_ticket_number")),
                             AccountBookId = reader.GetInt64(reader.GetOrdinal("account_book_id")),
+                            Details = reader.GetString(reader.GetOrdinal("details")),
+                            Invoice = DatabaseValueUtils.GetNullableStringFromReader(reader, reader.GetOrdinal("invoice")),
                             Amount = new Amount(reader.GetInt64(reader.GetOrdinal("amount"))),
                         };
                         yield return operation;
@@ -88,6 +92,8 @@ namespace Malte2.Services
                         card_ticket_number = :card_ticket_number,
                         transfer_number = :transfer_number,
                         account_book_id = :account_book_id,
+                        details = :details,
+                        invoice = :invoice,
                         amount = :amount
                         WHERE operation_id = :operation_id";
                     }
@@ -105,6 +111,8 @@ namespace Malte2.Services
                             card_ticket_number,
                             transfer_number,
                             account_book_id,
+                            details,
+                            invoice,
                             amount
                             ) VALUES (
                             :operator_id,
@@ -118,6 +126,8 @@ namespace Malte2.Services
                             :card_ticket_number,
                             :transfer_number,
                             :account_book_id,
+                            :details,
+                            :invoice,
                             :amount
                             )";
                     }
@@ -138,6 +148,8 @@ namespace Malte2.Services
                         command.Parameters.AddWithValue("card_ticket_number", operation.CardTicketNumber);
                         command.Parameters.AddWithValue("transfer_number", operation.TransferNumber);
                         command.Parameters.AddWithValue("account_book_id", operation.AccountBookId);
+                        command.Parameters.AddWithValue("details", operation.Details);
+                        command.Parameters.AddWithValue("invoice", operation.Invoice);
                         command.Parameters.AddWithValue("amount", operation.Amount.GetLong());
                         await command.ExecuteNonQueryAsync();
                     }
