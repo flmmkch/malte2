@@ -68,7 +68,7 @@ namespace Malte2.Database
         #region Global options
         private static readonly string OPTION_KEY_DB_VERSION = "DB_VERSION";
 
-        private T? GetOptionValue<T>(string optionKey, Func<SQLiteDataReader, T> getValueObject)
+        public T? GetOptionValue<T>(string optionKey, Func<SQLiteDataReader, T> getValueObject)
         {
             using (SQLiteCommand command = new SQLiteCommand("SELECT value FROM global_option WHERE key = @Key;", Connection, null))
             {
@@ -84,7 +84,7 @@ namespace Malte2.Database
             }
         }
 
-        private void SetOptionValue<T>(string optionKey, T optionValue, SQLiteTransaction? transaction = null)
+        public void SetOptionValue<T>(string optionKey, T optionValue, SQLiteTransaction? transaction = null)
         {
             using (SQLiteCommand command = new SQLiteCommand(@"
 INSERT OR IGNORE INTO global_option (key, value) VALUES (@Key, @Value);

@@ -19,10 +19,14 @@
           <li class="nav-item">
             <a class="nav-link" [routerLink]="['/boarders']" [routerLinkActive]="['active']">Pensionnaires</a>
           </li>
+          <!--
+            Work In Progress
           <li class="nav-item">
             <a class="nav-link" [routerLink]="['/meals']" [routerLinkActive]="['active']"
               [routerLinkActiveOptions]="{ exact: true }">Repas</a>
           </li>
+            
+          -->
 
           <li class="nav-item dropdown">
             <a class="nav-link dropdown-toggle" href="#" id="navbarSettingsDropdown" role="button"
@@ -33,7 +37,9 @@
               <li><a class="dropdown-item" [routerLinkActive]="['active']"
                   [routerLink]="['/settings/operators']">Opérateurs</a></li>
               <li><a class="dropdown-item" [routerLinkActive]="['active']"
-                  [routerLink]="['/settings/accounting-entries']">Imputations</a></li>
+                  [routerLink]="['/settings/accounting-entries']">Imputations comptables</a></li>
+              <li><a class="dropdown-item" [routerLinkActive]="['active']"
+                  [routerLink]="['/settings/accounting-categories']">Catégories comptables</a></li>
               <li><a class="dropdown-item" [routerLinkActive]="['active']"
                   [routerLink]="['/settings/account-books']">Livres</a></li>
               <li><a class="dropdown-item" [routerLinkActive]="['active']"

@@ -41,6 +41,15 @@ export class OperationService {
     let operationsJson = operations.map(toJson);
     return this._http.delete(this.baseUrl + 'api/operation/delete', { body: operationsJson });
   }
+
+  editionPdfDownloadUrl(dateRange: [Date, Date]): string {
+    return this.baseUrl + `api/operation/generateEditionPdf?dateStart=${dateToSerializationString(dateRange[0])}&dateEnd=${dateToSerializationString(dateRange[1])}`;
+  }
+
+  getLabels(): Observable<string[]> {
+    return this._http
+      .get<string[]>(this.baseUrl + `api/operation/getLabels`);
+  }
 }
 
 export interface OperationJson {
@@ -49,10 +58,11 @@ export interface OperationJson {
   op: number,
   dt: string,
   ae: number,
+  ac?: number,
   b: number,
   pm: number,
   pkn?: string,
-  pcn?: string,
+  ctn?: string,
   ptn?: string,
   l: string,
   bd?: number,
@@ -65,10 +75,11 @@ export function fromJson(json: OperationJson): Operation {
         throw new Error(`Unable to parse amount from ${json.a}`);
     const operation = new Operation(json.id, amount, json.ae, <PaymentMethod> json.pm, json.b, json.op);
     operation.dateTime = new Date(json.dt);
+    operation.categoryId = json.ac;
     operation.label = json.l;
     operation.boarderId = json.bd;
     operation.checkNumber = json.pkn ? BigInt(json.pkn) : undefined;
-    operation.cardNumber = json.pcn;
+    operation.cardTicketNumber = json.ctn ? BigInt(json.ctn) : undefined;
     operation.transferNumber = json.ptn ? BigInt(json.ptn) : undefined;
     return operation;
 }
@@ -81,10 +92,11 @@ export function toJson(operation: Operation): OperationJson {
     op: operation.operatorId,
     dt: dateToSerializationString(operation.dateTime),
     ae: operation.accountingEntryId,
+    ac: operation.categoryId,
     b: operation.accountBookId,
     pm: operation.paymentMethod,
     pkn: operation.checkNumber?.toString(),
-    pcn: operation.cardNumber,
+    ctn: operation.cardTicketNumber?.toString(),
     ptn: operation.transferNumber?.toString(),
     bd: operation.boarderId,
     l: operation.label,

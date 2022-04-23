@@ -19,6 +19,7 @@ import { BoardingRoomsComponent } from './modules/settings/boarding-rooms/boardi
 import { BoarderDetailsComponent } from './modules/boarder-details/boarder-details.component';
 import { AppRoutingModule } from './app-routing.module';
 import { ListTableModule } from './modules/list-table/list-table.module';
+import { AccountingCategoriesComponent } from './modules/settings/accounting-categories/accounting-categories.component';
 
 @NgModule({
   declarations: [
@@ -33,6 +34,7 @@ import { ListTableModule } from './modules/list-table/list-table.module';
     AccountBooksComponent,
     BoardingRoomsComponent,
     BoarderDetailsComponent,
+    AccountingCategoriesComponent,
   ],
   imports: [
     BrowserModule.withServerTransition({ appId: 'ng-cli-universal' }),

@@ -3,6 +3,7 @@
 <div class="d-flex justify-content-center mt-2 mb-2">
   <ngb-datepicker
   (navigate)="dateNavigation($event)" (dateSelect)="dateSelection($event)"
+  [minDate]="{ year: 1990, month: 01, day: 01 }"
   #dateNavigator
   [formControl]="dateNavigatorFormCtrl"></ngb-datepicker>
 </div>
@@ -38,6 +39,13 @@
     {{ totalDisplayedBalance.toLocaleString() }}
   </div>
 </div>
+<!-- Work In Progress
+<div class="row mb-2">
+  <div class="col-sm-4">
+    <a class="btn btn-primary" href="{{ opService.editionPdfDownloadUrl(currentDateRange) }}" target="_blank">Édition PDF des livres comptables</a>
+  </div>
+</div>
+-->
 
 <div>
     <list-table #listTable
@@ -49,8 +57,9 @@
         <list-table-column width="8em" title="Moy. Pay." property="paymentMethod"></list-table-column>
         <list-table-column width="10em" title="Livre" property="accountBookName"></list-table-column>
         <list-table-column width="12em" title="Imputation" property="accountingEntryName"></list-table-column>
+        <list-table-column width="auto" title="Catégorie" property="categoryName"></list-table-column>
         <list-table-column width="auto" title="Libellé" property="label"></list-table-column>
-        <list-table-column width="12em" title="Opérateur" property="operatorName"></list-table-column>
+        <list-table-column width="12em" title="Opérateur·rice" property="operatorName"></list-table-column>
         <div list-table-editor>
           <form [formGroup]="opsFormGroup" (ngSubmit)="onSubmit()">
             <div class="form-group">
@@ -81,7 +90,13 @@
               </select>
             </div>
             <div class="form-group">
-              <label for="operSelect" class="form-label col-2">Opérateur</label>
+              <label for="categorySelect" class="form-label col-2">Catégorie</label>
+              <select class="form-control col-offset-2 col-10" formControlName="categoryCtrl" id="categorySelect">
+                <option *ngFor="let category of categoryList" value="{{ category?.id }}">{{ category?.label }}</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="operSelect" class="form-label col-2">Opérateur·rice</label>
               <select class="form-control col-offset-2 col-10" formControlName="operCtrl" id="operSelect">
                 <option *ngFor="let oper of operatorList" value="{{ oper.id }}">{{ oper.name }}</option>
               </select>
@@ -98,8 +113,8 @@
               />
             </div>
             <div class="form-group" [style.display]="workingItemIsCardPayment ? '' : 'none'">
-              <label for="paymentCardNbInput" class="form-label col-2">Numéro de carte</label>
-              <input type="text" class="form-control col-offset-2 col-10" formControlName="paymentCardNbCtrl" id="paymentCardNbInput"
+              <label for="paymentCardNbInput" class="form-label col-2">Numéro de ticket de carte</label>
+              <input type="text" class="form-control col-offset-2 col-10" formControlName="paymentCardTicketNbCtrl" id="paymentCardNbInput"
               />
             </div>
             <div class="form-group" [style.display]="workingItemIsTransferPayment ? '' : 'none'">
@@ -109,7 +124,9 @@
             </div>
             <div class="form-group">
               <label for="labelInput" class="form-label col-2">Libellé</label>
-              <input type="text" class="form-control col-offset-2 col-10" formControlName="labelCtrl" id="labelInput"/>
+              <input type="text" class="form-control col-offset-2 col-10" formControlName="labelCtrl" id="labelInput"
+                list="allLabels" autocomplete="off"
+                />
             </div>
             <div class="form-group"
                 *ngIf="formValidationErrorMessage"
@@ -130,3 +147,8 @@
         </div>
     </list-table>
 </div>
+
+<datalist id="allLabels">
+  <!-- Complété dynamiquement -->
+  <option *ngFor="let label of labels" value="{{ label }}"></option>
+</datalist>

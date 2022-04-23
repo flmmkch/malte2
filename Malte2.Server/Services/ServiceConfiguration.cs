@@ -10,6 +10,7 @@ namespace Malte2.Services
             services.AddScoped<DatabaseContext>();
             services.AddScoped<AccountBookService>();
             services.AddScoped<AccountingEntryService>();
+            services.AddScoped<AccountingCategoryService>();
             services.AddScoped<BoarderService>();
             services.AddScoped<BoardingRoomService>();
             services.AddScoped<OperationService>();
