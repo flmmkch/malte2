@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Malte2.Services;
 using Malte2.Model.Accounting;
 using Malte2.Extensions;
+using CsvHelper;
 
 namespace Malte2.Controllers
 {
@@ -56,6 +57,24 @@ namespace Malte2.Controllers
         public IAsyncEnumerable<string> GetLabels()
         {
             return _operationService.GetLabels();
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GenerateCsv([FromQuery(Name = "dateStart")] string? dateStartString = null, [FromQuery(Name = "dateEnd")] string? dateEndString = null, [FromQuery(Name = "paymentMethod")] PaymentMethod? paymentMethod = null)
+        {
+            DateTime? dateStart = dateStartString != null ? DateTime.Parse(dateStartString) : null;
+            DateTime? dateEnd = dateEndString != null ? DateTime.Parse(dateEndString) : null;
+            List<OperationEditionCsvLine> operationsCsvLines = await _operationService.GetEditionItems(dateStart, dateEnd, paymentMethod).ToListAsync();
+            MemoryStream csvStream = new MemoryStream();
+            using (var writer = new StreamWriter(csvStream, System.Text.Encoding.UTF8, 2048, true))
+            using (var csv = new CsvWriter(writer, System.Globalization.CultureInfo.CurrentCulture))
+            {
+                csv.WriteRecords(operationsCsvLines);
+            }
+            csvStream.Seek(0, SeekOrigin.Begin);
+            string contentType = "text/csv";
+            string fileName = "Opérations.csv";
+            return File(csvStream, contentType, fileName);
         }
     }
 

@@ -46,6 +46,14 @@ export class OperationService {
     return this.baseUrl + `api/operation/generateEditionPdf?dateStart=${dateToSerializationString(dateRange[0])}&dateEnd=${dateToSerializationString(dateRange[1])}`;
   }
 
+  csvDownloadUrl(dateRange: [Date, Date], filteringPaymentMethod: PaymentMethod | null): string {
+    let args = `?dateStart=${dateToSerializationString(dateRange[0])}&dateEnd=${dateToSerializationString(dateRange[1])}`;
+    if (filteringPaymentMethod !== null) {
+      args = `${args}&paymentMethod=${filteringPaymentMethod.toString()}`
+    }
+    return this.baseUrl + `api/operation/generateCsv${args}`;
+  }
+
   getLabels(): Observable<string[]> {
     return this._http
       .get<string[]>(this.baseUrl + `api/operation/getLabels`);
