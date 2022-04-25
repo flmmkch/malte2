@@ -256,32 +256,24 @@ export class OperationsComponent implements OnInit, AfterViewInit {
 
     private createNewOpDisplay(copyOldOpDisplay?: OperationDisplay): OperationDisplay {
         let operation = new Operation(undefined, Amount.from(0)!, -1, this.filteringPaymentMethod || PaymentMethod.Cash, -1, -1);
+        const today = new Date();
+        if (today >= this._currentDateRange[0] && today <= this._currentDateRange[1]) {
+            operation.dateTime = today;
+        }
+        else {
+            operation.dateTime = this._currentDateRange[0];
+        }
         if (copyOldOpDisplay && copyOldOpDisplay.operation) {
             operation.accountBookId = copyOldOpDisplay.operation.accountBookId;
             operation.accountingEntryId = copyOldOpDisplay.operation.accountingEntryId;
             operation.categoryId = copyOldOpDisplay.operation.categoryId;
             operation.boarderId = copyOldOpDisplay.operation.boarderId;
-            operation.dateTime = copyOldOpDisplay.operation.dateTime;
             operation.label = copyOldOpDisplay.operation.label;
             operation.operatorId = copyOldOpDisplay.operation.operatorId;
             operation.paymentMethod = copyOldOpDisplay.operation.paymentMethod;
             operation.checkNumber = copyOldOpDisplay.operation.checkNumber ? copyOldOpDisplay.operation.checkNumber + BigInt(1) : undefined;
             operation.cardTicketNumber = copyOldOpDisplay.operation.cardTicketNumber ? copyOldOpDisplay.operation.cardTicketNumber + BigInt(1) : undefined;
             operation.transferNumber = copyOldOpDisplay.operation.transferNumber ? copyOldOpDisplay.operation.transferNumber + BigInt(1) : undefined;
-        }
-        else {
-            if (this.opsFormGroup.controls.dateTimeCtrl.value) {
-                operation.dateTime = datePickerValueToDate(this.opsFormGroup.controls.dateTimeCtrl.value);
-            }
-            else {
-                const today = new Date();
-                if (today >= this._currentDateRange[0] && today <= this._currentDateRange[1]) {
-                    operation.dateTime = today;
-                }
-                else {
-                    operation.dateTime = this._currentDateRange[0];
-                }
-            }
         }
         const opDisplay = this.createOperationDisplay(operation);
         opDisplay.amount = '';
