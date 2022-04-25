@@ -182,7 +182,7 @@ ALTER TABLE operation ADD COLUMN category_id INTEGER NULL REFERENCES accounting_
 
 CREATE TRIGGER ck_operation_category_entry
 BEFORE UPDATE OF category_id, accounting_entry_id ON operation
-FOR EACH ROW WHEN NEW.accounting_entry_id NOT IN (SELECT accounting_entry_id FROM accounting_category WHERE accounting_category_id = NEW.category_id)
+FOR EACH ROW WHEN NEW.category_id IS NOT NULL AND NEW.accounting_entry_id NOT IN (SELECT accounting_entry_id FROM accounting_category WHERE accounting_category_id = NEW.category_id)
 BEGIN
     SELECT RAISE(FAIL, 'Operations must have the same accounting entry as their category');
 END;
