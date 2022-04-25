@@ -71,6 +71,63 @@ namespace Malte2.Services
             }
         }
 
+        public async IAsyncEnumerable<OperationEditionCsvLine> GetEditionItems(DateTime? dateStart, DateTime? dateEnd, PaymentMethod? filterPaymentMethod)
+        {
+            string commandText = @"SELECT
+            operation.date,
+            operation.amount,
+            account_book.label AS account_book_name,
+            accounting_entry.label AS accounting_entry_name,
+            accounting_category.label AS category_name,
+            operation.payment_method,
+            operation.label,
+            accounting_entry.accounting_entry_type
+            FROM operation
+            INNER JOIN account_book ON account_book.account_book_id = operation.account_book_id
+            INNER JOIN accounting_entry ON accounting_entry.accounting_entry_id = operation.accounting_entry_id
+            LEFT JOIN accounting_category ON accounting_category.accounting_category_id = operation.category_id
+            WHERE (:date_start IS NULL OR :date_start <= date) AND (:date_end IS NULL OR :date_end >= date)
+                AND (:filter_payment_method IS NULL OR operation.payment_method = :filter_payment_method)
+            ORDER BY date, operation_id ASC;";
+            commandText = commandText + @" ORDER BY operation_id ASC;";
+            using (var command = new SQLiteCommand(commandText, _databaseContext.Connection))
+            {
+                command.Parameters.AddWithValue("date_start", DateTimeDatabaseUtils.GetStringFromNullableDate(dateStart));
+                command.Parameters.AddWithValue("date_end", DateTimeDatabaseUtils.GetStringFromNullableDate(dateEnd));
+                command.Parameters.AddWithValue("filter_payment_method", filterPaymentMethod);
+                using (var reader = await command.ExecuteReaderAsync())
+                {
+                    while (await reader.ReadAsync())
+                    {
+                        Amount? expense = null;
+                        Amount? revenue = null;
+                        AccountingEntryType accountingEntryType = (AccountingEntryType) Enum.ToObject(typeof(AccountingEntryType), reader.GetByte(reader.GetOrdinal("accounting_entry_type")));
+                        Amount operationAmount = new Amount(reader.GetInt64(reader.GetOrdinal("amount")));
+                        switch (accountingEntryType) {
+                            case AccountingEntryType.Expense:
+                                expense = operationAmount;
+                                break;
+                            case AccountingEntryType.Revenue:
+                                revenue = operationAmount;
+                                break;
+                        }
+                        OperationEditionCsvLine operationEditionLine = new OperationEditionCsvLine
+                        {
+                            Date = DateOnly.Parse(reader.GetString(reader.GetOrdinal("date"))!),
+                            Expenses = expense,
+                            Revenues = revenue,
+                            AccountBookName = reader.GetString(reader.GetOrdinal("account_book_name")),
+                            AccountingEntryName = reader.GetString(reader.GetOrdinal("accounting_entry_name")),
+                            CategoryName = DatabaseValueUtils.GetNullableStringFromReader(reader, reader.GetOrdinal("category_name")),
+                            Label = reader.GetString(reader.GetOrdinal("label")),
+                            PaymentMethod = (PaymentMethod) Enum.ToObject(typeof(PaymentMethod), reader.GetInt64(reader.GetOrdinal("payment_method"))),
+                        };
+                        yield return operationEditionLine;
+                    }
+                }
+            }
+        }
+
         public async Task CreateUpdate(IEnumerable<Operation> accountingEntries)
         {
             using (var transaction = _databaseContext.Connection.BeginTransaction())

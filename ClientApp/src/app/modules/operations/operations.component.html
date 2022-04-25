@@ -63,6 +63,12 @@
 </div>
 -->
 
+<div class="row mb-2">
+  <div class="col-sm-4">
+    <a class="btn btn-primary" href="{{ opService.csvDownloadUrl(currentDateRange, filteringPaymentMethod) }}" target="_blank">Export CSV</a>
+  </div>
+</div>
+
 <div>
     <list-table #listTable
         [items]="itemsDisplayed"

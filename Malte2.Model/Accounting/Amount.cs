@@ -35,9 +35,14 @@ namespace Malte2.Model.Accounting
 
         public override string ToString()
         {
+            return ToCultureString(CultureInfo.InvariantCulture);
+        }
+
+        public string ToCultureString(CultureInfo cultureInfo)
+        {
             long beforeDecimal = _amount / PRECISION;
             long afterDecimal = (_amount > 0 ? _amount : -_amount) % PRECISION;
-            return $"{beforeDecimal}{CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator}{afterDecimal:00}";
+            return $"{beforeDecimal}{cultureInfo.NumberFormat.NumberDecimalSeparator}{afterDecimal:00}";
         }
 
         public static Amount operator +(Amount amount1, Amount amount2)
@@ -55,9 +60,12 @@ namespace Malte2.Model.Accounting
             return new Amount(-amount._amount);
         }
 
-        public static Amount? TryFromString(string amountString)
+        public static Amount? TryFromString(string amountString, CultureInfo? culture = null)
         {
-            int decimalStrIndex = amountString.IndexOf(CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator);
+            if (culture == null) {
+                culture = CultureInfo.InvariantCulture;
+            }
+            int decimalStrIndex = amountString.IndexOf(culture.NumberFormat.NumberDecimalSeparator);
             if (decimalStrIndex > 0)
             {
                 string beforeDecimalStr = amountString.Substring(0, decimalStrIndex);
