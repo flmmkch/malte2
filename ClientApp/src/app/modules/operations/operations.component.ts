@@ -1,7 +1,8 @@
+import { getLocaleDateFormat } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
-import { AfterViewInit, Component, EventEmitter, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
+import { AfterViewInit, Component, EventEmitter, Injectable, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
 import { FormControl, FormGroup } from '@angular/forms';
-import { NgbDate, NgbDatepicker, NgbDatepickerI18n, NgbDatepickerI18nDefault, NgbDatepickerNavigateEvent } from '@ng-bootstrap/ng-bootstrap';
+import { NgbDate, NgbDateParserFormatter, NgbDatepicker, NgbDatepickerI18n, NgbDatepickerI18nDefault, NgbDatepickerNavigateEvent, NgbDateStruct } from '@ng-bootstrap/ng-bootstrap';
 import { BehaviorSubject, forkJoin, Observable } from 'rxjs';
 import { combineLatestWith, map } from 'rxjs/operators';
 import { AccountBook } from 'src/app/shared/models/account-book.model';
@@ -43,11 +44,36 @@ export interface ContextDicts {
     boarders: DictionaryById<BoarderListItem>;
 }
 
+@Injectable()
+export class FrenchDateParserFormatter {
+    parse(value: string): NgbDateStruct {
+        const dateReMatch = value.match(/([0-9]{1,2})\/([0-9]{1,2})\/([0-9]+)/);
+        if (dateReMatch && dateReMatch.length === 3) {
+            const [dayStr, monthStr, yearStr] = dateReMatch;
+            return {
+                day: Number.parseInt(dayStr),
+                month: Number.parseInt(monthStr),
+                year: Number.parseInt(yearStr),
+            };
+        }
+        throw new Error(`Failed to parse date from ${value}`);
+    }
+    format(date: NgbDateStruct): string {
+        if (date) {
+            return `${date.day.toString().padStart(2, '0')}/${date.month.toString().padStart(2, '0')}/${date.year.toString().padStart(4, '0')}`;
+        }
+        return '';
+    }
+}
+
 @Component({
     selector: 'app-operations',
     templateUrl: './operations.component.html',
     styleUrls: ['./operations.component.css'],
-    providers: [{ provide: NgbDatepickerI18n, useClass: NgbDatepickerI18nDefault }]
+    providers: [
+        { provide: NgbDatepickerI18n, useClass: NgbDatepickerI18nDefault },
+        {provide: NgbDateParserFormatter, useClass: FrenchDateParserFormatter }
+    ]
 })
 export class OperationsComponent implements OnInit, AfterViewInit {
     public items: Operation[] = [];
