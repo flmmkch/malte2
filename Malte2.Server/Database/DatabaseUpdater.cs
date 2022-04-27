@@ -210,8 +210,6 @@ ALTER TABLE operation ADD COLUMN details TEXT NOT NULL DEFAULT '';
 
 ALTER TABLE operation ADD COLUMN invoice TEXT;
 
-ALTER TABLE operation DROP COLUMN payment_method_info;
-
 ");
             // update database version
             databaseContext.UpdateDatabaseVersion(2, transaction);
