@@ -20,6 +20,8 @@ app.MapControllerRoute(
     name: "default",
     pattern: "api/{controller}/{action=Index}/{id?}");
 
-app.MapFallbackToFile("index.html");
+string locale = "fr";
+
+app.MapFallbackToFile($"{locale}/index.html");
 
 app.Run();
