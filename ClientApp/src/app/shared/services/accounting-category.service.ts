@@ -9,7 +9,7 @@ import { AccountingCategory } from '../models/accounting-category.model';
 })
 export class AccountingCategoryService {
 
-  constructor(private readonly _http: HttpClient, @Inject('BASE_URL') readonly baseUrl: string) {
+  constructor(private readonly _http: HttpClient, @Inject('API_BASE_URL') readonly baseUrl: string) {
   }
 
   get(): Observable<AccountingCategory[]> {
