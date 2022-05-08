@@ -15,6 +15,7 @@ namespace Malte2.Services
             services.AddScoped<BoardingRoomService>();
             services.AddScoped<OperationService>();
             services.AddScoped<OperatorService>();
+            services.AddScoped<MealDayService>();
         }
     }
 
