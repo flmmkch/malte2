@@ -129,6 +129,7 @@
             <div class="form-group row" [style.display]="workingItemEntryDependsOnBoarder ? '' : 'none'">
               <label for="boarderSelect" class="form-label col-2">Pensionnaire</label>
               <select class="form-control col-offset-2 col-10" formControlName="boarderCtrl" id="boarderSelect">
+                <option value=""></option>
                 <option *ngFor="let boarder of boarderList" value="{{ boarder.boarderId }}">{{ boarder.name }}</option>
               </select>
             </div>
