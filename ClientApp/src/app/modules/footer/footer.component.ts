@@ -7,7 +7,7 @@ import { Component, Inject, OnInit } from '@angular/core';
 })
 export class FooterComponent implements OnInit {
 
-  constructor(@Inject('APP_VERSION') readonly version: string) { }
+  constructor(@Inject('APP_VERSION') readonly version: string, @Inject('ASSETS_URL') readonly assets_url: string) { }
 
   ngOnInit(): void {
   }

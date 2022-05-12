@@ -18,6 +18,7 @@ export function getApiBaseUrl() {
 
 const providers = [
   { provide: 'BASE_URL', useFactory: getBaseUrl, deps: [] },
+  { provide: 'ASSETS_URL', useFactory: () => `${getBaseUrl()}assets`, deps: [] },
   { provide: 'API_BASE_URL', useFactory: getApiBaseUrl, deps: [] },
   { provide: 'APP_VERSION', useValue: '0.4' },
 ];
