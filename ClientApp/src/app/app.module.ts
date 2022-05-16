@@ -22,6 +22,8 @@ import { ListTableModule } from './modules/list-table/list-table.module';
 import { AccountingCategoriesComponent } from './modules/settings/accounting-categories/accounting-categories.component';
 import { FooterComponent } from './modules/footer/footer.component';
 
+export const APP_VERSION = '0.5';
+
 @NgModule({
   declarations: [
     AppComponent,
