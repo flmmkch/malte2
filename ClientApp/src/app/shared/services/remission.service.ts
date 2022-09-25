@@ -3,7 +3,7 @@ import { Inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { exhaustAll, map } from 'rxjs/operators';
 import { Amount } from '../models/amount.model';
-import { CashDeposit, CashValue, Remission } from '../models/remission.model';
+import { CashDeposit, CashValue, CheckRemission, Remission } from '../models/remission.model';
 import { dateToSerializationString } from '../utils/date-time-form-conversion';
 
 @Injectable({
@@ -66,7 +66,8 @@ export function fromJson(json: RemissionJson): Remission {
     const remission = new Remission(json.id, json.o);
     remission.dateTime = new Date(json.dt);
     remission.notes = json.n;
-    remission.cashDeposits = json.h.map(h => new CashDeposit(<CashValue> h.v, BigInt(h.n)))
+    remission.cashDeposits = json.h.map(h => new CashDeposit(<CashValue> h.v, BigInt(h.n)));
+    remission.checkRemissions = json.k.map(k => new CheckRemission(Amount.from(k.a)!, k.n != null ? BigInt(k.n) : undefined));
     return remission;
 }
 

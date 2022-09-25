@@ -68,21 +68,55 @@
               <!-- Espèces -->
               <div class="col-6">
                 <div class="p-3 border bg-light container">
-                  <div class="row"><h6 class="text-center col-offset-2 col-6 fw-bold">Espèces</h6></div>
-                  
+                  <div class="row"><div class="col-6"><h6 class="fw-bold">Espèces</h6></div></div>
                   <div class="form-group row" *ngFor="let cashValue of cashValues()">
                     <div class="input-group">
                       <span class="input-group-text col-2">{{getCashValueAmount(cashValue).toLocaleString()}} €</span>
                       <input type="number" class="form-control col-2" formControlName="c{{cashValue}}input" min="0"/>
                     </div>
                   </div>
-                  <div class="row py-3"><h6 class="text-center col-offset-2 col-6 fw-bold">Sous-total {{ workingItemTotalCashAmount.toLocaleString() }} €</h6></div>
+                  <div class="row py-3"><div class="offset-2 col-6"><h6 class="fw-bold">Sous-total {{ workingItemTotalCashAmount.toLocaleString() }} €</h6></div></div>
                 </div>
               </div>
               <!-- Chèque -->
               <div class="col-6">
-                <div class="p-3 border bg-light">
-                  <h6 class="text-center">Chèques</h6>
+                <div class="p-3 border bg-light container">
+                  <div class="row"><div class="col-6"><h6 class="fw-bold">Chèques</h6></div></div>
+                  
+                  <list-table #checkListTable
+                  [items]="workingItemChecks"
+                  [editable]="false"
+                  [enableAddRemove]="false"
+                  >
+                    <list-table-column width="50%" title="Numéro" property="checkNumber"></list-table-column>
+                    <list-table-column width="auto" title="Montant">
+                      <ng-template value-template let-check="item">
+                          {{ check.amount.toLocaleString() }} €
+                      </ng-template>
+                    </list-table-column>
+                    <list-table-column width="8em">
+                      <ng-template value-template [visible-on-hover]="true" let-check="item">
+                        <a class="btn btn-danger btn-sm" (click)="deleteCheck(check)">Supprimer</a>
+                      </ng-template>
+                    </list-table-column>
+                  </list-table>
+                  <div class="row"><div class="col-12 fw-bold">Ajouter un chèque</div></div>
+                  <form [formGroup]="checkFormGroup" (ngSubmit)="addCheck()">
+                    <div class="row mb-2">
+                      <div class="input-group">
+                        <span class="input-group-text col-2">Numéro</span>
+                        <input type="text" class="form-control col-4" placeholder="Numéro du chèque" aria-label="Numéro du chèque" formControlName="checkNumberCtrl">
+                        <span class="input-group-text col-2">Montant (€)</span>
+                        <input type="text" class="form-control col-4" placeholder="Montant" aria-label="Montant" formControlName="checkAmountCtrl">
+                      </div>
+                    </div>
+                    <div class="row">
+                      <div class="col-2 offset-10">
+                        <input type="submit" class="btn btn-primary" value="Ajouter" />
+                      </div>
+                    </div>
+                  </form>
+                  <div class="row py-3"><div class="offset-2 col-6"><h6 class="fw-bold">Sous-total {{ workingItemTotalCheckAmount.toLocaleString() }} €</h6></div></div>
                 </div>
               </div>
               <!-- Total -->

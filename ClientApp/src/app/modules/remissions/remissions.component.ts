@@ -5,7 +5,7 @@ import { NgbDate, NgbDateParserFormatter, NgbDatepicker, NgbDatepickerI18n, NgbD
 import { forkJoin, Observable } from 'rxjs';
 import { combineLatestWith, map } from 'rxjs/operators';
 import { Amount } from 'src/app/shared/models/amount.model';
-import { allCashValueItems as cashValues, CashDeposit, CashValue, getCashValueAmount, Remission } from 'src/app/shared/models/remission.model';
+import { allCashValueItems as cashValues, CashDeposit, CashValue, CheckRemission, getCashValueAmount, Remission } from 'src/app/shared/models/remission.model';
 import { Operator } from 'src/app/shared/models/operator.model';
 import { RemissionService } from 'src/app/shared/services/remission.service';
 import { OperatorService } from 'src/app/shared/services/operator.service';
@@ -181,7 +181,6 @@ export class RemissionsComponent implements OnInit, AfterViewInit {
         }
         if (copyOldRemissionDisplay && copyOldRemissionDisplay.remission) {
             remission.operatorId = copyOldRemissionDisplay.remission.operatorId;
-            remission.notes = copyOldRemissionDisplay.remission.notes;
         }
         return this.createRemissionDisplay(remission);
     }
@@ -214,6 +213,7 @@ export class RemissionsComponent implements OnInit, AfterViewInit {
                     cashValueFormControl.formControl.setValue(0);
                 }
             }
+            this.workingItemChecks = [... e.value.remission.checkRemissions];
         }
         else {
             this.remissionFormGroup.controls.dateTimeCtrl.setValue(undefined);
@@ -222,7 +222,10 @@ export class RemissionsComponent implements OnInit, AfterViewInit {
             for (let cashValueFormControl of this.cashValueFormControls) {
                 cashValueFormControl.formControl.setValue(0);
             }
+            this.workingItemChecks = [];
         }
+        this.checkFormGroup.controls.checkNumberCtrl.setValue(undefined);
+        this.checkFormGroup.controls.checkAmountCtrl.setValue(undefined);
     }
 
     @ViewChild('cashFormGroup') cashFormGroup!: ElementRef<HTMLElement>;
@@ -237,8 +240,29 @@ export class RemissionsComponent implements OnInit, AfterViewInit {
         return this.calculateTotal(this.workingItemCashDeposits, (cashDeposit) => cashDeposit.totalAmount);
     }
 
+    workingItemChecks: CheckRemission[] = [];
+
     public get workingItemTotalCheckAmount(): Amount {
-        /* TODO */ return Amount.from(0)!;
+        return this.calculateTotal(this.workingItemChecks, (checkRemission) => checkRemission.amount);
+    }
+
+    public readonly checkFormGroup = new FormGroup({
+        checkNumberCtrl: new FormControl(),
+        checkAmountCtrl: new FormControl(),
+    });
+
+    public addCheck() {
+        let checkAmount = Amount.from(this.checkFormGroup.controls.checkAmountCtrl.value);
+        let checkNumber = this.checkFormGroup.controls.checkNumberCtrl.value;
+        if ((typeof checkNumber === 'string' || checkNumber === undefined) && checkAmount !== undefined) {
+            this.workingItemChecks.push(new CheckRemission(checkAmount, checkNumber !== undefined ? BigInt(checkNumber) : undefined))
+            this.checkFormGroup.controls.checkAmountCtrl.setValue(undefined);
+            this.checkFormGroup.controls.checkNumberCtrl.setValue(undefined);
+        }
+    }
+
+    public deleteCheck(deletedCheck: CheckRemission) {
+        this.workingItemChecks = this.workingItemChecks.filter(check => check !== deletedCheck);
     }
 
     public get workingItemTotalAmount(): Amount {
@@ -270,6 +294,7 @@ export class RemissionsComponent implements OnInit, AfterViewInit {
             remission.cashDeposits = this.workingItemCashDeposits;
 
             // checks
+            remission.checkRemissions = this.workingItemChecks;
 
             // update
             this._lastRemissionEntered = remissionDisplay;
