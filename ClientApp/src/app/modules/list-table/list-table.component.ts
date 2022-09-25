@@ -104,6 +104,10 @@ export class ListTable implements AfterViewChecked {
 
   @Input() enableAddRemove: boolean = true;
 
+  @Input() addLabel: string = 'Ajouter';
+
+  @Input() modifyLabel: string = 'Modifier';
+
   private _currentEditMode: EditMode | null = null;
 
   public get currentEditMode(): EditMode | null {

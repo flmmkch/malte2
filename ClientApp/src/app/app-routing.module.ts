@@ -13,6 +13,7 @@ import { BoarderDetailsComponent } from './modules/boarder-details/boarder-detai
 import { PageNotFoundComponent } from './modules/page-not-found/page-not-found.component';
 import { BoarderResolverService } from './shared/services/boarder-resolver.service';
 import { AccountingCategoriesComponent } from './modules/settings/accounting-categories/accounting-categories.component';
+import { RemissionsComponent } from './modules/remissions/remissions.component';
 
 
 const appRoutes: Routes = [
@@ -23,6 +24,7 @@ const appRoutes: Routes = [
   { path: 'boarders/list', component: BoardersComponent },
   { path: 'boarders', redirectTo: 'boarders/list', pathMatch: 'full' },
   { path: 'meals', component: MealsComponent },
+  { path: 'bank', component: RemissionsComponent },
   { path: 'settings/operators', component: OperatorsComponent },
   { path: 'settings/accounting-entries', component: AccountingEntriesComponent },
   { path: 'settings/accounting-categories', component: AccountingCategoriesComponent },

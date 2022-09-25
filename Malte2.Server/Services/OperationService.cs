@@ -57,7 +57,7 @@ namespace Malte2.Services
                             Label = reader.GetString(reader.GetOrdinal("label")),
                             BoarderId = DatabaseValueUtils.GetNullableInt64FromReader(reader, reader.GetOrdinal("boarder_id")),
                             PaymentMethod = (PaymentMethod) Enum.ToObject(typeof(PaymentMethod), reader.GetInt64(reader.GetOrdinal("payment_method"))),
-                            CheckNumber = DatabaseValueUtils.GetNullableInt64FromReader(reader, reader.GetOrdinal("check_number")),
+                            CheckNumber = DatabaseValueUtils.GetNullableUint64FromReader(reader, reader.GetOrdinal("check_number")),
                             TransferNumber = DatabaseValueUtils.GetNullableInt64FromReader(reader, reader.GetOrdinal("transfer_number")),
                             CardTicketNumber = DatabaseValueUtils.GetNullableInt64FromReader(reader, reader.GetOrdinal("card_ticket_number")),
                             AccountBookId = reader.GetInt64(reader.GetOrdinal("account_book_id")),

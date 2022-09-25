@@ -1,0 +1,111 @@
+<h1 id="tableLabel" class="d-flex justify-content-center mb-4">Dépôts bancaires</h1>
+
+<div class="d-flex justify-content-center mt-2 mb-2">
+  <ngb-datepicker
+  (navigate)="dateNavigation($event)" (dateSelect)="dateSelection($event)"
+  [minDate]="{ year: 1990, month: 01, day: 01 }"
+  #dateNavigator
+  [formControl]="dateNavigatorFormCtrl"></ngb-datepicker>
+</div>
+
+<div class="row mb-2">
+  <div class="col-sm-1 amount-total-label">
+    Espèces
+  </div>
+  <div class="col-sm-1 amount-total-value">
+    {{ totalCashAmount.toLocaleString() }}
+  </div>
+</div>
+<div class="row mb-2">
+  <div class="col-sm-1 amount-total-label">
+    Chèques
+  </div>
+  <div class="col-sm-1 amount-total-value">
+    {{ totalCheckAmount.toLocaleString() }}
+  </div>
+</div>
+<div class="row mb-2">
+  <div class="col-sm-1 amount-total-label">
+    Total
+  </div>
+  <div class="col-sm-1 amount-total-value">
+    {{ totalAmount.toLocaleString() }}
+  </div>
+</div>
+
+<div>
+    <list-table #listTable
+        [items]="itemsDisplayed"
+        confirmDeleteMessage="Supprimer le dépôt bancaire ?"
+        modifyLabel="Corriger"
+        >
+        <list-table-column width="8em" title="Date" property="dateTime"></list-table-column>
+        <list-table-column width="auto" title="Notes" property="notes"></list-table-column>
+        <list-table-column width="12em" title="Opérateur·rice" property="operatorName"></list-table-column>
+        <list-table-column width="8em" title="Espèces" property="cashAmount"></list-table-column>
+        <list-table-column width="8em" title="Chèques" property="checkAmount"></list-table-column>
+        <list-table-column width="8em" title="Total" property="totalAmount"></list-table-column>
+        <div list-table-editor>
+          <form [formGroup]="remissionFormGroup" (ngSubmit)="onSubmit()">
+            <div class="form-group row">
+              <label for="dateTimeInput" class="form-label col-2">Date</label>
+              <input type="text" formControlName="dateTimeCtrl" id="dateTimeInput" class="form-control col-offset-2 col-10"
+                ngbDatepicker #dateInput="ngbDatepicker" (click)="dateInput.toggle()"
+                hint="JJ/MM/AAAA"
+                />
+            </div>
+            <div class="form-group row">
+              <label for="operSelect" class="form-label col-2">Opérateur·rice</label>
+              <select class="form-control col-offset-2 col-10" formControlName="operCtrl" id="operSelect">
+                <option *ngFor="let oper of operatorList" value="{{ oper.id }}">{{ oper.name }}</option>
+              </select>
+            </div>
+            <div class="form-group row">
+              <label for="notesInput" class="form-label col-2">Notes</label>
+              <textarea class="form-control col-offset-2 col-10" formControlName="notesCtrl" id="notesInput"></textarea>
+            </div>
+            <div class="form-group row py-3" #cashFormGroup>
+              <!-- Espèces -->
+              <div class="col-6">
+                <div class="p-3 border bg-light container">
+                  <div class="row"><h6 class="text-center col-offset-2 col-6 fw-bold">Espèces</h6></div>
+                  
+                  <div class="form-group row" *ngFor="let cashValue of cashValues()">
+                    <div class="input-group">
+                      <span class="input-group-text col-2">{{getCashValueAmount(cashValue).toLocaleString()}} €</span>
+                      <input type="number" class="form-control col-2" formControlName="c{{cashValue}}input" min="0"/>
+                    </div>
+                  </div>
+                  <div class="row py-3"><h6 class="text-center col-offset-2 col-6 fw-bold">Sous-total {{ workingItemTotalCashAmount.toLocaleString() }} €</h6></div>
+                </div>
+              </div>
+              <!-- Chèque -->
+              <div class="col-6">
+                <div class="p-3 border bg-light">
+                  <h6 class="text-center">Chèques</h6>
+                </div>
+              </div>
+              <!-- Total -->
+              <div class="p-3">
+                <h5 class="text-center">Total {{ workingItemTotalAmount.toLocaleString() }} €</h5>
+              </div>
+            </div>
+            <div class="form-group row"
+                *ngIf="formValidationErrorMessage"
+                >
+                <p class="form-validation-error-message">
+                    {{ formValidationErrorMessage }}
+                </p>
+            </div>
+            <div class="row mt-2">
+              <div class="col-sm-12 col-lg-1">
+                <input type="submit" class="btn btn-primary" value="{{ listTable.validateButtonLabel }}" />
+              </div>
+              <div class="col-sm-12 col-lg-1">
+                <input type="reset" class="btn btn-secondary" (click)="listTable.cancelEdit()" value="Annuler" />
+              </div>
+            </div>
+          </form>
+        </div>
+    </list-table>
+</div>

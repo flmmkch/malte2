@@ -20,5 +20,13 @@ namespace Malte2.Database
             }
             return reader.GetInt64(columnNumber);
         }
+
+        public static ulong? GetNullableUint64FromReader(DbDataReader reader, int columnNumber)
+        {
+            if (reader.IsDBNull(columnNumber)) {
+                return null;
+            }
+            return reader.GetFieldValue<ulong>(columnNumber);
+        }
     }
 }
