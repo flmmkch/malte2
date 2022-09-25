@@ -75,13 +75,9 @@ namespace Malte2.Services
                         selectCheckCommand.Parameters.AddWithValue("remission_id", remission.Id);
                         using (var selectCheckReader = await selectCheckCommand.ExecuteReaderAsync()) {
                             while (await selectCheckReader.ReadAsync()) {
-                                ulong? checkNumber = null;
-                                if (!selectCheckReader.IsDBNull(selectCheckReader.GetOrdinal("check_number"))) {
-                                    checkNumber = (ulong) selectCheckReader.GetInt64(selectCheckReader.GetOrdinal("check_number"));
-                                }
                                 Remission.CheckRemission check = new Remission.CheckRemission {
                                     Amount = new Amount(selectCheckReader.GetInt64(selectCheckReader.GetOrdinal("amount"))),
-                                    CheckNumber = checkNumber,
+                                    CheckNumber = DatabaseValueUtils.GetNullableUint64FromReader(selectCheckReader, selectCheckReader.GetOrdinal("check_number")),
                                 };
                                 remission.CheckRemissions.Add(check);
                             }

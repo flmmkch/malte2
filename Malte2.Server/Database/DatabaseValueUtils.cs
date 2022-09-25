@@ -1,4 +1,4 @@
-using System.Data.SQLite;
+using System;
 using System.Data.Common;
 
 namespace Malte2.Database
@@ -26,7 +26,7 @@ namespace Malte2.Database
             if (reader.IsDBNull(columnNumber)) {
                 return null;
             }
-            return reader.GetFieldValue<ulong>(columnNumber);
+            return (ulong) reader.GetInt64(columnNumber);
         }
     }
 }
