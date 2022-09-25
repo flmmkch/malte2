@@ -31,7 +31,7 @@ namespace Malte2.Model.Accounting
         [JsonPropertyName("bd")]
         public long? BoarderId { get; set; }
         [JsonPropertyName("pkn")]
-        public long? CheckNumber { get; set; }
+        public ulong? CheckNumber { get; set; }
         [JsonPropertyName("ptn")]
         public long? TransferNumber { get; set; }
         [JsonPropertyName("ctn")]

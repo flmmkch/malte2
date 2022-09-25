@@ -5,7 +5,13 @@ namespace Malte2.Database
 
     public static class DatabaseUpdater
     {
-        public static readonly int DATABASE_VERSION = 2;
+        public static readonly int DATABASE_VERSION = 3;
+
+        public static readonly Dictionary<int, Action<DatabaseContext, SQLiteTransaction>> UPGRADE_ACTION_TABLE = new Dictionary<int, Action<DatabaseContext, SQLiteTransaction>>
+        {
+            [1] = DatabaseUpdater.UpdateV1ToV2,
+            [2] = DatabaseUpdater.UpdateV2ToV3,
+        };
 
         public static void UpdateDatabase(DatabaseContext databaseContext)
         {
@@ -19,17 +25,21 @@ namespace Malte2.Database
                     currentVersion = databaseContext.GetDatabaseVersion();
                     commitTransaction = true;
                 }
-                if (currentVersion == 1) {
-                    DatabaseUpdater.UpdateV1ToV2(databaseContext, transaction);
+                while (currentVersion.HasValue && UPGRADE_ACTION_TABLE.TryGetValue(currentVersion.Value, out var upgradeAction)) {
+                    upgradeAction(databaseContext, transaction);
                     currentVersion = databaseContext.GetDatabaseVersion();
                     commitTransaction = true;
                 }
-                if (commitTransaction && currentVersion == DATABASE_VERSION)
+                if (commitTransaction)
                 {
-                    transaction.Commit();
-                }
-                else if (commitTransaction) {
-                    throw new Exception($"Failed to update database version from {currentVersion}");
+                    if (currentVersion == DATABASE_VERSION)
+                    {
+                        transaction.Commit();
+                    }
+                    else
+                    {
+                        throw new Exception($"Failed to update database version from {currentVersion}");
+                    }
                 }
             }
         }
@@ -213,6 +223,64 @@ ALTER TABLE operation ADD COLUMN invoice TEXT;
 ");
             // update database version
             databaseContext.UpdateDatabaseVersion(2, transaction);
+        }
+
+
+        private static void UpdateV2ToV3(DatabaseContext databaseContext, SQLiteTransaction transaction)
+        {
+            // upgrade tables
+            applyCommand(databaseContext, transaction, @"
+DROP TABLE remission_cash;
+
+ALTER TABLE remission_operation RENAME TO remission_check;
+
+ALTER TABLE remission DROP COLUMN payment_means;
+
+ALTER TABLE remission_check DROP COLUMN operation_id;
+
+ALTER TABLE remission_check ADD COLUMN check_number INTEGER NULL;
+
+CREATE INDEX idx_remission_check_remission ON remission_check(remission_id);
+
+CREATE UNIQUE INDEX idx_remission_check_check_number ON remission_check(check_number);
+
+ALTER TABLE remission_check ADD COLUMN amount INTEGER NOT NULL;
+
+ALTER TABLE remission ADD COLUMN cash_deposit_01c INTEGER NOT NULL DEFAULT 0;
+
+ALTER TABLE remission ADD COLUMN cash_deposit_02c INTEGER NOT NULL DEFAULT 0;
+
+ALTER TABLE remission ADD COLUMN cash_deposit_05c INTEGER NOT NULL DEFAULT 0;
+
+ALTER TABLE remission ADD COLUMN cash_deposit_10c INTEGER NOT NULL DEFAULT 0;
+
+ALTER TABLE remission ADD COLUMN cash_deposit_20c INTEGER NOT NULL DEFAULT 0;
+
+ALTER TABLE remission ADD COLUMN cash_deposit_50c INTEGER NOT NULL DEFAULT 0;
+
+ALTER TABLE remission ADD COLUMN cash_deposit_001e INTEGER NOT NULL DEFAULT 0;
+
+ALTER TABLE remission ADD COLUMN cash_deposit_002e INTEGER NOT NULL DEFAULT 0;
+
+ALTER TABLE remission ADD COLUMN cash_deposit_005e INTEGER NOT NULL DEFAULT 0;
+
+ALTER TABLE remission ADD COLUMN cash_deposit_010e INTEGER NOT NULL DEFAULT 0;
+
+ALTER TABLE remission ADD COLUMN cash_deposit_020e INTEGER NOT NULL DEFAULT 0;
+
+ALTER TABLE remission ADD COLUMN cash_deposit_050e INTEGER NOT NULL DEFAULT 0;
+
+ALTER TABLE remission ADD COLUMN cash_deposit_100e INTEGER NOT NULL DEFAULT 0;
+
+ALTER TABLE remission ADD COLUMN cash_deposit_200e INTEGER NOT NULL DEFAULT 0;
+
+ALTER TABLE remission ADD COLUMN cash_deposit_500e INTEGER NOT NULL DEFAULT 0;
+
+ALTER TABLE remission ADD COLUMN notes TEXT NOT NULL DEFAULT '';
+
+");
+            // update database version
+            databaseContext.UpdateDatabaseVersion(3, transaction);
         }
 
     }

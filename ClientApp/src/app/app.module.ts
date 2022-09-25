@@ -21,6 +21,7 @@ import { AppRoutingModule } from './app-routing.module';
 import { ListTableModule } from './modules/list-table/list-table.module';
 import { AccountingCategoriesComponent } from './modules/settings/accounting-categories/accounting-categories.component';
 import { FooterComponent } from './modules/footer/footer.component';
+import { RemissionsComponent } from './modules/remissions/remissions.component';
 
 export const APP_VERSION = '0.5';
 
@@ -32,6 +33,7 @@ export const APP_VERSION = '0.5';
     MealsComponent,
     OperationsComponent,
     BoardersComponent,
+    RemissionsComponent,
     OperatorsComponent,
     AccountingEntriesComponent,
     AccountBooksComponent,

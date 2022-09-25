@@ -50,7 +50,7 @@ namespace Malte2.Model.Accounting
 
         private class NullableAmountToLocaleStringConverter: ITypeConverter {
 
-            public object ConvertFromString(string text, IReaderRow row, MemberMapData memberMapData) {
+            public object? ConvertFromString(string text, IReaderRow row, MemberMapData memberMapData) {
                 if (!string.IsNullOrWhiteSpace(text)) {
                     return Amount.TryFromString(text, row.Configuration.CultureInfo);
                 }

@@ -68,6 +68,14 @@ export class Amount {
         return new Amount(this._value - amount._value);
     }
 
+    public multiply(operand: bigint): Amount {
+        return new Amount(this._value * operand);
+    }
+
+    public divide(operand: bigint): Amount {
+        return new Amount(this._value / operand);
+    }
+
     public isStrictPositive(): boolean {
         return this._value > 0;
     }

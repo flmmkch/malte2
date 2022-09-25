@@ -1,4 +1,4 @@
-using System.Data.SQLite;
+using System;
 using System.Data.Common;
 
 namespace Malte2.Database
@@ -19,6 +19,14 @@ namespace Malte2.Database
                 return null;
             }
             return reader.GetInt64(columnNumber);
+        }
+
+        public static ulong? GetNullableUint64FromReader(DbDataReader reader, int columnNumber)
+        {
+            if (reader.IsDBNull(columnNumber)) {
+                return null;
+            }
+            return (ulong) reader.GetInt64(columnNumber);
         }
     }
 }

@@ -17,7 +17,7 @@
             </th>
             <th scope="col" *ngIf="editable || enableAddRemove"></th>
             <th scope="col" *ngIf="editable || enableAddRemove"><button *ngIf="enableAddRemove && !editing()"
-                    class="btn btn-primary" (click)="addItem()" [disabled]="!items">Ajouter</button>
+                    class="btn btn-primary" (click)="addItem()" [disabled]="!items">{{ addLabel }}</button>
             </th>
         </tr>
     </thead>
@@ -65,7 +65,7 @@
                 </ng-container>
                 <td *ngIf="editable || enableAddRemove"><button *ngIf="editable"
                         class="btn btn-sm btn-secondary visible-on-table-row-hover"
-                        [ngStyle]="{'visibility': editing() ? 'hidden': ''}" (click)="modifyItem(item)">Modifier</button>
+                        [ngStyle]="{'visibility': editing() ? 'hidden': ''}" (click)="modifyItem(item)">{{ modifyLabel }}</button>
                 </td>
                 <td *ngIf="editable || enableAddRemove"><button *ngIf="enableAddRemove"
                         class="btn btn-sm btn-danger visible-on-table-row-hover"

@@ -21,6 +21,7 @@ import { OperationService } from 'src/app/shared/services/operation.service';
 import { OperatorService } from 'src/app/shared/services/operator.service';
 import { datePickerValueToDate, dateRangeFromDatepickerDate, dateRangeFromDatepickerMonthYear, dateToDatePickerValue } from 'src/app/shared/utils/date-time-form-conversion';
 import { DictionaryById, listToDictionary, listToDictionaryWithFunc } from 'src/app/shared/utils/dictionary-by-id';
+import { FrenchDateParserFormatter } from 'src/app/shared/utils/french-date-parser-formatter';
 import { ListTable, SetCurrentWorkingItemEventArgs } from '../list-table/list-table.component';
 
 export interface OperationDisplay {
@@ -36,34 +37,12 @@ export interface OperationDisplay {
     paymentMethod: string;
 }
 
-export interface ContextDicts {
+interface ContextDicts {
     operators: DictionaryById<Operator>;
     books: DictionaryById<AccountBook>;
     entries: DictionaryById<AccountingEntry>;
     categories: DictionaryById<AccountingCategory>;
     boarders: DictionaryById<BoarderListItem>;
-}
-
-@Injectable()
-export class FrenchDateParserFormatter {
-    parse(value: string): NgbDateStruct {
-        const dateReMatch = value.match(/([0-9]{1,2})\/([0-9]{1,2})\/([0-9]+)/);
-        if (dateReMatch && dateReMatch.length === 3) {
-            const [dayStr, monthStr, yearStr] = dateReMatch;
-            return {
-                day: Number.parseInt(dayStr),
-                month: Number.parseInt(monthStr),
-                year: Number.parseInt(yearStr),
-            };
-        }
-        throw new Error(`Failed to parse date from ${value}`);
-    }
-    format(date: NgbDateStruct): string {
-        if (date) {
-            return `${date.day.toString().padStart(2, '0')}/${date.month.toString().padStart(2, '0')}/${date.year.toString().padStart(4, '0')}`;
-        }
-        return '';
-    }
 }
 
 @Component({
@@ -342,7 +321,7 @@ export class OperationsComponent implements OnInit, AfterViewInit {
                 this.opsFormGroup.controls.categoryCtrl.setValue(undefined);
             }
         });
-        this.listTable.confirmDeleteMessage = (operator: Operator) => `Supprimer l'opération ?`;
+        this.listTable.confirmDeleteMessage = () => `Supprimer l'opération ?`;
     }
 
     public onSubmit() {
