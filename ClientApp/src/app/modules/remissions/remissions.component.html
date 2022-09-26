@@ -64,22 +64,22 @@
               <label for="notesInput" class="form-label col-2">Notes</label>
               <textarea class="form-control col-offset-2 col-10" formControlName="notesCtrl" id="notesInput"></textarea>
             </div>
-            <div class="form-group row py-3" #cashFormGroup>
+            <div class="form-group row py-3">
               <!-- Espèces -->
-              <div class="col-6">
+              <div class="col-3">
                 <div class="p-3 border bg-light container">
-                  <div class="row"><div class="col-6"><h6 class="fw-bold">Espèces</h6></div></div>
+                  <div class="row"><div class="col-12"><h6 class="fw-bold">Espèces</h6></div></div>
                   <div class="form-group row" *ngFor="let cashValue of cashValues()">
                     <div class="input-group">
-                      <span class="input-group-text col-2">{{getCashValueAmount(cashValue).toLocaleString()}} €</span>
-                      <input type="number" class="form-control col-2" formControlName="c{{cashValue}}input" min="0"/>
+                      <span class="input-group-text col-5">{{getCashValueAmount(cashValue).toLocaleString()}} €</span>
+                      <input type="number" class="form-control col-7" formControlName="c{{cashValue}}input" min="0"/>
                     </div>
                   </div>
-                  <div class="row py-3"><div class="offset-2 col-6"><h6 class="fw-bold">Sous-total {{ workingItemTotalCashAmount.toLocaleString() }} €</h6></div></div>
+                  <div class="row py-3"><div class="offset-2 col-12"><h6 class="fw-bold">Sous-total {{ workingItemTotalCashAmount.toLocaleString() }} €</h6></div></div>
                 </div>
               </div>
               <!-- Chèque -->
-              <div class="col-6">
+              <div class="col-9">
                 <div class="p-3 border bg-light container">
                   <div class="row"><div class="col-6"><h6 class="fw-bold">Chèques</h6></div></div>
                   
