@@ -2,10 +2,10 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { AfterViewInit, Component, ElementRef, EventEmitter, Injectable, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
 import { FormControl, FormGroup } from '@angular/forms';
 import { NgbDate, NgbDateParserFormatter, NgbDatepicker, NgbDatepickerI18n, NgbDatepickerI18nDefault, NgbDatepickerNavigateEvent, NgbDateStruct } from '@ng-bootstrap/ng-bootstrap';
-import { forkJoin, Observable } from 'rxjs';
+import { forkJoin, Observable, Subscription } from 'rxjs';
 import { combineLatestWith, map } from 'rxjs/operators';
 import { Amount } from 'src/app/shared/models/amount.model';
-import { allCashValueItems as cashValues, CashDeposit, CashValue, CheckRemission, getCashValueAmount, Remission } from 'src/app/shared/models/remission.model';
+import { allCashValueItems as cashValues, CashDeposit, CashValue, CheckRemission, getCashValueAmount, Remission, RemissionOperationCheck } from 'src/app/shared/models/remission.model';
 import { Operator } from 'src/app/shared/models/operator.model';
 import { RemissionService } from 'src/app/shared/services/remission.service';
 import { OperatorService } from 'src/app/shared/services/operator.service';
@@ -226,6 +226,11 @@ export class RemissionsComponent implements OnInit, AfterViewInit {
         }
         this.checkFormGroup.controls.checkNumberCtrl.setValue(undefined);
         this.checkFormGroup.controls.checkAmountCtrl.setValue(undefined);
+        this.currentAvailableChecksSubscription?.unsubscribe();
+        this.workingItemOperationChecks = [];
+        if (e.value) {
+            this.reloadAvailableChecks(e.value?.remission.dateTime);
+        }
     }
 
     @ViewChild('cashFormGroup') cashFormGroup!: ElementRef<HTMLElement>;
@@ -255,7 +260,7 @@ export class RemissionsComponent implements OnInit, AfterViewInit {
         let checkAmount = Amount.from(this.checkFormGroup.controls.checkAmountCtrl.value);
         let checkNumber = this.checkFormGroup.controls.checkNumberCtrl.value;
         if ((typeof checkNumber === 'string' || checkNumber === undefined) && checkAmount !== undefined) {
-            this.workingItemChecks.push(new CheckRemission(checkAmount, checkNumber !== undefined ? BigInt(checkNumber) : undefined))
+            this.workingItemChecks.push(new CheckRemission(checkAmount, checkNumber !== undefined ? BigInt(checkNumber) : undefined));
             this.checkFormGroup.controls.checkAmountCtrl.setValue(undefined);
             this.checkFormGroup.controls.checkNumberCtrl.setValue(undefined);
         }
@@ -267,6 +272,25 @@ export class RemissionsComponent implements OnInit, AfterViewInit {
 
     public get workingItemTotalAmount(): Amount {
         return this.workingItemTotalCashAmount.add(this.workingItemTotalCheckAmount);
+    }
+
+    private currentAvailableChecksSubscription?: Subscription;
+    workingItemOperationChecks: RemissionOperationCheck[] = [];
+
+    public reloadAvailableChecks(date?: Date): Subscription {
+        return this.remissionService
+            .getOperationChecks(date)
+            .subscribe({
+                next: (remissionOperationChecks) => {
+                    this.workingItemOperationChecks = remissionOperationChecks;
+                },
+                error: console.error,
+            });
+    }
+
+    public addOperationCheck(operationCheck: RemissionOperationCheck) {
+        this.workingItemOperationChecks = this.workingItemOperationChecks.filter(oc => oc !== operationCheck);
+        this.workingItemChecks.push(new CheckRemission(operationCheck.amount, BigInt(operationCheck.checkNumber)));
     }
 
     public onSubmit() {

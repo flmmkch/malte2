@@ -3,7 +3,7 @@ import { Inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { exhaustAll, map } from 'rxjs/operators';
 import { Amount } from '../models/amount.model';
-import { CashDeposit, CashValue, CheckRemission, Remission } from '../models/remission.model';
+import { CashDeposit, CashValue, CheckRemission, Remission, RemissionOperationCheck } from '../models/remission.model';
 import { dateToSerializationString } from '../utils/date-time-form-conversion';
 
 @Injectable({
@@ -40,6 +40,19 @@ export class RemissionService {
     let remissionsJson = remissions.map(toJson);
     return this._http.delete(this.baseUrl + 'api/remission/delete', { body: remissionsJson });
   }
+
+  getOperationChecks(upToDate?: Date, remissionId?: number): Observable<RemissionOperationCheck[]> {
+    let args: string = '?';
+    if (upToDate !== undefined) {
+      args = args + `&upToDate=${dateToSerializationString(upToDate)}`;
+    }
+    if (remissionId !== undefined) {
+      args = args + `&remissionId=${remissionId}`;
+    }
+    return this._http
+      .get<RemissionOperationCheckJson[]>(this.baseUrl + `api/remission/getRemissionChecks${args}`)
+      .pipe(map(remissionsJson => remissionsJson.map(operationCheckFromJson)));
+  }
 }
 
 export interface CashDepositJson {
@@ -62,7 +75,7 @@ export interface RemissionJson {
 }
 
 /** Conversion depuis l'objet JSON */
-export function fromJson(json: RemissionJson): Remission {
+function fromJson(json: RemissionJson): Remission {
     const remission = new Remission(json.id, json.o);
     remission.dateTime = new Date(json.dt);
     remission.notes = json.n;
@@ -72,7 +85,7 @@ export function fromJson(json: RemissionJson): Remission {
 }
 
 /** Conversion depuis l'objet JSON */
-export function toJson(remission: Remission): RemissionJson {
+function toJson(remission: Remission): RemissionJson {
   return {
     id: remission.id,
     o: remission.operatorId,
@@ -81,4 +94,24 @@ export function toJson(remission: Remission): RemissionJson {
     h: remission.cashDeposits.map(cashDeposit => <CashDepositJson> { n: Number(cashDeposit.count), v: cashDeposit.value }),
     k: remission.checkRemissions.map(checkRemission => <CheckRemissionJson> { a: checkRemission.amount.toString(), n: checkRemission.checkNumber ? Number(checkRemission.checkNumber) : undefined }),
   };
+}
+
+interface RemissionOperationCheckJson {
+  n: number,
+  dt: string,
+  l: string,
+  d: string,
+  a: string,
+  r?: number,
+}
+
+function operationCheckFromJson(json: RemissionOperationCheckJson): RemissionOperationCheck {
+  return new RemissionOperationCheck(
+    json.n,
+    new Date(json.dt),
+    json.l,
+    json.d,
+    Amount.from(json.a)!,
+    json.r,
+  );
 }
