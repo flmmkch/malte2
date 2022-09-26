@@ -38,6 +38,13 @@ namespace Malte2.Controllers
         {
             await _remissionService.Delete(remissions);
         }
+
+        [HttpGet]
+        public IAsyncEnumerable<RemissionOperationCheck> GetRemissionChecks([FromQuery(Name = "upToDate")] string? upToDateString = null, [FromQuery] long? remissionId = null)
+        {
+            DateTime? upToDate = upToDateString != null ? DateTime.Parse(upToDateString) : null;
+            return _remissionService.GetRemissionChecks(upToDate, remissionId);
+        }
     }
 
 }

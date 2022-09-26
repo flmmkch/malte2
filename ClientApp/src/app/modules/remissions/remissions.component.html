@@ -101,6 +101,42 @@
                     </list-table-column>
                   </list-table>
                   <div class="row"><div class="col-12 fw-bold">Ajouter un chèque</div></div>
+                  
+                  <div class="row mb-2">
+                    <div class="dropdown">
+                      <button
+                        class="btn col-12 btn-primary dropdown-toggle"
+                        type="button" id="operationChecksDropdownButton"
+                        data-bs-toggle="dropdown"
+                        [attr.disabled]="workingItemOperationChecks.length === 0 ? true : null"
+                        aria-expanded="false"
+                        >
+                        <span *ngIf="workingItemOperationChecks.length === 0">
+                          Aucun chèque saisi dans les opérations
+                        </span>
+                        <span *ngIf="workingItemOperationChecks.length > 0">
+                          {{ workingItemOperationChecks.length }} chèque(s) saisi(s) dans les opérations
+                        </span>
+                      </button>
+                      <ul
+                        class="dropdown-menu col-12 container"
+                        aria-labelledby="operationChecksDropdownButton"
+                        >
+                        <li
+                          *ngFor="let operationCheck of workingItemOperationChecks"
+                        >
+                          <button class="dropdown-item row" (click)="addOperationCheck(operationCheck)">
+                            <div class="col-1 d-inline-block">{{ operationCheck.checkNumber }}</div>
+                            <div class="col-2 d-inline-block">{{ operationCheck.dateTime.toLocaleDateString() }}</div>
+                            <div class="col-2 d-inline-block">{{ operationCheck.amount.toLocaleString() }} €</div>
+                            <div class="col-3 d-inline-block">{{ operationCheck.label }}</div>
+                            <div class="col-4 d-inline-block">{{ operationCheck.details }}</div>
+                          </button>
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
+
                   <form [formGroup]="checkFormGroup" (ngSubmit)="addCheck()">
                     <div class="row mb-2">
                       <div class="input-group">
@@ -110,7 +146,7 @@
                         <input type="text" class="form-control col-4" placeholder="Montant" aria-label="Montant" formControlName="checkAmountCtrl">
                       </div>
                     </div>
-                    <div class="row">
+                    <div class="row mb-2">
                       <div class="col-2 offset-10">
                         <input type="submit" class="btn btn-primary" value="Ajouter" />
                       </div>

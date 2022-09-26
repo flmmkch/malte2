@@ -219,6 +219,51 @@ namespace Malte2.Services
                 await transaction.CommitAsync();
             }
         }
+
+        public async IAsyncEnumerable<RemissionOperationCheck> GetRemissionChecks(DateTime? upToDate = null, long? remissionId = null)
+        {
+            string commandText = @"SELECT
+                operation.check_number,
+                date,
+                operation.label,
+                details,
+                operation.amount,
+                remission_id
+                FROM operation
+                INNER JOIN accounting_entry ON accounting_entry.accounting_entry_id = operation.accounting_entry_id
+                LEFT JOIN remission_check ON remission_check.check_number = operation.check_number
+                WHERE payment_method = :payment_check
+                    AND operation.check_number IS NOT NULL
+                    AND accounting_entry_type = :accounting_entry_revenue
+                    AND (:up_to_date IS NULL OR :up_to_date >= date)
+                    AND ((:remission_id IS NOT NULL AND remission_id = :remission_id) OR (remission_id IS NULL))
+                ORDER BY date DESC
+                ";
+            using (var command = new SQLiteCommand(commandText, _databaseContext.Connection))
+            {
+                command.Parameters.AddWithValue("up_to_date", DateTimeDatabaseUtils.GetStringFromNullableDate(upToDate));
+                command.Parameters.AddWithValue("payment_check", PaymentMethod.Check);
+                command.Parameters.AddWithValue("accounting_entry_revenue", AccountingEntryType.Revenue);
+                command.Parameters.AddWithValue("remission_id", remissionId);
+                using (var reader = await command.ExecuteReaderAsync())
+                {
+                    while (await reader.ReadAsync())
+                    {
+                        RemissionOperationCheck remissionOperationCheck = new RemissionOperationCheck
+                        {
+                            CheckNumber = (ulong) reader.GetInt64(reader.GetOrdinal("check_number")),
+                            DateTime = DateTimeDatabaseUtils.GetDateFromReader(reader, reader.GetOrdinal("date")),
+                            Label = reader.GetString(reader.GetOrdinal("label")),
+                            Details = reader.GetString(reader.GetOrdinal("details")),
+                            Amount = new Amount(reader.GetInt64(reader.GetOrdinal("amount"))),
+                            RemissionId = DatabaseValueUtils.GetNullableInt64FromReader(reader, reader.GetOrdinal("remission_id")),
+                        };
+                        yield return remissionOperationCheck;
+                    }
+                }
+            }
+        }
+
     }
 
 

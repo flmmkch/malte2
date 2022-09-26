@@ -121,3 +121,23 @@ export class CashDeposit {
         return getCashValueAmount(this.value).multiply(this.count);
     }
 }
+
+export class RemissionOperationCheck {
+    constructor(
+        /** Check number */
+        public checkNumber: number,
+        /** Operation date */
+        public dateTime: Date,
+        /** Operation label */
+        public label: string,
+        /** Operation details */
+        public details: string,
+        /** Check amount */
+        public amount: Amount,
+        /** Check remission id */
+        public remissionId?: number,
+        
+    )
+    {
+    }
+}
