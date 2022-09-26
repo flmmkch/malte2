@@ -126,10 +126,10 @@
                           *ngFor="let operationCheck of workingItemOperationChecks"
                         >
                           <button class="dropdown-item row" (click)="addOperationCheck(operationCheck)">
-                            <div class="col-1 d-inline-block">{{ operationCheck.checkNumber }}</div>
-                            <div class="col-2 d-inline-block">{{ operationCheck.dateTime.toLocaleDateString() }}</div>
-                            <div class="col-2 d-inline-block">{{ operationCheck.amount.toLocaleString() }} €</div>
-                            <div class="col-3 d-inline-block">{{ operationCheck.label }}</div>
+                            <div class="col-2 d-inline-block">Chèque {{ operationCheck.checkNumber }}</div>
+                            <div class="col-1 d-inline-block">{{ operationCheck.dateTime.toLocaleDateString() }}</div>
+                            <div class="col-1 d-inline-block">{{ operationCheck.amount.toLocaleString() }} €</div>
+                            <div class="col-4 d-inline-block">{{ operationCheck.label }}</div>
                             <div class="col-4 d-inline-block">{{ operationCheck.details }}</div>
                           </button>
                         </li>
