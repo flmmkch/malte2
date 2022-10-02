@@ -71,7 +71,7 @@ namespace Malte2.Services
             }
         }
 
-        public async IAsyncEnumerable<OperationEditionCsvLine> GetEditionItems(DateTime? dateStart, DateTime? dateEnd, PaymentMethod? filterPaymentMethod)
+        public async IAsyncEnumerable<OperationEditionCsvLine> GetEditionItems(DateTime? dateStart, DateTime? dateEnd, PaymentMethod? filterPaymentMethod, long? filterBookId, long? filterEntryId, long? filterCategoryId)
         {
             string commandText = @"SELECT
             operation.date,
@@ -88,6 +88,9 @@ namespace Malte2.Services
             LEFT JOIN accounting_category ON accounting_category.accounting_category_id = operation.category_id
             WHERE (:date_start IS NULL OR :date_start <= date) AND (:date_end IS NULL OR :date_end >= date)
                 AND (:filter_payment_method IS NULL OR operation.payment_method = :filter_payment_method)
+                AND (:filter_account_book_id IS NULL OR operation.account_book_id = :filter_account_book_id)
+                AND (:filter_accounting_entry_id IS NULL OR operation.accounting_entry_id = :filter_accounting_entry_id)
+                AND (:filter_category_id IS NULL OR operation.category_id = :filter_category_id)
             ORDER BY date, operation_id ASC;";
             commandText = commandText + @" ORDER BY operation_id ASC;";
             using (var command = new SQLiteCommand(commandText, _databaseContext.Connection))
@@ -95,6 +98,9 @@ namespace Malte2.Services
                 command.Parameters.AddWithValue("date_start", DateTimeDatabaseUtils.GetStringFromNullableDate(dateStart));
                 command.Parameters.AddWithValue("date_end", DateTimeDatabaseUtils.GetStringFromNullableDate(dateEnd));
                 command.Parameters.AddWithValue("filter_payment_method", filterPaymentMethod);
+                command.Parameters.AddWithValue("filter_account_book_id", filterBookId);
+                command.Parameters.AddWithValue("filter_accounting_entry_id", filterEntryId);
+                command.Parameters.AddWithValue("filter_category_id", filterCategoryId);
                 using (var reader = await command.ExecuteReaderAsync())
                 {
                     while (await reader.ReadAsync())
