@@ -1,73 +1,44 @@
 using MigraDocCore.DocumentObjectModel;
 using MigraDocCore.DocumentObjectModel.Tables;
-using MigraDocCore.Rendering;
 
 namespace Malte2.Model.Accounting.Edition
 {
-    public static class OperationEdition
+    public class OperationEdition: DocumentEdition
     {
-        public static MemoryStream RenderDocumentPdf(Document document)
-        {
-            // TODO use a font resolver maybe
-            // GlobalFontSettings.FontResolver = new FontResolver();
-            
-            PdfDocumentRenderer renderer = new PdfDocumentRenderer(true);
-            renderer.Document = document;
-            renderer.RenderDocument();
-            MemoryStream stream = new MemoryStream();
-            renderer.PdfDocument.Save(stream);
-            stream.Seek(0, SeekOrigin.Begin);
-            return stream;
-        }
+        public string Title { get; set; } = "Opérations";
 
-        public static Document CreateOperationsDocument(string title, IEnumerable<Operation> operations, Dictionary<long, AccountBook> accountBooks, Dictionary<long, AccountingEntry> accountingEntries, Dictionary<long, AccountingCategory> categories)
+        public string Subject { get; set; } = "Édition des opérations comptables";
+
+        public string Author { get; set; } = "Au coin de Malte";
+
+        public string? FooterDetails { get; set; } = "Au Coin de Malte, 1 rue de Malte\n75011 Paris";
+
+        public IEnumerable<Operation> Operations { get; set; } = Enumerable.Empty<Operation>();
+        
+        public Dictionary<long, AccountBook> AccountBooks { get; set; } = new Dictionary<long, AccountBook>();
+
+        public Dictionary<long, AccountingEntry> AccountingEntries { get; set; } = new Dictionary<long, AccountingEntry>();
+        
+        public Dictionary<long, AccountingCategory> Categories { get; set; } = new Dictionary<long, AccountingCategory>();
+
+        public Document ProduceDocument()
         {
             // Create a new MigraDoc document
             Document document = new Document();
-            document.Info.Title = "Opérations";
-            document.Info.Subject = "Édition des opérations comptables";
-            document.Info.Author = "Au Coin de Malte";
+            document.Info.Title = Title;
+            document.Info.Subject = Subject;
+            document.Info.Author = Author;
 
-            // styles
-            // Get the predefined style Normal.
-            Style style = document.Styles["Normal"];
-            // Because all styles are derived from Normal, the next line changes the 
-            // font of the whole document. Or, more exactly, it changes the font of
-            // all styles and paragraphs that do not redefine the font.
-            style.Font.Name = "Arial";
-            
-            style = document.Styles[StyleNames.Heading1];
-            style.ParagraphFormat.Alignment = ParagraphAlignment.Center;
-            style.Font.Size = 24;
-            style.Font.Bold = true;
-            style.ParagraphFormat.SpaceAfter = 6;
+            ConfigureStyles(document);
 
-            style = document.Styles[StyleNames.Header];
-            style.ParagraphFormat.Alignment = ParagraphAlignment.Right;
+            Section mainSection = document.AddSection();
+            mainSection.PageSetup.StartingNumber = 1;
+            ConfigureHeader(mainSection);
+            ConfigureFooter(mainSection);
 
-            style = document.Styles[StyleNames.Footer];
-            style.ParagraphFormat.Alignment = ParagraphAlignment.Right;
-
-            // content section
-            Section section = document.AddSection();
-            section.PageSetup.StartingNumber = 1;
-
-            Paragraph headerParagraph = section.Headers.Primary.AddParagraph();
-            headerParagraph.AddText("Document généré le ");
-            headerParagraph.AddDateField(System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.ShortDatePattern);
-
-            // Create a paragraph with centered page number. See definition of style "Footer".
-            Paragraph footerPagesParagraph = section.Footers.Primary.AddParagraph();
-            footerPagesParagraph.AddTab();
-            footerPagesParagraph.AddText("Page ");
-            footerPagesParagraph.AddPageField();
-            footerPagesParagraph.AddText("/");
-            footerPagesParagraph.AddNumPagesField();
-            footerPagesParagraph.AddText("\nAu Coin de Malte, 1 rue de Malte");
-            footerPagesParagraph.AddText("\n75011 Paris");
-
+            // operations table
             // tables
-            Paragraph titleParagraph = document.LastSection.AddParagraph(title, "Heading1");
+            Paragraph titleParagraph = document.LastSection.AddParagraph(Title, "Heading1");
 
             Table operationsTable = new Table();
             operationsTable.Borders.Left.Width = 0.25;
@@ -95,16 +66,16 @@ namespace Malte2.Model.Accounting.Edition
                 headerWithCell.Item2.AddParagraph(headerWithCell.Item1);
             }
 
-            List<Operation> sortedOperations = operations.ToList();
+            List<Operation> sortedOperations = Operations.ToList();
             sortedOperations.Sort((op1, op2) => (int) (op1.OperationDateTime - op2.OperationDateTime).TotalMinutes + (op1.OperationDateTime == op2.OperationDateTime ? (int) (op1.Id.GetValueOrDefault() - op2.Id.GetValueOrDefault()) : 0));
             bool alternateRow = true;
-            foreach (Operation operation in operations) {
+            foreach (Operation operation in Operations) {
                 Row operationRow = operationsTable.AddRow();
                 operationRow.Shading.Color = alternateRow ? Colors.WhiteSmoke : Colors.Transparent;
-                BuildOperationRow(operation, operationRow, accountBooks, accountingEntries, categories);
+                BuildOperationRow(operation, operationRow, AccountBooks, AccountingEntries, Categories);
                 alternateRow = !alternateRow;
             }
-            if (!operations.Any()) {
+            if (!Operations.Any()) {
                 // add an empty row
                 operationsTable.AddRow();
             }
@@ -114,13 +85,56 @@ namespace Malte2.Model.Accounting.Edition
             // add an invisible row
             operationsTable.AddRow().Borders.Visible = false;
             
-            BuildTotalRow(operations, operationsTable.AddRow(), "Total recettes", op => (accountingEntries[op.AccountingEntryId].EntryType == AccountingEntryType.Revenue ? op.Amount : new Amount(0)), amount => amount > 0 ? Colors.DarkGreen : Color.Empty);
-            BuildTotalRow(operations, operationsTable.AddRow(), "Total dépenses", op => (accountingEntries[op.AccountingEntryId].EntryType == AccountingEntryType.Expense ? op.Amount : new Amount(0)), amount => amount > 0 ? Colors.DarkRed : Color.Empty);
-            BuildTotalRow(operations, operationsTable.AddRow(), "Balance", op => (accountingEntries[op.AccountingEntryId].EntryType == AccountingEntryType.Revenue ? op.Amount : - op.Amount), amount => amount > 0 ? Colors.DarkGreen : (amount < 0 ? Colors.DarkRed : Color.Empty));
+            BuildTotalRow(Operations, operationsTable.AddRow(), "Total recettes", op => (AccountingEntries[op.AccountingEntryId].EntryType == AccountingEntryType.Revenue ? op.Amount : new Amount(0)), amount => amount > 0 ? Colors.DarkGreen : Color.Empty);
+            BuildTotalRow(Operations, operationsTable.AddRow(), "Total dépenses", op => (AccountingEntries[op.AccountingEntryId].EntryType == AccountingEntryType.Expense ? op.Amount : new Amount(0)), amount => amount > 0 ? Colors.DarkRed : Color.Empty);
+            BuildTotalRow(Operations, operationsTable.AddRow(), "Balance", op => (AccountingEntries[op.AccountingEntryId].EntryType == AccountingEntryType.Revenue ? op.Amount : - op.Amount), amount => amount > 0 ? Colors.DarkGreen : (amount < 0 ? Colors.DarkRed : Color.Empty));
 
             operationsTable.SetEdge(operationsTable.Columns.Count - 3, operationsTable.Rows.Count - 3, 3, 3, Edge.Box, BorderStyle.Single, 0.75, Colors.Black);
-            
+
             return document;
+        }
+
+        private void ConfigureStyles(Document document)
+        {
+            // Get the predefined style Normal.
+            Style style = document.Styles["Normal"];
+            // Because all styles are derived from Normal, the next line changes the 
+            // font of the whole document. Or, more exactly, it changes the font of
+            // all styles and paragraphs that do not redefine the font.
+            style.Font.Name = "Arial";
+            
+            style = document.Styles[StyleNames.Heading1];
+            style.ParagraphFormat.Alignment = ParagraphAlignment.Center;
+            style.Font.Size = 24;
+            style.Font.Bold = true;
+            style.ParagraphFormat.SpaceAfter = 6;
+
+            style = document.Styles[StyleNames.Header];
+            style.ParagraphFormat.Alignment = ParagraphAlignment.Right;
+
+            style = document.Styles[StyleNames.Footer];
+            style.ParagraphFormat.Alignment = ParagraphAlignment.Right;
+        }
+
+        private void ConfigureHeader(Section section)
+        {
+            Paragraph headerParagraph = section.Headers.Primary.AddParagraph();
+            headerParagraph.AddText("Document généré le ");
+            headerParagraph.AddDateField(System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.ShortDatePattern);
+        }
+
+        private void ConfigureFooter(Section section)
+        {
+            Paragraph footerPagesParagraph = section.Footers.Primary.AddParagraph();
+            footerPagesParagraph.AddTab();
+            footerPagesParagraph.AddText("Page ");
+            footerPagesParagraph.AddPageField();
+            footerPagesParagraph.AddText("/");
+            footerPagesParagraph.AddNumPagesField();
+            if (FooterDetails != null) {
+                footerPagesParagraph.AddText("\n");
+                footerPagesParagraph.AddText(FooterDetails);
+            }
         }
 
         private static void BuildTotalRow(IEnumerable<Operation> operations, Row row, string rowLabel, Func<Operation, Amount> amountSelector, Func<Amount, Color> fontColor)

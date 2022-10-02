@@ -4,6 +4,7 @@ using Malte2.Model.Accounting;
 using Malte2.Extensions;
 using CsvHelper;
 using Malte2.Model;
+using Malte2.Model.Accounting.Edition;
 
 namespace Malte2.Controllers
 {
@@ -59,16 +60,20 @@ namespace Malte2.Controllers
         {
             DateTime? dateStart = dateStartString != null ? DateTime.Parse(dateStartString) : null;
             DateTime? dateEnd = dateEndString != null ? DateTime.Parse(dateEndString) : null;
-            List<Operation> operations = await _operationService.GetItems(dateStart, dateEnd, paymentMethod, accountBookId, accountingEntryId, categoryId).ToListAsync();
-            Dictionary<long, AccountBook> accountBooks = await _accountBookService.GetItems().BuildDictionaryById();
-            Dictionary<long, AccountingEntry> accountingEntries = await _accountingEntryService.GetItems().BuildDictionaryById();
-            Dictionary<long, AccountingCategory> categories = await _accountingCategoryService.GetItems().BuildDictionaryById();
+
             string title = "Opérations";
             if (dateStart.HasValue && dateEnd.HasValue && dateStart.Value.Month == dateEnd.Value.Month) {
                 title = $"Opérations : {dateStart.Value.ToString("MMMM yyyy")}";
             }
-            var editionDocument = Malte2.Model.Accounting.Edition.OperationEdition.CreateOperationsDocument(title, operations, accountBooks, accountingEntries, categories);
-            var editionStream = Malte2.Model.Accounting.Edition.OperationEdition.RenderDocumentPdf(editionDocument);
+
+            var editionGenerator = new Malte2.Model.Accounting.Edition.OperationEdition {
+                Title = title,
+                Operations = await _operationService.GetItems(dateStart, dateEnd, paymentMethod, accountBookId, accountingEntryId, categoryId).ToListAsync(),
+                AccountBooks = await _accountBookService.GetItems().BuildDictionaryById(),
+                AccountingEntries = await _accountingEntryService.GetItems().BuildDictionaryById(),
+                Categories = await _accountingCategoryService.GetItems().BuildDictionaryById(),
+            };
+            var editionStream = editionGenerator.ProducePdf();
             string contentType = "application/pdf";
             string fileName = "Édition.pdf";
             return File(editionStream, contentType, fileName);
