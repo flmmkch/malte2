@@ -121,6 +121,7 @@
                       <ul
                         class="dropdown-menu col-12 container"
                         aria-labelledby="operationChecksDropdownButton"
+                        *ngIf="workingItemOperationChecks.length > 0"
                         >
                         <li
                           *ngFor="let operationCheck of workingItemOperationChecks"
