@@ -1,4 +1,4 @@
-<table class="table table-striped" [class.table-hover]="!editing()">
+<table class="table table-striped list-table" [class.table-hover]="!editing()">
     <colgroup>
         <col *ngFor="let column of columns" [ngStyle]="{'width': column.width}" />
         <col *ngIf="editable || enableAddRemove" style="width: 6em;" />
