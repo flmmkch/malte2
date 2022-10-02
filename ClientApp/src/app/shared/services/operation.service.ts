@@ -45,12 +45,8 @@ export class OperationService {
     return this._http.delete(this.baseUrl + 'api/operation/delete', { body: operationsJson });
   }
 
-  editionPdfDownloadUrl(dateRange: [Date, Date]): string {
-    return this.baseUrl + `api/operation/generateEditionPdf?dateStart=${dateToSerializationString(dateRange[0])}&dateEnd=${dateToSerializationString(dateRange[1])}`;
-  }
-
-  csvDownloadUrl(params: { dateRange: [Date, Date], filters?: OperationFilters }): string {
-    let args = `?dateStart=${dateToSerializationString(params.dateRange[0])}&dateEnd=${dateToSerializationString(params.dateRange[1])}`;
+  private getFiltersString(params: { dateRange: [Date, Date], filters?: OperationFilters }): string {
+    let args = `dateStart=${dateToSerializationString(params.dateRange[0])}&dateEnd=${dateToSerializationString(params.dateRange[1])}`;
     if (params.filters) {
       if (params.filters.paymentMethod !== undefined) {
         args = `${args}&paymentMethod=${params.filters.paymentMethod.toString()}`;
@@ -65,7 +61,15 @@ export class OperationService {
         args = `${args}&category=${params.filters.category.id.toString()}`;
       }
     }
-    return this.baseUrl + `api/operation/generateCsv${args}`;
+    return args;
+  }
+
+  pdfDownloadUrl(params: { dateRange: [Date, Date], filters?: OperationFilters }): string {
+    return this.baseUrl + `api/operation/generatePdf?${this.getFiltersString({ dateRange: params.dateRange, filters: params.filters })}`;
+  }
+
+  csvDownloadUrl(params: { dateRange: [Date, Date], filters?: OperationFilters }): string {
+    return this.baseUrl + `api/operation/generateCsv?${this.getFiltersString({ dateRange: params.dateRange, filters: params.filters })}`;
   }
 
   getLabels(): Observable<string[]> {

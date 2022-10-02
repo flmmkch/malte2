@@ -3,6 +3,7 @@ using Malte2.Services;
 using Malte2.Model.Accounting;
 using Malte2.Extensions;
 using CsvHelper;
+using Malte2.Model;
 
 namespace Malte2.Controllers
 {
@@ -12,12 +13,24 @@ namespace Malte2.Controllers
     public class OperationController : ControllerBase
     {
         private readonly OperationService _operationService;
+        private readonly AccountBookService _accountBookService;
+        private readonly AccountingEntryService _accountingEntryService;
+        private readonly AccountingCategoryService _accountingCategoryService;
 
         private readonly ILogger<OperationController> _logger;
 
-        public OperationController(OperationService operationService, ILogger<OperationController> logger)
+        public OperationController(
+            OperationService operationService,
+            AccountBookService accountBookService,
+            AccountingEntryService accountingEntryService,
+            AccountingCategoryService accountingCategoryService,
+            ILogger<OperationController> logger
+            )
         {
             _operationService = operationService;
+            _accountBookService = accountBookService;
+            _accountingEntryService = accountingEntryService;
+            _accountingCategoryService = accountingCategoryService;
             _logger = logger;
         }
 
@@ -42,12 +55,20 @@ namespace Malte2.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GenerateEditionPdf([FromQuery(Name = "dateStart")] string? dateStartString = null, [FromQuery(Name = "dateEnd")] string? dateEndString = null)
+        public async Task<IActionResult> GeneratePdf([FromQuery(Name = "dateStart")] string? dateStartString = null, [FromQuery(Name = "dateEnd")] string? dateEndString = null, [FromQuery(Name = "paymentMethod")] PaymentMethod? paymentMethod = null, [FromQuery(Name = "accountBook")] long? accountBookId = null, [FromQuery(Name = "accountingEntry")] long? accountingEntryId = null, [FromQuery(Name = "category")] long? categoryId = null)
         {
             DateTime? dateStart = dateStartString != null ? DateTime.Parse(dateStartString) : null;
             DateTime? dateEnd = dateEndString != null ? DateTime.Parse(dateEndString) : null;
-            List<Operation> operations = await _operationService.GetItems(dateStart, dateEnd).ToListAsync();
-            var editionStream = Malte2.Model.Accounting.Edition.OperationEdition.CreateEditionPdf(operations);
+            List<Operation> operations = await _operationService.GetItems(dateStart, dateEnd, paymentMethod, accountBookId, accountingEntryId, categoryId).ToListAsync();
+            Dictionary<long, AccountBook> accountBooks = await _accountBookService.GetItems().BuildDictionaryById();
+            Dictionary<long, AccountingEntry> accountingEntries = await _accountingEntryService.GetItems().BuildDictionaryById();
+            Dictionary<long, AccountingCategory> categories = await _accountingCategoryService.GetItems().BuildDictionaryById();
+            string title = "Opérations";
+            if (dateStart.HasValue && dateEnd.HasValue && dateStart.Value.Month == dateEnd.Value.Month) {
+                title = $"Opérations : {dateStart.Value.ToString("MMMM yyyy")}";
+            }
+            var editionDocument = Malte2.Model.Accounting.Edition.OperationEdition.CreateOperationsDocument(title, operations, accountBooks, accountingEntries, categories);
+            var editionStream = Malte2.Model.Accounting.Edition.OperationEdition.RenderDocumentPdf(editionDocument);
             string contentType = "application/pdf";
             string fileName = "Édition.pdf";
             return File(editionStream, contentType, fileName);

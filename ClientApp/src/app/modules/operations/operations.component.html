@@ -9,8 +9,8 @@
 </div>
 
 <div class="row mb-2">
-  <div class="col-12 d-flex flex-wrap my-2 py-2">
-    <div class="me-2 d-flex align-items-center"><div>Filter par</div></div>
+  <div class="col-2 d-flex align-items-right my-2 py-2 fw-bold"><div>Filter par</div></div>
+  <div class="col-10 d-flex flex-wrap my-2 py-2">
     <div class="me-2">
       <div class="dropdown">
         <button class="btn btn-secondary dropdown-toggle" type="button" id="paymentFilterDropdownButton" data-bs-toggle="dropdown"
@@ -63,6 +63,18 @@
 </div>
 
 <div class="row mb-2">
+  <div class="col-2 d-flex align-items-right my-2 py-2 fw-bold"><div>Exports</div></div>
+  <div class="col-10 d-flex flex-wrap my-2 py-2">
+    <div class="me-2">
+      <a class="btn btn-primary" href="{{ opService.csvDownloadUrl({ dateRange: currentDateRange, filters: filters }) }}" target="_blank">Export CSV</a>
+    </div>
+    <div class="me-2">
+      <a class="btn btn-primary" href="{{ opService.pdfDownloadUrl({ dateRange: currentDateRange, filters: filters }) }}" target="_blank">Édition PDF</a>
+    </div>
+  </div>
+</div>
+
+<div class="row mb-2">
   <div class="col-2 col-lg-1 amount-total-label">
     Recettes
   </div>
@@ -91,19 +103,6 @@
   [class.minus]="totalDisplayedBalance.isStrictNegative()"
   >
     {{ totalDisplayedBalance.toLocaleString() }} €
-  </div>
-</div>
-<!-- Work In Progress
-<div class="row mb-2">
-  <div class="col-sm-4">
-    <a class="btn btn-primary" href="{{ opService.editionPdfDownloadUrl(currentDateRange) }}" target="_blank">Édition PDF des livres comptables</a>
-  </div>
-</div>
--->
-
-<div class="row mb-2">
-  <div class="col-sm-4">
-    <a class="btn btn-primary" href="{{ opService.csvDownloadUrl({ dateRange: currentDateRange, filters: filters }) }}" target="_blank">Export CSV</a>
   </div>
 </div>
 

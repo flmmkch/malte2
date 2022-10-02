@@ -45,6 +45,28 @@ namespace Malte2.Model.Accounting
             return $"{beforeDecimal}{cultureInfo.NumberFormat.NumberDecimalSeparator}{afterDecimal:00}";
         }
 
+        public override int GetHashCode()
+        {
+            return _amount.GetHashCode();
+        }
+
+        public override bool Equals(object? obj)
+        {
+            //
+            // See the full list of guidelines at
+            //   http://go.microsoft.com/fwlink/?LinkID=85237
+            // and also the guidance for operator== at
+            //   http://go.microsoft.com/fwlink/?LinkId=85238
+            //
+            
+            if (obj == null || GetType() != obj.GetType())
+            {
+                return false;
+            }
+            
+            return this == (Amount) obj;
+        }
+
         public static Amount operator +(Amount amount1, Amount amount2)
         {
             return new Amount(amount1._amount + amount2._amount);
@@ -59,6 +81,47 @@ namespace Malte2.Model.Accounting
         {
             return new Amount(-amount._amount);
         }
+
+        public static bool operator ==(Amount amount1, Amount amount2)
+        {
+            return amount1._amount == amount2._amount;
+        }
+
+        public static bool operator !=(Amount amount1, Amount amount2)
+        {
+            return amount1._amount != amount2._amount;
+        }
+
+        public static bool operator <(Amount amount1, Amount amount2)
+        {
+            return amount1._amount < amount2._amount;
+        }
+
+        public static bool operator >(Amount amount1, Amount amount2)
+        {
+            return amount1._amount > amount2._amount;
+        }
+
+        public static bool operator ==(Amount amount, long value)
+        {
+            return (amount._amount / 100) == value;
+        }
+
+        public static bool operator !=(Amount amount, long value)
+        {
+            return (amount._amount / 100) != value;
+        }
+
+        public static bool operator <(Amount amount, long value)
+        {
+            return (amount._amount / 100) < value;
+        }
+
+        public static bool operator >(Amount amount, long value)
+        {
+            return (amount._amount / 100) > value;
+        }
+
 
         public static Amount? TryFromString(string amountString, CultureInfo? culture = null)
         {
