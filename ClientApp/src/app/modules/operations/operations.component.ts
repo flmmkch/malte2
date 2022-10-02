@@ -17,7 +17,7 @@ import { AccountBookService } from 'src/app/shared/services/account-book.service
 import { AccountingCategoryService } from 'src/app/shared/services/accounting-category.service';
 import { AccountingEntryService } from 'src/app/shared/services/accounting-entry.service';
 import { BoarderService } from 'src/app/shared/services/boarder.service';
-import { OperationService } from 'src/app/shared/services/operation.service';
+import { OperationFilters, OperationService } from 'src/app/shared/services/operation.service';
 import { OperatorService } from 'src/app/shared/services/operator.service';
 import { datePickerValueToDate, dateRangeFromDatepickerDate, dateRangeFromDatepickerMonthYear, dateToDatePickerValue } from 'src/app/shared/utils/date-time-form-conversion';
 import { DictionaryById, listToDictionary, listToDictionaryWithFunc } from 'src/app/shared/utils/dictionary-by-id';
@@ -71,17 +71,15 @@ export class OperationsComponent implements OnInit, AfterViewInit {
         return Object.values(this.accountingEntries);
     }
 
-    public get categoryList(): (AccountingCategory | null)[] {
-        return [null, ... Object.values(this.categories) ];
-    }
-
-    public categoryListForEntry(accountingEntryId?: number | string): (AccountingCategory | null)[] {
-        if (typeof accountingEntryId === 'string') {
-            accountingEntryId = Number.parseInt(accountingEntryId);
+    public categoryListForEntry(accountingEntryId?: number | string): AccountingCategory[] {
+        let entryCategories = Object.values(this.categories)
+        if (accountingEntryId != null) {
+            if (typeof accountingEntryId === 'string') {
+                accountingEntryId = Number.parseInt(accountingEntryId);
+            }
+            entryCategories = entryCategories.filter(category => category.accountingEntryId == null || category.accountingEntryId === accountingEntryId);
         }
-        const entryCategories = Object.values(this.categories)
-            .filter(category => category.accountingEntryId == null || (typeof accountingEntryId === 'number' && category.accountingEntryId === accountingEntryId));
-        return [null, ... entryCategories];
+        return [... entryCategories];
     }
 
     public get operatorList(): Operator[] {
@@ -97,14 +95,41 @@ export class OperationsComponent implements OnInit, AfterViewInit {
 
     public readonly paymentMethodString = paymentMethodString;
 
-    private _currentFilteringPaymentMethod: PaymentMethod | null = null;
+    public filters: OperationFilters = {};
 
     public get filteringPaymentMethod(): PaymentMethod | null {
-        return this._currentFilteringPaymentMethod;
+        return this.filters.paymentMethod || null;
+    }
+    
+    public set filteringPaymentMethod(value: PaymentMethod | null) {
+        this.filters.paymentMethod = value || undefined;
     }
 
-    public set filteringPaymentMethod(value: PaymentMethod | null) {
-        this._currentFilteringPaymentMethod = value;
+    public get filteringAccountBook(): AccountBook | null {
+        return this.filters.accountBook || null;
+    }
+    
+    public set filteringAccountBook(value: AccountBook | null) {
+        this.filters.accountBook = value || undefined;
+    }
+
+    public get filteringAccountingEntry(): AccountingEntry | null {
+        return this.filters.accountingEntry || null;
+    }
+    
+    public set filteringAccountingEntry(value: AccountingEntry | null) {
+        this.filters.accountingEntry = value || undefined;
+    }
+
+    public get filteringAccountingCategory(): AccountingCategory | null {
+        return this.filters.category || null;
+    }
+    
+    public set filteringAccountingCategory(value: AccountingCategory | null) {
+        this.filters.category = value || undefined;
+    }
+
+    public updateFilters() {
         this.rebuildOperations();
     }
 
@@ -194,7 +219,21 @@ export class OperationsComponent implements OnInit, AfterViewInit {
         else {
             this.listTable.cancelEdit();
         }
-        const orderedOps = ops.slice();
+        let orderedOps = ops.slice();
+        // apply filters
+        if (this.filteringPaymentMethod) {
+            orderedOps = orderedOps.filter(op => this.filteringPaymentMethod === op.paymentMethod);
+        }
+        if (this.filteringAccountBook) {
+            orderedOps = orderedOps.filter(op => this.filteringAccountBook?.id === op.accountBookId);
+        }
+        if (this.filteringAccountingEntry) {
+            orderedOps = orderedOps.filter(op => this.filteringAccountingEntry?.id === op.accountingEntryId);
+        }
+        if (this.filteringAccountingCategory) {
+            orderedOps = orderedOps.filter(op => this.filteringAccountingCategory?.id === op.categoryId);
+        }
+        // sort by date
         orderedOps.sort((op1, op2) => {
             const timeDiff = op2.dateTime.getTime() - op1.dateTime.getTime();
             if (timeDiff !== 0) {
@@ -202,8 +241,8 @@ export class OperationsComponent implements OnInit, AfterViewInit {
             }
             return (op2.id || 0) - (op1.id || 0);
         });
+        // build items displayed
         this.itemsDisplayed = orderedOps
-            .filter(op => this.filteringPaymentMethod === null || this.filteringPaymentMethod === op.paymentMethod)
             .map(op => this.createOperationDisplay(op, { operators, books, entries, categories, boarders }));
         this.recalculateTotals(this.itemsDisplayed.map(itemDisplayed => itemDisplayed.operation));
     }
@@ -260,7 +299,26 @@ export class OperationsComponent implements OnInit, AfterViewInit {
     }
 
     private createNewOpDisplay(copyOldOpDisplay?: OperationDisplay): OperationDisplay {
-        let operation = new Operation(undefined, Amount.from(0)!, -1, this.filteringPaymentMethod || PaymentMethod.Cash, -1, -1);
+        // create operation
+        let operation = new Operation(undefined, Amount.from(0)!, -1, PaymentMethod.Cash, -1, -1);
+        // account for filters
+        if (this.filteringPaymentMethod) {
+            operation.paymentMethod = this.filteringPaymentMethod;
+        }
+        if (this.filteringAccountBook && typeof this.filteringAccountBook.id === 'number') {
+            operation.accountBookId = this.filteringAccountBook.id;
+        }
+        if (this.filteringAccountingEntry && typeof this.filteringAccountingEntry.id === 'number') {
+            operation.accountingEntryId = this.filteringAccountingEntry.id;
+        }
+        if (this.filteringAccountingCategory && typeof this.filteringAccountingCategory.id === 'number') {
+            operation.categoryId = this.filteringAccountingCategory.id;
+            if (typeof this.filteringAccountingCategory.accountingEntryId === 'number') {
+                operation.accountingEntryId = this.filteringAccountingCategory.accountingEntryId;
+            }
+        }
+
+        // date
         const today = new Date();
         if (today >= this._currentDateRange[0] && today <= this._currentDateRange[1]) {
             operation.dateTime = today;
@@ -268,6 +326,8 @@ export class OperationsComponent implements OnInit, AfterViewInit {
         else {
             operation.dateTime = this._currentDateRange[0];
         }
+
+        // copy previous operation
         if (copyOldOpDisplay && copyOldOpDisplay.operation) {
             operation.accountBookId = copyOldOpDisplay.operation.accountBookId;
             operation.accountingEntryId = copyOldOpDisplay.operation.accountingEntryId;
@@ -280,6 +340,8 @@ export class OperationsComponent implements OnInit, AfterViewInit {
             operation.cardTicketNumber = copyOldOpDisplay.operation.cardTicketNumber ? copyOldOpDisplay.operation.cardTicketNumber + BigInt(1) : undefined;
             operation.transferNumber = copyOldOpDisplay.operation.transferNumber ? copyOldOpDisplay.operation.transferNumber + BigInt(1) : undefined;
         }
+
+        // create the operation display
         const opDisplay = this.createOperationDisplay(operation);
         opDisplay.amount = '';
         return opDisplay;

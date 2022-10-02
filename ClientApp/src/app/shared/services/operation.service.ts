@@ -2,6 +2,9 @@ import { HttpClient } from '@angular/common/http';
 import { Inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { exhaustAll, map } from 'rxjs/operators';
+import { AccountBook } from '../models/account-book.model';
+import { AccountingCategory } from '../models/accounting-category.model';
+import { AccountingEntry } from '../models/accounting-entry.model';
 import { Amount } from '../models/amount.model';
 import { Operation } from '../models/operation.model';
 import { PaymentMethod } from '../models/payment-method.model';
@@ -46,10 +49,21 @@ export class OperationService {
     return this.baseUrl + `api/operation/generateEditionPdf?dateStart=${dateToSerializationString(dateRange[0])}&dateEnd=${dateToSerializationString(dateRange[1])}`;
   }
 
-  csvDownloadUrl(dateRange: [Date, Date], filteringPaymentMethod: PaymentMethod | null): string {
-    let args = `?dateStart=${dateToSerializationString(dateRange[0])}&dateEnd=${dateToSerializationString(dateRange[1])}`;
-    if (filteringPaymentMethod !== null) {
-      args = `${args}&paymentMethod=${filteringPaymentMethod.toString()}`
+  csvDownloadUrl(params: { dateRange: [Date, Date], filters?: OperationFilters }): string {
+    let args = `?dateStart=${dateToSerializationString(params.dateRange[0])}&dateEnd=${dateToSerializationString(params.dateRange[1])}`;
+    if (params.filters) {
+      if (params.filters.paymentMethod !== undefined) {
+        args = `${args}&paymentMethod=${params.filters.paymentMethod.toString()}`;
+      }
+      if (params.filters.accountBook?.id !== undefined) {
+        args = `${args}&accountBook=${params.filters.accountBook.id.toString()}`;
+      }
+      if (params.filters.accountingEntry?.id !== undefined) {
+        args = `${args}&accountingEntry=${params.filters.accountingEntry.id.toString()}`;
+      }
+      if (params.filters.category?.id !== undefined) {
+        args = `${args}&category=${params.filters.category.id.toString()}`;
+      }
     }
     return this.baseUrl + `api/operation/generateCsv${args}`;
   }
@@ -58,6 +72,13 @@ export class OperationService {
     return this._http
       .get<string[]>(this.baseUrl + `api/operation/getLabels`);
   }
+}
+
+export interface OperationFilters {
+  paymentMethod?: PaymentMethod,
+  accountBook?: AccountBook,
+  accountingEntry?: AccountingEntry,
+  category?: AccountingCategory,
 }
 
 export interface OperationJson {
