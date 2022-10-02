@@ -24,7 +24,7 @@ namespace Malte2.Model.Accounting
         public string AccountBookName { get; set; } = "";
 
 
-        [Name("Inputation comptable")]
+        [Name("Imputation comptable")]
         public string AccountingEntryName { get; set; } = "";
 
         [Name("Catégorie")]
