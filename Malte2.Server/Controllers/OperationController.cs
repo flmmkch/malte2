@@ -66,13 +66,12 @@ namespace Malte2.Controllers
                 title = $"Opérations : {dateStart.Value.ToString("MMMM yyyy")}";
             }
 
-            var editionGenerator = new Malte2.Model.Accounting.Edition.OperationEdition {
-                Title = title,
-                Operations = await _operationService.GetItems(dateStart, dateEnd, paymentMethod, accountBookId, accountingEntryId, categoryId).ToListAsync(),
-                AccountBooks = await _accountBookService.GetItems().BuildDictionaryById(),
-                AccountingEntries = await _accountingEntryService.GetItems().BuildDictionaryById(),
-                Categories = await _accountingCategoryService.GetItems().BuildDictionaryById(),
-            };
+            var operations = await _operationService.GetItems(dateStart, dateEnd, paymentMethod, accountBookId, accountingEntryId, categoryId).ToListAsync();
+            var accountBooks = await _accountBookService.GetItems().BuildDictionaryById();
+            var accountingEntries = await _accountingEntryService.GetItems().BuildDictionaryById();
+            var accountingCategories = await _accountingCategoryService.GetItems().BuildDictionaryById();
+
+            var editionGenerator = new Malte2.Model.Accounting.Edition.OperationsByAccountBookEdition(title, operations, accountBooks, accountingEntries, accountingCategories);
             var editionStream = editionGenerator.ProducePdf();
             string contentType = "application/pdf";
             string fileName = "Édition.pdf";

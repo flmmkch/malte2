@@ -1,5 +1,4 @@
 using MigraDocCore.DocumentObjectModel;
-using MigraDocCore.DocumentObjectModel.Tables;
 using MigraDocCore.Rendering;
 
 namespace Malte2.Model.Accounting.Edition
