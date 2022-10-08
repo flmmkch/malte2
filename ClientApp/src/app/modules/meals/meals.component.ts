@@ -79,13 +79,18 @@ export class MealsComponent implements AfterViewInit {
     nbCaterersControl: new FormControl(),
   });
 
-  onSubmit() {
+  currentValues(): MealDay {
     const mealDay = new MealDay(this.currentMealDay?.id);
     mealDay.dateTime = this.currentDate;
     mealDay.boarderCount = this.mealFormGroup.controls.nbBoardersControl.value ? Number.parseInt(this.mealFormGroup.controls.nbBoardersControl.value) : 0;
     mealDay.patronCount = this.mealFormGroup.controls.nbPatronsControl.value ? Number.parseInt(this.mealFormGroup.controls.nbPatronsControl.value) : 0;
     mealDay.otherCount = this.mealFormGroup.controls.nbOthersControl.value ? Number.parseInt(this.mealFormGroup.controls.nbOthersControl.value) : 0;
     mealDay.catererCount = this.mealFormGroup.controls.nbCaterersControl.value ? Number.parseInt(this.mealFormGroup.controls.nbCaterersControl.value) : 0;
+    return mealDay;
+  }
+
+  onSubmit() {
+    const mealDay = this.currentValues();
     this._mealDayService.createUpdate([mealDay])
       .subscribe({ next: () => { this.currentMealDay = mealDay; if (this.dayIsEmpty(dateToDatePickerValue(this.currentDate))) {
         this.monthMeals.push(mealDay);
@@ -130,5 +135,20 @@ export class MealsComponent implements AfterViewInit {
       return `Clients : ${mealDay.patronCount}\nPensionnaires : ${mealDay.boarderCount}\nTraiteurs : ${mealDay.catererCount}\nAutres : ${mealDay.otherCount}`;
     }
     return null;
+  }
+
+  public canSave() {
+    if (this.currentMealDay === undefined) {
+      return true;
+    }
+    let mealCounts: ((mealDay: MealDay) => number)[] = [
+      mealDay => mealDay.patronCount,
+      mealDay => mealDay.boarderCount,
+      mealDay => mealDay.catererCount,
+      mealDay => mealDay.otherCount,
+    ];
+    const mealDay = this.currentValues();
+    const sameMealCounts = mealCounts.map(mealCountFn => mealCountFn(mealDay) === mealCountFn(this.currentMealDay!)).reduceRight((prev, current) => prev && current);
+    return !sameMealCounts;
   }
 }
