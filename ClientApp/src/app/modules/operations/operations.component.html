@@ -69,7 +69,17 @@
       <a class="btn btn-primary" href="{{ opService.csvDownloadUrl({ dateRange: currentDateRange, filters: filters }) }}" target="_blank">Export CSV</a>
     </div>
     <div class="me-2">
-      <a class="btn btn-primary" href="{{ opService.pdfDownloadUrl({ dateRange: currentDateRange, filters: filters }) }}" target="_blank">Édition PDF</a>
+      
+      <div class="dropdown">
+        <button class="btn btn-primary dropdown-toggle" type="button" id="operationPdfEditionDropdownButton" data-bs-toggle="dropdown"
+          aria-expanded="false">
+          Édition PDF
+        </button>
+        <ul class="dropdown-menu" aria-labelledby="operationPdfEditionDropdownButton">
+          <li *ngFor="let editionType of pdfEditionTypes">
+            <a class="dropdown-item" href="{{ opService.pdfDownloadUrl({ dateRange: currentDateRange, editionType: editionType, filters: filters }) }}" target="_blank">{{ operationEditionTypeString(editionType) }}</a>
+          </li>
+        </ul>
     </div>
   </div>
 </div>

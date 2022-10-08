@@ -6,6 +6,7 @@ import { AccountBook } from '../models/account-book.model';
 import { AccountingCategory } from '../models/accounting-category.model';
 import { AccountingEntry } from '../models/accounting-entry.model';
 import { Amount } from '../models/amount.model';
+import { OperationEditionType } from '../models/operation-edition.model';
 import { Operation } from '../models/operation.model';
 import { PaymentMethod } from '../models/payment-method.model';
 import { dateToSerializationString } from '../utils/date-time-form-conversion';
@@ -64,8 +65,8 @@ export class OperationService {
     return args;
   }
 
-  pdfDownloadUrl(params: { dateRange: [Date, Date], filters?: OperationFilters }): string {
-    return this.baseUrl + `api/operation/generatePdf?${this.getFiltersString({ dateRange: params.dateRange, filters: params.filters })}`;
+  pdfDownloadUrl(params: { dateRange: [Date, Date], editionType: OperationEditionType, filters?: OperationFilters }): string {
+    return this.baseUrl + `api/operation/generatePdf?editionType=${params.editionType}&${this.getFiltersString({ dateRange: params.dateRange, filters: params.filters })}`;
   }
 
   csvDownloadUrl(params: { dateRange: [Date, Date], filters?: OperationFilters }): string {

@@ -10,6 +10,7 @@ import { AccountingCategory } from 'src/app/shared/models/accounting-category.mo
 import { AccountingEntry, EntryType } from 'src/app/shared/models/accounting-entry.model';
 import { Amount } from 'src/app/shared/models/amount.model';
 import { BoarderListItem } from 'src/app/shared/models/boarder.model';
+import { allOperationEditionTypes, OperationEditionType, operationEditionTypeString } from 'src/app/shared/models/operation-edition.model';
 import { Operation } from 'src/app/shared/models/operation.model';
 import { Operator } from 'src/app/shared/models/operator.model';
 import { allPaymentMethods, PaymentMethod, paymentMethodString } from 'src/app/shared/models/payment-method.model';
@@ -346,6 +347,10 @@ export class OperationsComponent implements OnInit, AfterViewInit {
         opDisplay.amount = '';
         return opDisplay;
     }
+
+    public readonly pdfEditionTypes: OperationEditionType[] = allOperationEditionTypes();
+
+    public readonly operationEditionTypeString = operationEditionTypeString;
 
     private _lastOperationEntered?: OperationDisplay;
 

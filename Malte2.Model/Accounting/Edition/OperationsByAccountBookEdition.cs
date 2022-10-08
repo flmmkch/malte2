@@ -13,8 +13,8 @@ namespace Malte2.Model.Accounting.Edition
             tableColumns.Add(new TableColumn("Recettes", Unit.FromCentimeter(2), operation => GetOperationAmount(operation, AccountingEntryType.Revenue, accountingEntries)?.ToCultureString(System.Globalization.CultureInfo.CurrentCulture)));
             tableColumns.Add(new TableColumn("Dépenses", Unit.FromCentimeter(2), operation => GetOperationAmount(operation, AccountingEntryType.Expense, accountingEntries)?.ToCultureString(System.Globalization.CultureInfo.CurrentCulture)));
             tableColumns.Add(new TableColumn("Type", Unit.FromCentimeter(1.6), operation => operation.PaymentMethod.GetDisplayString()));
-            tableColumns.Add(new TableColumn("Catégorie", Unit.FromCentimeter(4), operation => GetAccountingCategoryLabel(operation, accountingCategories)));
-            tableColumns.Add(new TableColumn("Libellé", Unit.FromCentimeter(6), operation => operation.Label));
+            tableColumns.Add(new TableColumn("Catégorie", Unit.FromCentimeter(3), operation => GetAccountingCategoryLabel(operation, accountingCategories)));
+            tableColumns.Add(new TableColumn("Libellé", Unit.FromCentimeter(4), operation => operation.Label));
 
             // group operations by account book
             Dictionary<long, List<Operation>> operationsByAccountBookId = new Dictionary<long, List<Operation>>();
@@ -28,18 +28,15 @@ namespace Malte2.Model.Accounting.Edition
                 accountBookOperations.Add(operation);
             }
             
-            List<(AccountBook, List<Operation>)> accountBooksOperations = operationsByAccountBookId.Select(keyValue => (accountBooks[keyValue.Key], keyValue.Value)).Where(item => item.Item1 != null).ToList();
-            accountBooksOperations.Sort((left, right) => (int) (left.Item1.Id - right.Item1.Id).GetValueOrDefault());
+            List<(AccountBook accountBook, List<Operation>)> accountBooksOperations = operationsByAccountBookId.Select(keyValue => (accountBook: accountBooks[keyValue.Key], keyValue.Value)).Where(item => item.accountBook != null).ToList();
+            accountBooksOperations.Sort((left, right) => ItemsByIdComparer(left.accountBook, right.accountBook));
 
             foreach ((AccountBook accountBook, List<Operation> currentOperations) in accountBooksOperations) {
                 var operationsTable = new OperationTable(tableColumns, currentOperations, accountingEntries);
-                var editionGroup = new TitledContentGroup(paragraph => {
-                    paragraph.AddText("Livre comptable ");
-                    paragraph.AddFormattedText(accountBook.Label, TextFormat.Bold);
-                }, 2, operationsTable);
-                Content.Add(editionGroup);
+                Amount totalAmount = GetOperationsAmount(currentOperations, accountingEntries);
+                EditionContent editionContent = new TitledContentGroup("Livre comptable", accountBook.Label, 2, operationsTable, totalAmount, true);
+                Content.Add(editionContent);
             }
-
         }
     }
 }

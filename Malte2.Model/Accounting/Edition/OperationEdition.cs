@@ -5,6 +5,8 @@ namespace Malte2.Model.Accounting.Edition
 {
     public class OperationEdition : DocumentEdition
     {
+        protected const long NULL_OBJECT_ID_KEY = long.MaxValue;
+
         public string Title { get; set; } = "Opérations";
 
         public string Subject { get; set; } = "Édition des opérations comptables";
@@ -26,6 +28,26 @@ namespace Malte2.Model.Accounting.Edition
             else {
                 throw new Exception($"Failed to get accounting entry {operation.AccountingEntryId} for operation {operation.Id}");
             }
+        }
+
+        protected static Amount GetOperationAmount(Operation operation, Dictionary<long, AccountingEntry> accountingEntries)
+        {
+            if (accountingEntries.TryGetValue(operation.AccountingEntryId, out AccountingEntry? accountingEntry)) {
+                if (accountingEntry.EntryType == AccountingEntryType.Revenue) {
+                    return operation.Amount;
+                }
+                else {
+                    return - operation.Amount;
+                }
+            }
+            else {
+                throw new Exception($"Failed to get accounting entry {operation.AccountingEntryId} for operation {operation.Id}");
+            }
+        }
+
+        protected static Amount GetOperationsAmount(IEnumerable<Operation> operations, Dictionary<long, AccountingEntry> accountingEntries)
+        {
+            return operations.Select(op => GetOperationAmount(op, accountingEntries)).Aggregate(new Amount(0), (accumulation, amount) => accumulation + amount);
         }
 
         protected static string GetAccountBookLabel(Operation operation, Dictionary<long, AccountBook> accountBooks)
@@ -75,7 +97,9 @@ namespace Malte2.Model.Accounting.Edition
         }
 
         public interface EditionContent {
-            void AddDocumentContent(Section documentSection);
+            bool PageBreakBefore { get; }
+
+            void AddDocumentContent(DocumentElements documentElements);
         }
 
         public class OperationTable : EditionContent {
@@ -85,6 +109,8 @@ namespace Malte2.Model.Accounting.Edition
                 Operations = new List<Operation>(operations);
                 AccountingEntries = accountingEntries;
             }
+
+            public bool PageBreakBefore { get => false; }
 
             public List<TableColumn> TableColumns { get; set; } = new List<TableColumn>();
 
@@ -98,7 +124,7 @@ namespace Malte2.Model.Accounting.Edition
                 Operations.Sort((op1, op2) => (int) (op1.OperationDateTime - op2.OperationDateTime).TotalMinutes + (op1.OperationDateTime == op2.OperationDateTime ? (int) (op1.Id.GetValueOrDefault() - op2.Id.GetValueOrDefault()) : 0));
             }
 
-            public void AddDocumentContent(Section documentSection)
+            public void AddDocumentContent(DocumentElements documentElements)
             {
                 // operations table
                 // tables
@@ -107,7 +133,7 @@ namespace Malte2.Model.Accounting.Edition
                 operationsTable.Borders.Left.Color = Colors.DarkGray;
                 operationsTable.Borders.Right.Width = 0.25;
                 operationsTable.Borders.Right.Color = Colors.DarkGray;
-                documentSection.Add(operationsTable);
+                documentElements.Add(operationsTable);
 
                 foreach (TableColumn tableColumn in TableColumns)
                 {
@@ -137,31 +163,7 @@ namespace Malte2.Model.Accounting.Edition
                     operationsTable.AddRow();
                 }
 
-                documentSection.AddParagraph().AddLineBreak();
-
-                // add an invisible row
-                operationsTable.AddRow().Borders.Visible = false;
-                
-                // subtotals
-                Row subtotalsRow = operationsTable.AddRow();
-                foreach (int i in Enumerable.Range(3, Math.Max(TableColumns.Count - 3, 0))) {
-                    subtotalsRow.Cells[i].Borders.Visible = false;
-                }
-                SetTotalLabelCell(subtotalsRow.Cells[0], "Total");
-                // recettes
-                SetTotalValueCell(subtotalsRow.Cells[1], Operations, op => (AccountingEntries[op.AccountingEntryId].EntryType == AccountingEntryType.Revenue ? op.Amount : new Amount(0)), amount => amount > 0 ? Colors.DarkGreen : Color.Empty);
-                SetTotalValueCell(subtotalsRow.Cells[2], Operations, op => (AccountingEntries[op.AccountingEntryId].EntryType == AccountingEntryType.Expense ? op.Amount : new Amount(0)), amount => amount > 0 ? Colors.DarkRed : Color.Empty);
-                
-                // total
-                Row balanceRow = operationsTable.AddRow();
-                foreach (int i in Enumerable.Range(3, Math.Max(TableColumns.Count - 3, 0))) {
-                    balanceRow.Cells[i].Borders.Visible = false;
-                }
-                SetTotalLabelCell(balanceRow.Cells[0], "Balance");
-                balanceRow.Cells[1].MergeRight = 1;
-                SetTotalValueCell(balanceRow.Cells[1], Operations, op => (AccountingEntries[op.AccountingEntryId].EntryType == AccountingEntryType.Revenue ? op.Amount : - op.Amount), amount => amount > 0 ? Colors.DarkGreen : (amount < 0 ? Colors.DarkRed : Color.Empty));
-
-                operationsTable.SetEdge(0, operationsTable.Rows.Count - 2, 3, 2, Edge.Box, BorderStyle.Single, 0.75, Colors.Black);
+                documentElements.AddParagraph().AddLineBreak();
             }
 
             private void BuildOperationRow(Operation operation, Row row)
@@ -174,58 +176,104 @@ namespace Malte2.Model.Accounting.Edition
                     }
                 }
             }
-
-            protected void SetTotalLabelCell(Cell cell, string label)
-            {
-                cell.AddParagraph(label);
-                cell.Format.Alignment = ParagraphAlignment.Left;
-                cell.Shading.Color = Colors.LightGray;
-                cell.Borders.Bottom.Width = 0.5;
-            }
-
-            protected void SetTotalValueCell(Cell cell, IEnumerable<Operation> operations, Func<Operation, Amount> amountSelector, Func<Amount, Color> fontColor)
-            {
-                // content
-                Amount amount = operations.Select(amountSelector).Aggregate(new Amount(0), (accumulation, amount) => accumulation + amount);
-                string totalAmountString = amount.ToCultureString(System.Globalization.CultureInfo.CurrentCulture);
-                cell.AddParagraph($"{totalAmountString} €");
-                // format
-                cell.Borders.Bottom.Color = Colors.DarkGray;
-                cell.Format.Alignment = ParagraphAlignment.Right;
-                cell.Borders.Bottom.Color = Colors.DarkGray;
-                cell.Format.Font.Bold = true;
-                cell.Format.Font.Color = fontColor(amount);
-            }
         }
 
         public class TitledContentGroup : EditionContent {
-            public TitledContentGroup(Action<Paragraph> onParagraph, int level, IEnumerable<EditionContent> content)
+            private void internalConstructor(string typeLabel, string groupName, int level, IEnumerable<EditionContent> content, Amount totalAmount, bool pageBreakBefore)
             {
-                OnParagraph = onParagraph;
+                TypeLabel = typeLabel;
+                GroupName = groupName;
                 Level = level;
                 Content = content;
+                TotalAmount = totalAmount;
+                PageBreakBefore = pageBreakBefore;
             }
 
-            public TitledContentGroup(Action<Paragraph> onParagraph, int level, EditionContent content)
+            public TitledContentGroup(string typeLabel, string groupName, int level, IEnumerable<EditionContent> content, Amount totalAmount, bool pageBreakBefore = false)
             {
-                OnParagraph = onParagraph;
-                Level = level;
-                Content = new EditionContent[] { content };
+                internalConstructor(typeLabel, groupName, level, content, totalAmount, pageBreakBefore);
             }
 
-            public Action<Paragraph> OnParagraph { get; set; }
-
-            public int Level { get; set; }
-
-            public IEnumerable<EditionContent> Content { get; set; }
-
-            public void AddDocumentContent(Section documentSection)
+            public TitledContentGroup(string typeLabel, string groupName, int level, EditionContent content, Amount totalAmount, bool pageBreakBefore = false)
             {
-                Paragraph contentGroupTitle = documentSection.AddParagraph("", $"Heading{Level}");
-                OnParagraph(contentGroupTitle);
+                internalConstructor(typeLabel, groupName, level, new EditionContent[] { content }, totalAmount, pageBreakBefore);
+            }
+
+            public string TypeLabel { get; set; } = "";
+
+            public string GroupName { get; set; } = "";
+
+            public bool Border { get; set; } = false;
+
+            public bool PageBreakBefore { get; set; } = false;
+
+            public int Level { get; set; } = 1;
+
+            public IEnumerable<EditionContent> Content { get; set; } = Enumerable.Empty<EditionContent>();
+
+            public Amount TotalAmount { get; set; } = new Amount(0);
+
+            public List<DocumentObject> Details { get; private set; } = new List<DocumentObject>();
+
+            private void ParagraphAddTitle(Paragraph paragraph)
+            {
+                if (!string.IsNullOrWhiteSpace(TypeLabel)) {
+                    paragraph.AddText(TypeLabel);
+                }
+                if (!string.IsNullOrWhiteSpace(TypeLabel) && !string.IsNullOrEmpty(GroupName)) {
+                    paragraph.AddText(" ");
+                }
+                if (!string.IsNullOrEmpty(GroupName)) {
+                    paragraph.AddFormattedText(GroupName, TextFormat.Bold);
+                }
+            }
+
+            public void AddDocumentContent(DocumentElements documentElements)
+            {
+                Table contentGroupTable = new Table();
+                documentElements.Add(contentGroupTable);
+                contentGroupTable.Format.Borders.Visible = false;
+                contentGroupTable.AddColumn(Unit.FromCentimeter(Level * 0.4));
+                contentGroupTable.AddColumn(Unit.FromCentimeter(18 - (Level * 0.8)));
+                int contentColumn = contentGroupTable.Columns.Count - 1;
+
+                Row titleRow = contentGroupTable.AddRow();
+                Paragraph contentGroupTitle = new Paragraph();
+                titleRow.Cells[contentColumn].Add(contentGroupTitle);
+                contentGroupTitle.Style = $"Heading{Level}";
+                ParagraphAddTitle(contentGroupTitle);
+                if (Details.Count > 0) {
+                    Row detailsRow = contentGroupTable.AddRow();
+                    foreach (DocumentObject detailObject in Details)
+                    {
+                        detailsRow.Cells[contentColumn].Elements.Add(detailObject);
+                    }
+                }
+                // content
                 foreach (EditionContent content in Content)
                 {
-                    content.AddDocumentContent(documentSection);
+                    Row contentRow = contentGroupTable.AddRow();
+                    content.AddDocumentContent(contentRow.Cells[contentColumn].Elements);
+                }
+                
+                Row totalRow = contentGroupTable.AddRow();
+                // total
+                Paragraph totalParagraph = new Paragraph();
+                totalParagraph.Style = "ContentGroupTotal";
+                totalParagraph.AddText("Total");
+                totalParagraph.AddSpace(1);
+                if (!string.IsNullOrEmpty(GroupName)) {
+                    totalParagraph.AddFormattedText(GroupName, TextFormat.Bold);
+                    totalParagraph.AddSpace(1);
+                }
+                string totalAmountString = TotalAmount.ToCultureString(System.Globalization.CultureInfo.CurrentCulture);
+                string totalAmountValueStyle = (TotalAmount > 0) ? "ContentGroupTotalPositiveAmount" : ((TotalAmount < 0) ? "ContentGroupTotalNegativeAmount" : "ContentGroupTotalZeroAmount");
+                totalParagraph.AddFormattedText($"{totalAmountString} €", totalAmountValueStyle);
+                totalRow.Cells[contentColumn].Add(totalParagraph);
+
+                if (Border)
+                {
+                    contentGroupTable.SetEdge(1, 0, 1, contentGroupTable.Rows.Count, Edge.Box, BorderStyle.Single, 0.5, Colors.LightGray);
                 }
             }
         }
@@ -249,9 +297,16 @@ namespace Malte2.Model.Accounting.Edition
 
             Paragraph titleParagraph = mainSection.AddParagraph(Title, "Heading1");
 
-            foreach (EditionContent content in Content)
-            {
-                content.AddDocumentContent(mainSection);
+            var contentEnumerator = Content.GetEnumerator();
+            if (contentEnumerator.MoveNext()) {
+                // no page break for the first content item
+                contentEnumerator.Current.AddDocumentContent(mainSection.Elements);
+            }
+            while (contentEnumerator.MoveNext()) {
+                if (contentEnumerator.Current.PageBreakBefore) {
+                    mainSection.AddPageBreak();
+                }
+                contentEnumerator.Current.AddDocumentContent(mainSection.Elements);
             }
 
             return document;
@@ -272,22 +327,29 @@ namespace Malte2.Model.Accounting.Edition
             style.Font.Bold = true;
             style.ParagraphFormat.SpaceAfter = 6;
 
-            style = document.Styles[StyleNames.Heading2];
-            style.ParagraphFormat.Alignment = ParagraphAlignment.Left;
-            style.Font.Size = 20;
-            style.Font.Bold = false;
-            style.ParagraphFormat.LeftIndent = Unit.FromCentimeter(2);
-
-            style = document.Styles[StyleNames.Heading3];
-            style.ParagraphFormat.Alignment = ParagraphAlignment.Left;
-            style.Font.Size = 16;
-            style.ParagraphFormat.LeftIndent = Unit.FromCentimeter(1.3);
+            foreach (int level in Enumerable.Range(2, 5)) {
+                style = document.Styles[$"Heading{level}"];
+                style.ParagraphFormat.Alignment = ParagraphAlignment.Left;
+                style.Font.Size = 24 - 2 * level;
+                style.Font.Bold = false;
+            }
 
             style = document.Styles[StyleNames.Header];
             style.ParagraphFormat.Alignment = ParagraphAlignment.Right;
 
             style = document.Styles[StyleNames.Footer];
             style.ParagraphFormat.Alignment = ParagraphAlignment.Right;
+
+            style = document.AddStyle("ContentGroupTotal", "Normal");
+
+            style = document.AddStyle("ContentGroupTotalZeroAmount", "Normal");
+            style.Font.Bold = true;
+
+            style = document.AddStyle("ContentGroupTotalPositiveAmount", "ContentGroupTotalZeroAmount");
+            style.Font.Color = Colors.DarkGreen;
+
+            style = document.AddStyle("ContentGroupTotalNegativeAmount", "ContentGroupTotalZeroAmount");
+            style.Font.Color = Colors.DarkRed;
         }
 
         private void ConfigureHeader(Section section)
@@ -309,6 +371,12 @@ namespace Malte2.Model.Accounting.Edition
                 footerPagesParagraph.AddText("\n");
                 footerPagesParagraph.AddText(FooterDetails);
             }
+        }
+
+        protected static int ItemsByIdComparer<T>(T? left, T? right) where T: IHasObjectId
+        {
+            long comparison = (left?.Id).GetValueOrDefault(NULL_OBJECT_ID_KEY).CompareTo((right?.Id).GetValueOrDefault(NULL_OBJECT_ID_KEY));
+            return (int) comparison;
         }
     }
 }
