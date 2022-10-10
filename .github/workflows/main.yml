@@ -39,7 +39,9 @@ jobs:
         run: dotnet restore
 
       - name: Build
-        run: dotnet build --no-restore
+        run: |
+          dotnet clean
+          dotnet build --no-restore
       
       - name: Server test
         run: dotnet test --no-build --verbosity normal
