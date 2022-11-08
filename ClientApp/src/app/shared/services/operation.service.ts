@@ -49,7 +49,7 @@ export class OperationService {
   private getFiltersString(params: { dateRange: [Date, Date], filters?: OperationFilters }): string {
     let args = `dateStart=${dateToSerializationString(params.dateRange[0])}&dateEnd=${dateToSerializationString(params.dateRange[1])}`;
     if (params.filters) {
-      if (params.filters.paymentMethod !== undefined) {
+      if (params.filters.paymentMethod !== null) {
         args = `${args}&paymentMethod=${params.filters.paymentMethod.toString()}`;
       }
       if (params.filters.accountBook?.id !== undefined) {
@@ -80,10 +80,10 @@ export class OperationService {
 }
 
 export interface OperationFilters {
-  paymentMethod?: PaymentMethod,
-  accountBook?: AccountBook,
-  accountingEntry?: AccountingEntry,
-  category?: AccountingCategory,
+  paymentMethod: PaymentMethod | null,
+  accountBook: AccountBook | null,
+  accountingEntry: AccountingEntry | null,
+  category: AccountingCategory | null,
 }
 
 export interface OperationJson {

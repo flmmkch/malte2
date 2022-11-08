@@ -96,38 +96,43 @@ export class OperationsComponent implements OnInit, AfterViewInit {
 
     public readonly paymentMethodString = paymentMethodString;
 
-    public filters: OperationFilters = {};
+    public filters: OperationFilters = {
+        accountBook: null,
+        accountingEntry: null,
+        category: null,
+        paymentMethod: null,
+    };
 
     public get filteringPaymentMethod(): PaymentMethod | null {
-        return this.filters.paymentMethod || null;
+        return this.filters.paymentMethod;
     }
     
     public set filteringPaymentMethod(value: PaymentMethod | null) {
-        this.filters.paymentMethod = value || undefined;
+        this.filters.paymentMethod = value;
     }
 
     public get filteringAccountBook(): AccountBook | null {
-        return this.filters.accountBook || null;
+        return this.filters.accountBook;
     }
     
     public set filteringAccountBook(value: AccountBook | null) {
-        this.filters.accountBook = value || undefined;
+        this.filters.accountBook = value;
     }
 
     public get filteringAccountingEntry(): AccountingEntry | null {
-        return this.filters.accountingEntry || null;
+        return this.filters.accountingEntry;
     }
     
     public set filteringAccountingEntry(value: AccountingEntry | null) {
-        this.filters.accountingEntry = value || undefined;
+        this.filters.accountingEntry = value;
     }
 
     public get filteringAccountingCategory(): AccountingCategory | null {
-        return this.filters.category || null;
+        return this.filters.category;
     }
     
     public set filteringAccountingCategory(value: AccountingCategory | null) {
-        this.filters.category = value || undefined;
+        this.filters.category = value;
     }
 
     public updateFilters() {
@@ -222,16 +227,16 @@ export class OperationsComponent implements OnInit, AfterViewInit {
         }
         let orderedOps = ops.slice();
         // apply filters
-        if (this.filteringPaymentMethod) {
+        if (this.filteringPaymentMethod !== null) {
             orderedOps = orderedOps.filter(op => this.filteringPaymentMethod === op.paymentMethod);
         }
-        if (this.filteringAccountBook) {
+        if (this.filteringAccountBook !== null) {
             orderedOps = orderedOps.filter(op => this.filteringAccountBook?.id === op.accountBookId);
         }
-        if (this.filteringAccountingEntry) {
+        if (this.filteringAccountingEntry !== null) {
             orderedOps = orderedOps.filter(op => this.filteringAccountingEntry?.id === op.accountingEntryId);
         }
-        if (this.filteringAccountingCategory) {
+        if (this.filteringAccountingCategory !== null) {
             orderedOps = orderedOps.filter(op => this.filteringAccountingCategory?.id === op.categoryId);
         }
         // sort by date
