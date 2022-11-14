@@ -23,17 +23,18 @@ jobs:
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v2
+      - name: Git checkout
+        uses: actions/checkout@v3
       
       - name: Setup Node
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v3
         with:
-          node-version: '16.x'
+          node-version: 16
           
       - name: Setup Dotnet
-        uses: actions/setup-dotnet@v1
+        uses: actions/setup-dotnet@v3
         with:
-          dotnet-version: '6.0.x'
+          dotnet-version: '6.0.111'
 
       - name: Restore dependencies
         run: dotnet restore
@@ -56,7 +57,7 @@ jobs:
           powershell -NoLogo -Sta -NoProfile -NonInteractive -ExecutionPolicy Unrestricted -Command 'Compress-Archive -Path Malte2.Server/bin/Release/net6.0/win7-x64/publish/* -DestinationPath Malte2.zip'
 
       - name: Upload build
-        uses: actions/upload-artifact@v2.3.1
+        uses: actions/upload-artifact@v3
         with:
           # Artifact name
           name: malte2
