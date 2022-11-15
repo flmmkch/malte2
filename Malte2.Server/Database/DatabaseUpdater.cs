@@ -5,12 +5,13 @@ namespace Malte2.Database
 
     public static class DatabaseUpdater
     {
-        public static readonly int DATABASE_VERSION = 3;
+        public static readonly int DATABASE_VERSION = 4;
 
         public static readonly Dictionary<int, Action<DatabaseContext, SQLiteTransaction>> UPGRADE_ACTION_TABLE = new Dictionary<int, Action<DatabaseContext, SQLiteTransaction>>
         {
             [1] = DatabaseUpdater.UpdateV1ToV2,
             [2] = DatabaseUpdater.UpdateV2ToV3,
+            [3] = DatabaseUpdater.UpdateV3ToV4,
         };
 
         public static void UpdateDatabase(DatabaseContext databaseContext)
@@ -230,58 +231,51 @@ ALTER TABLE operation ADD COLUMN invoice TEXT;
         {
             // upgrade tables
             applyCommand(databaseContext, transaction, @"
-DROP TABLE remission_cash;
 
-ALTER TABLE remission_operation RENAME TO remission_check;
-
-ALTER TABLE remission DROP COLUMN payment_means;
-
-ALTER TABLE remission_check DROP COLUMN operation_id;
-
-ALTER TABLE remission_check ADD COLUMN check_number INTEGER NULL;
-
-CREATE INDEX idx_remission_check_remission ON remission_check(remission_id);
-
-CREATE UNIQUE INDEX idx_remission_check_check_number ON remission_check(check_number);
-
-ALTER TABLE remission_check ADD COLUMN amount INTEGER NOT NULL;
-
-ALTER TABLE remission ADD COLUMN cash_deposit_01c INTEGER NOT NULL DEFAULT 0;
-
-ALTER TABLE remission ADD COLUMN cash_deposit_02c INTEGER NOT NULL DEFAULT 0;
-
-ALTER TABLE remission ADD COLUMN cash_deposit_05c INTEGER NOT NULL DEFAULT 0;
-
-ALTER TABLE remission ADD COLUMN cash_deposit_10c INTEGER NOT NULL DEFAULT 0;
-
-ALTER TABLE remission ADD COLUMN cash_deposit_20c INTEGER NOT NULL DEFAULT 0;
-
-ALTER TABLE remission ADD COLUMN cash_deposit_50c INTEGER NOT NULL DEFAULT 0;
-
-ALTER TABLE remission ADD COLUMN cash_deposit_001e INTEGER NOT NULL DEFAULT 0;
-
-ALTER TABLE remission ADD COLUMN cash_deposit_002e INTEGER NOT NULL DEFAULT 0;
-
-ALTER TABLE remission ADD COLUMN cash_deposit_005e INTEGER NOT NULL DEFAULT 0;
-
-ALTER TABLE remission ADD COLUMN cash_deposit_010e INTEGER NOT NULL DEFAULT 0;
-
-ALTER TABLE remission ADD COLUMN cash_deposit_020e INTEGER NOT NULL DEFAULT 0;
-
-ALTER TABLE remission ADD COLUMN cash_deposit_050e INTEGER NOT NULL DEFAULT 0;
-
-ALTER TABLE remission ADD COLUMN cash_deposit_100e INTEGER NOT NULL DEFAULT 0;
-
-ALTER TABLE remission ADD COLUMN cash_deposit_200e INTEGER NOT NULL DEFAULT 0;
-
-ALTER TABLE remission ADD COLUMN cash_deposit_500e INTEGER NOT NULL DEFAULT 0;
-
-ALTER TABLE remission ADD COLUMN notes TEXT NOT NULL DEFAULT '';
+CREATE TRIGGER ck_operation_category_entry
+BEFORE UPDATE OF category_id, accounting_entry_id ON operation
+FOR EACH ROW WHEN NEW.category_id IS NOT NULL AND NEW.accounting_entry_id NOT IN (SELECT accounting_entry_id FROM accounting_category WHERE accounting_category_id = NEW.category_id)
+BEGIN
+    SELECT RAISE(FAIL, 'Operations must have the same accounting entry as their category');
+END;
 
 ");
             // update database version
             databaseContext.UpdateDatabaseVersion(3, transaction);
         }
 
+        private static void UpdateV3ToV4(DatabaseContext databaseContext, SQLiteTransaction transaction)
+        {
+            // upgrade tables
+            applyCommand(databaseContext, transaction, @"
+DROP TRIGGER ck_operation_category_entry;
+DROP TRIGGER ck_category_entry_operations;
+
+CREATE TRIGGER ck_operation_insert_category_entry
+BEFORE INSERT ON operation
+FOR EACH ROW WHEN NEW.category_id IS NOT NULL AND NEW.accounting_entry_id NOT IN (SELECT accounting_entry_id FROM accounting_category WHERE accounting_category_id = NEW.category_id)
+BEGIN
+    SELECT RAISE(FAIL, 'All operations must have the same accounting entry as their category');
+END;
+
+CREATE TRIGGER ck_operation_update_category_entry
+BEFORE UPDATE OF category_id, accounting_entry_id ON operation
+FOR EACH ROW WHEN NEW.category_id IS NOT NULL AND NEW.accounting_entry_id NOT IN (SELECT accounting_entry_id FROM accounting_category WHERE accounting_category_id = NEW.category_id)
+BEGIN
+    SELECT RAISE(FAIL, 'All operations must have the same accounting entry as their category');
+END;
+
+CREATE TRIGGER ck_category_update_entry_operations
+BEFORE UPDATE OF accounting_entry_id ON accounting_category
+FOR EACH ROW WHEN ((SELECT COUNT(*) FROM operation WHERE operation.category_id = NEW.accounting_category_id AND operation.accounting_entry_id <> NEW.accounting_entry_id) > 0)
+BEGIN
+    SELECT RAISE(FAIL, 'All operations must have the same accounting entry as their category');
+END;
+
+
+");
+            // update database version
+            databaseContext.UpdateDatabaseVersion(4, transaction);
+        }
     }
 }
