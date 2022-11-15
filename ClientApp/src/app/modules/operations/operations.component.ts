@@ -536,6 +536,16 @@ export class OperationsComponent implements OnInit, AfterViewInit {
         }
     }
 
+    public changeAccountingEntry(e: Event) {
+        if (!this.workingEntryFitsCategory()) {
+            this.workingItemCategory = undefined;
+        }
+    }
+
+    public workingEntryFitsCategory(): boolean {
+        return this.workingItemCategory === undefined || this.workingItemCategory.accountingEntryId === undefined || this.workingItemCategory.accountingEntryId === this.workingItemEntry.id;
+    }
+
     public get workingItemEntry(): AccountingEntry {
         const entryId = Number.parseInt(this.opsFormGroup.controls.entryCtrl.value);
         return this.accountingEntries[entryId];
@@ -544,6 +554,10 @@ export class OperationsComponent implements OnInit, AfterViewInit {
     public get workingItemCategory(): AccountingCategory | undefined {
         const categoryId = this.opsFormGroup.controls.categoryCtrl.value ? Number.parseInt(this.opsFormGroup.controls.categoryCtrl.value) : undefined;
         return (categoryId !== undefined) ? this.categories[categoryId] : undefined;
+    }
+
+    public set workingItemCategory(value: AccountingCategory | undefined) {
+        this.opsFormGroup.controls.categoryCtrl.setValue(value?.id);
     }
 
     public get workingItemEntryDependsOnBoarder(): boolean {
