@@ -164,8 +164,12 @@
             <div class="form-group row">
               <label for="categorySelect" class="form-label col-2">Catégorie</label>
               <select class="form-control col-offset-2 col-10" formControlName="categoryCtrl" id="categorySelect">
+                <!-- Null -->
                 <option value="{{ null }}"></option>
+                <!-- List of categories -->
                 <option *ngFor="let category of categoryListForEntry(opsFormGroup.controls.entryCtrl.value)" value="{{ category?.id }}">{{ category?.label }}</option>
+                <!-- The current category is incompatible with the selected accounting entry -->
+                <option *ngIf="workingItemCategory !== undefined && workingItemCategory.accountingEntryId !== null && workingItemCategory.accountingEntryId !== workingItemEntry.id" value="{{ workingItemCategory.id }}" disabled>{{ workingItemCategory.label }}</option>
               </select>
             </div>
             <div class="form-group row">

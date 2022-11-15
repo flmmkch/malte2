@@ -536,6 +536,16 @@ export class OperationsComponent implements OnInit, AfterViewInit {
         }
     }
 
+    public get workingItemEntry(): AccountingEntry {
+        const entryId = Number.parseInt(this.opsFormGroup.controls.entryCtrl.value);
+        return this.accountingEntries[entryId];
+    }
+
+    public get workingItemCategory(): AccountingCategory | undefined {
+        const categoryId = this.opsFormGroup.controls.categoryCtrl.value ? Number.parseInt(this.opsFormGroup.controls.categoryCtrl.value) : undefined;
+        return (categoryId !== undefined) ? this.categories[categoryId] : undefined;
+    }
+
     public get workingItemEntryDependsOnBoarder(): boolean {
         if (this.opsFormGroup.controls.entryCtrl.value !== undefined) {
             const accountingEntryId = Number.parseInt(this.opsFormGroup.controls.entryCtrl.value);
