@@ -33,6 +33,11 @@ namespace Malte2.Model.Accounting
             return _amount;
         }
 
+        public double ToDouble()
+        {
+            return ((double) _amount) / ((double) PRECISION);
+        }
+
         public override string ToString()
         {
             return ToCultureString(CultureInfo.InvariantCulture);

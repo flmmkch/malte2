@@ -19,7 +19,7 @@ namespace Malte2.Services
             _logger = logger;
         }
 
-        public async IAsyncEnumerable<BoarderListItemResponse> GetItemList(DateTime roomOccupancyDateTime)
+        public async IAsyncEnumerable<BoarderListItemResponse> GetItemList(DateTime? roomOccupancyDateTime = null)
         {
             string commandText = @"SELECT b.boarder_id, b.name, r.room_name
                 FROM boarder b
@@ -28,7 +28,11 @@ namespace Malte2.Services
                 ORDER BY b.boarder_id ASC;";
             using (var command = new SQLiteCommand(commandText, _databaseContext.Connection))
             {
-                command.Parameters.AddWithValue("occupancy_date", roomOccupancyDateTime.ToString("s"));
+                if (roomOccupancyDateTime.HasValue) {
+                    command.Parameters.AddWithValue("occupancy_date", roomOccupancyDateTime.Value.ToString("s"));
+                } else {
+                    command.Parameters.AddWithValue("occupancy_date", null);
+                }
                 using (var reader = await command.ExecuteReaderAsync())
                 {
                     while (await reader.ReadAsync())

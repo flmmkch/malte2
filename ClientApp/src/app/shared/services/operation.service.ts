@@ -65,8 +65,8 @@ export class OperationService {
     return args;
   }
 
-  pdfDownloadUrl(params: { dateRange: [Date, Date], editionType: OperationEditionType, filters?: OperationFilters }): string {
-    return this.baseUrl + `api/operation/generatePdf?editionType=${params.editionType}&${this.getFiltersString({ dateRange: params.dateRange, filters: params.filters })}`;
+  editionDownloadUrl(params: { dateRange: [Date, Date], editionType: OperationEditionType, filters?: OperationFilters }): string {
+    return this.baseUrl + `api/operation/generateEdition?editionType=${params.editionType}&${this.getFiltersString({ dateRange: params.dateRange, filters: params.filters })}`;
   }
 
   csvDownloadUrl(params: { dateRange: [Date, Date], filters?: OperationFilters }): string {

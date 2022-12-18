@@ -353,7 +353,7 @@ export class OperationsComponent implements OnInit, AfterViewInit {
         return opDisplay;
     }
 
-    public readonly pdfEditionTypes: OperationEditionType[] = allOperationEditionTypes();
+    public readonly editionTypes: OperationEditionType[] = allOperationEditionTypes();
 
     public readonly operationEditionTypeString = operationEditionTypeString;
 
