@@ -4,7 +4,7 @@ using Malte2.Model.Accounting;
 using Malte2.Extensions;
 using CsvHelper;
 using Malte2.Model;
-using Malte2.Model.Accounting.Edition;
+using Malte2.Model.Edition;
 
 namespace Malte2.Controllers
 {
@@ -17,6 +17,7 @@ namespace Malte2.Controllers
         private readonly AccountBookService _accountBookService;
         private readonly AccountingEntryService _accountingEntryService;
         private readonly AccountingCategoryService _accountingCategoryService;
+        private readonly BoarderService _boarderService;
 
         private readonly ILogger<OperationController> _logger;
 
@@ -25,6 +26,7 @@ namespace Malte2.Controllers
             AccountBookService accountBookService,
             AccountingEntryService accountingEntryService,
             AccountingCategoryService accountingCategoryService,
+            BoarderService boarderService,
             ILogger<OperationController> logger
             )
         {
@@ -32,6 +34,7 @@ namespace Malte2.Controllers
             _accountBookService = accountBookService;
             _accountingEntryService = accountingEntryService;
             _accountingCategoryService = accountingCategoryService;
+            _boarderService = boarderService;
             _logger = logger;
         }
 
@@ -56,42 +59,45 @@ namespace Malte2.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GeneratePdf([FromQuery(Name = "editionType")] OperationEditionType editionType = OperationEditionType.ByAccountBook, [FromQuery(Name = "dateStart")] string? dateStartString = null, [FromQuery(Name = "dateEnd")] string? dateEndString = null, [FromQuery(Name = "paymentMethod")] PaymentMethod? paymentMethod = null, [FromQuery(Name = "accountBook")] long? accountBookId = null, [FromQuery(Name = "accountingEntry")] long? accountingEntryId = null, [FromQuery(Name = "category")] long? categoryId = null)
+        public async Task<IActionResult> GenerateEdition([FromQuery(Name = "editionType")] OperationEditionType editionType = OperationEditionType.ByAccountBook, [FromQuery(Name = "dateStart")] string? dateStartString = null, [FromQuery(Name = "dateEnd")] string? dateEndString = null, [FromQuery(Name = "paymentMethod")] PaymentMethod? paymentMethod = null, [FromQuery(Name = "accountBook")] long? accountBookId = null, [FromQuery(Name = "accountingEntry")] long? accountingEntryId = null, [FromQuery(Name = "category")] long? categoryId = null)
         {
             DateTime? dateStart = dateStartString != null ? DateTime.Parse(dateStartString) : null;
             DateTime? dateEnd = dateEndString != null ? DateTime.Parse(dateEndString) : null;
 
-            string title = "Opérations";
+            string title = "";
             if (dateStart.HasValue && dateEnd.HasValue && dateStart.Value.Month == dateEnd.Value.Month) {
-                title = $"Opérations {dateStart.Value.ToString("MMMM yyyy")}";
+                title = $"{dateStart.Value.ToString("MMMM yyyy")}";
             }
 
             var operations = await _operationService.GetItems(dateStart, dateEnd, paymentMethod, accountBookId, accountingEntryId, categoryId).ToListAsync();
             var accountBooks = await _accountBookService.GetItems().BuildDictionaryById();
             var accountingEntries = await _accountingEntryService.GetItems().BuildDictionaryById();
             var accountingCategories = await _accountingCategoryService.GetItems().BuildDictionaryById();
+            var boarderListItems = await _boarderService.GetItemList().BuildDictionaryById();
+            Dictionary<long, string> boarderNames = new Dictionary<long, string>(boarderListItems.Select((idBoarderListItemPair) => new KeyValuePair<long, string>(idBoarderListItemPair.Key, idBoarderListItemPair.Value.Name)));
 
-            DocumentEdition? editionGenerator = null;
+            XlsxEdition? xlsxEdition = null;
 
             switch (editionType)
             {
                 case OperationEditionType.ByAccountBook:
-                    editionGenerator = new Malte2.Model.Accounting.Edition.OperationsByAccountBookEdition(title, operations, accountBooks, accountingEntries, accountingCategories);
+                    xlsxEdition = new Malte2.Model.Accounting.Edition.OperationByAccountBookXlsxEdition(title, operations, accountBooks, accountingEntries, accountingCategories, boarderNames);
                     break;
                 case OperationEditionType.ByAccountBookAndPaymentMethod:
-                    editionGenerator = new Malte2.Model.Accounting.Edition.OperationsByAccountBookAndPaymentMethodEdition(title, operations, accountBooks, accountingEntries, accountingCategories);
+                    xlsxEdition = new Malte2.Model.Accounting.Edition.OperationByAccountBookAndPaymentMethodXlsxEdition(title, operations, accountBooks, accountingEntries, accountingCategories, boarderNames);
                     break;
                 case OperationEditionType.ByAccountBookAndCategory:
-                    editionGenerator = new Malte2.Model.Accounting.Edition.OperationsByAccountBookAndCategoryEdition(title, operations, accountBooks, accountingEntries, accountingCategories);
+                    xlsxEdition = new Malte2.Model.Accounting.Edition.OperationByAccountBookAndCategoryXlsxEdition(title, operations, accountBooks, accountingEntries, accountingCategories, boarderNames);
                     break;
             }
-
-            if (editionGenerator != null) {
-                var editionStream = editionGenerator.ProducePdf();
-                string contentType = "application/pdf";
-                string fileName = $"Édition {title}.pdf";
+            
+            if (xlsxEdition != null) {
+                var editionStream = xlsxEdition.ProduceXlsx();
+                string contentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+                string fileName = $"Opérations {title}.xlsx";
                 return File(editionStream, contentType, fileName);
             }
+
             return NotFound();
         }
 

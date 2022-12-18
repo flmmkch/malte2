@@ -71,13 +71,13 @@
     <div class="me-2">
       
       <div class="dropdown">
-        <button class="btn btn-primary dropdown-toggle" type="button" id="operationPdfEditionDropdownButton" data-bs-toggle="dropdown"
+        <button class="btn btn-primary dropdown-toggle" type="button" id="operationEditionDropdownButton" data-bs-toggle="dropdown"
           aria-expanded="false">
-          Édition PDF
+          Édition
         </button>
-        <ul class="dropdown-menu" aria-labelledby="operationPdfEditionDropdownButton">
-          <li *ngFor="let editionType of pdfEditionTypes">
-            <a class="dropdown-item" href="{{ opService.pdfDownloadUrl({ dateRange: currentDateRange, editionType: editionType, filters: filters }) }}" target="_blank">{{ operationEditionTypeString(editionType) }}</a>
+        <ul class="dropdown-menu" aria-labelledby="operationEditionDropdownButton">
+          <li *ngFor="let editionType of editionTypes">
+            <a class="dropdown-item" href="{{ opService.editionDownloadUrl({ dateRange: currentDateRange, editionType: editionType, filters: filters }) }}" target="_blank">{{ operationEditionTypeString(editionType) }}</a>
           </li>
         </ul>
     </div>

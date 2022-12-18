@@ -13,6 +13,8 @@ namespace Malte2.Model
 
     public static class IHasObjectIdHelper
     {
+        public const long NULL_OBJECT_ID_KEY = long.MaxValue;
+
         private static bool AddItemToDictionary<T>(T item, Dictionary<long, T> dictionary) where T: IHasObjectId
         {
             long? id = item.Id;
@@ -42,6 +44,11 @@ namespace Malte2.Model
             }
             return dictionary;
         }
-    }
 
+        public static int ItemsByIdComparer<T>(T? left, T? right) where T: IHasObjectId
+        {
+            long comparison = (left?.Id).GetValueOrDefault(NULL_OBJECT_ID_KEY).CompareTo((right?.Id).GetValueOrDefault(NULL_OBJECT_ID_KEY));
+            return (int) comparison;
+        }
+    }
 }
