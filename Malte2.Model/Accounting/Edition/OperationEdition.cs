@@ -62,7 +62,7 @@ namespace Malte2.Model.Accounting.Edition
             row++;
             column = LEFT_COL_START;
             worksheet.Cell(row, column++).SetValue("Balance");
-            worksheet.Cell(row, column++).SetFormulaR1C1($"R{totalsRow}C{revenueColumn}:R{totalsRow}C{revenueColumn} - R{totalsRow}C{expenseColumn}:R{totalsRow}C{expenseColumn}");
+            worksheet.Cell(row, column++).SetFormulaR1C1($"R{totalsRow}C{revenueColumn}:R{totalsRow}C{revenueColumn} + R{totalsRow}C{expenseColumn}:R{totalsRow}C{expenseColumn}");
             SetTotalsSubtableStyle(worksheet.Range(totalsRow, LEFT_COL_START, totalsRow + 1, LEFT_COL_START).Style);
             SetTableBorders(worksheet.Range(totalsRow, LEFT_COL_START, totalsRow, expenseColumn).Style);
             SetTableBorders(worksheet.Range(totalsRow + 1, LEFT_COL_START, totalsRow + 1, expenseColumn).Style);
@@ -170,7 +170,7 @@ namespace Malte2.Model.Accounting.Edition
             return operations.Select(op => GetOperationAmount(op, tryGetOperationAccountingEntryType)).Aggregate(new Amount(0), (accumulation, amount) => accumulation + amount.GetValueOrDefault(new Amount()));
         }
 
-        protected static void addWorksheetTotals(IXLWorksheet worksheet, int row, IEnumerable<WorksheetSectionCoordinates> sectionCoordinates, int expenseColumn, int revenueColumn)
+        protected static void addWorksheetTotals(IXLWorksheet worksheet, int row, IEnumerable<WorksheetSectionCoordinates> sectionCoordinates, int revenueColumn, int expenseColumn)
         {
             // add the totals
             int column = LEFT_COL_START;
@@ -181,7 +181,7 @@ namespace Malte2.Model.Accounting.Edition
             worksheet.Cell(row, column++).SetValue("Total dépenses");
 
             // montants totaux page
-            worksheet.Cell(row + 1, LEFT_COL_START).SetFormulaR1C1($"R{row + 1}C{revenueColumn} - R{row + 1}C{expenseColumn}");
+            worksheet.Cell(row + 1, LEFT_COL_START).SetFormulaR1C1($"R{row + 1}C{revenueColumn} + R{row + 1}C{expenseColumn}");
             worksheet.Cell(row + 1, revenueColumn).SetFormulaR1C1(GetCellSumFormula(sectionCoordinates.Select(c => (c.TotalsRow, c.RevenueColumn))));
             worksheet.Cell(row + 1, expenseColumn).SetFormulaR1C1(GetCellSumFormula(sectionCoordinates.Select(c => (c.TotalsRow, c.ExpenseColumn))));
 
