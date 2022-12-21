@@ -99,7 +99,7 @@ namespace Malte2.Model.Accounting.Edition
 
         protected static void SetMonetaryNumberFormat(IXLStyle style)
         {
-            style.NumberFormat.Format = "0.00 €";
+            style.NumberFormat.Format = "0.00 €;[RED]-0.00 €";
         }
 
         protected static void SetSectionTitleStyle(IXLStyle style)
