@@ -75,7 +75,7 @@ namespace Malte2.Model.Accounting.Edition
         {
             XLWorkbook workbook = new XLWorkbook();
             foreach ((AccountBook accountBook, Dictionary<PaymentMethod, List<Operation>> operationsByPaymentMethod) in this.operations) {
-                IXLWorksheet worksheet = workbook.AddWorksheet($"Livre {accountBook.Label}");
+                IXLWorksheet worksheet = workbook.AddWorksheet(Malte2.Model.Edition.XlsxEditionHelper.ShortenSheetName($"Livre {accountBook.Label}"));
                 int row = TOP_ROW_START;
                 int column = LEFT_COL_START;
                 int worksheetTitleTopRow = row;

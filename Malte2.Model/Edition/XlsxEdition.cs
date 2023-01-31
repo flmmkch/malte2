@@ -18,5 +18,17 @@ namespace Malte2.Model.Edition
             stream.Seek(0, SeekOrigin.Begin);
             return stream;
         }
+
+        public static string ShortenSheetName(string fullName)
+        {
+            if (fullName.Length > 31) {
+                string shortName = fullName.Substring(0, 30);
+                shortName = $"{shortName}…";
+                return shortName;
+            }
+            else {
+                return fullName;
+            }
+        }
     }
 }
