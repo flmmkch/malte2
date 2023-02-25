@@ -17,7 +17,7 @@ namespace Malte2.Services
             _logger = logger;
         }
 
-        public async IAsyncEnumerable<Operation> GetItems(DateTime? dateStart, DateTime? dateEnd, PaymentMethod? filterPaymentMethod = null, long? filterBookId = null, long? filterEntryId = null, long? filterCategoryId = null)
+        public async IAsyncEnumerable<Operation> GetItems(DateTime? dateStart, DateTime? dateEnd, PaymentMethod? filterPaymentMethod = null, long? filterBookId = null, long? filterEntryId = null, long? filterCategoryId = null, long? filterBoarderId = null)
         {
             string commandText = @"SELECT
             operation_id,
@@ -41,6 +41,7 @@ namespace Malte2.Services
                 AND (:filter_account_book_id IS NULL OR operation.account_book_id = :filter_account_book_id)
                 AND (:filter_accounting_entry_id IS NULL OR operation.accounting_entry_id = :filter_accounting_entry_id)
                 AND (:filter_category_id IS NULL OR operation.category_id = :filter_category_id)
+                AND (:filter_boarder_id IS NULL OR operation.boarder_id = :filter_boarder_id)
             ORDER BY date, operation_id ASC;";
             commandText = commandText + @" ORDER BY operation_id ASC;";
             using (var command = new SQLiteCommand(commandText, _databaseContext.Connection))
@@ -51,6 +52,7 @@ namespace Malte2.Services
                 command.Parameters.AddWithValue("filter_account_book_id", filterBookId);
                 command.Parameters.AddWithValue("filter_accounting_entry_id", filterEntryId);
                 command.Parameters.AddWithValue("filter_category_id", filterCategoryId);
+                command.Parameters.AddWithValue("filter_boarder_id", filterBoarderId);
                 using (var reader = await command.ExecuteReaderAsync())
                 {
                     while (await reader.ReadAsync())

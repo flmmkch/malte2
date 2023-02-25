@@ -85,30 +85,30 @@
 </div>
 
 <div class="row mb-2">
-  <div class="col-2 col-lg-1 amount-total-label">
+  <div class="col-2 col-lg-1 amount-total amount-label">
     Recettes
   </div>
-  <div class="col-3 col-md-2 col-xl-1 amount-total-value text-end"
+  <div class="col-3 col-md-2 col-xl-1 amount-total amount-value text-end"
     [class.plus]="totalDisplayedRevenue.isStrictPositive()"
     >
     {{ totalDisplayedRevenue.toLocaleString() }} €
   </div>
 </div>
 <div class="row mb-2">
-  <div class="col-2 col-lg-1 amount-total-label">
+  <div class="col-2 col-lg-1 amount-total amount-label">
     Dépenses
   </div>
-  <div class="col-3 col-md-2 col-xl-1 amount-total-value text-end"
+  <div class="col-3 col-md-2 col-xl-1 amount-total amount-value text-end"
     [class.minus]="totalDisplayedExpense.isStrictPositive()"
     >
     {{ totalDisplayedExpense.toLocaleString() }} €
   </div>
 </div>
 <div class="row mb-2">
-  <div class="col-2 col-lg-1 amount-total-label">
+  <div class="col-2 col-lg-1 amount-total amount-label">
     Total
   </div>
-  <div class="col-3 col-md-2 col-xl-1 amount-total-value text-end"
+  <div class="col-3 col-md-2 col-xl-1 amount-total amount-value text-end"
   [class.plus]="totalDisplayedBalance.isStrictPositive()"
   [class.minus]="totalDisplayedBalance.isStrictNegative()"
   >

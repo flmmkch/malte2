@@ -1,5 +1,6 @@
 <h1 *ngIf="boarder" class="d-flex justify-content-center mb-4">Pensionnaire : {{ boarder.name }}</h1>
 <h1 *ngIf="!boarder" class="d-flex justify-content-center mb-4">Nouveau pensionnaire</h1>
+<h2>Informations générales</h2>
 <form [formGroup]="boarderFormGroup" (ngSubmit)="onSubmit()">
     <div class="form-group">
         <label for="boarderNameInput" class="form-label col-2">Nom</label>
@@ -79,4 +80,38 @@
             </div>
         </div>
     </div>
+</div>
+
+<!-- Balance -->
+<div *ngIf="accounting">
+    <h2>Comptabilité</h2>
+
+    <div class="row mb-2">
+      <div class="row mb-2">
+        <div class="col-2 col-lg-1 amount-total amount-label">
+          Balance
+        </div>
+        <div class="col-3 col-md-2 col-xl-1 amount-total amount-value text-end"
+        [class.plus]="totalBalance.isStrictPositive()"
+        [class.minus]="totalBalance.isStrictNegative()"
+        >
+          {{ totalBalance.toLocaleString() }} €
+        </div>
+      </div>
+    </div>
+
+    <list-table #listTable
+        [items]="accountingOperationsDisplay"
+        [editable]="false"
+        [enableAddRemove]="false"
+        >
+        <list-table-column width="8em" title="Date" property="dateTime"></list-table-column>
+        <list-table-column width="8em" title="Montant" property="amount"></list-table-column>
+        <list-table-column width="8em" title="Moy. Pay." property="paymentMethod"></list-table-column>
+        <list-table-column width="10em" title="Livre" property="accountBookName"></list-table-column>
+        <list-table-column width="12em" title="Imputation" property="accountingEntryName"></list-table-column>
+        <list-table-column width="auto" title="Catégorie" property="categoryName"></list-table-column>
+        <list-table-column width="auto" title="Libellé" property="label"></list-table-column>
+        <list-table-column width="12em" title="Opérateur·rice" property="operatorName"></list-table-column>
+    </list-table>
 </div>

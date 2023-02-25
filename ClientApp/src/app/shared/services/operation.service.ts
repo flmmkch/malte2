@@ -19,21 +19,24 @@ export class OperationService {
   constructor(private readonly _http: HttpClient, @Inject('API_BASE_URL') readonly baseUrl: string) {
   }
 
-  get(dateRange?: [Date?, Date?]): Observable<Operation[]> {
-    let args: string = '?';
-    if (dateRange && dateRange[0]) {
-      args = args + `&dateStart=${dateToSerializationString(dateRange[0])}`;
+  get(parameters: { dateRange?: [Date?, Date?], boarderId?: number }): Observable<Operation[]> {
+    let urlSearchParams = new URLSearchParams();
+    if (parameters.dateRange && parameters.dateRange[0]) {
+      urlSearchParams.set('dateStart', dateToSerializationString(parameters.dateRange[0]));
     }
-    if (dateRange && dateRange[1]) {
-      args = args + `&dateEnd=${dateToSerializationString(dateRange[1])}`;
+    if (parameters.dateRange && parameters.dateRange[1]) {
+      urlSearchParams.set('dateEnd', dateToSerializationString(parameters.dateRange[1]));
+    }
+    if (parameters.boarderId) {
+      urlSearchParams.set('boarderId', parameters.boarderId.toString());
     }
     return this._http
-      .get<OperationJson[]>(this.baseUrl + `api/operation/get${args}`)
+      .get<OperationJson[]>(`${this.baseUrl}api/operation/get?${urlSearchParams.toString()}`)
       .pipe(map(operationsJson => operationsJson.map(fromJson)));
   }
 
   getOnDateRange(dateRangeObservable: Observable<[Date, Date]>): Observable<Operation[]> {
-    return dateRangeObservable.pipe(map((dateRange) => this.get(dateRange)), exhaustAll());
+    return dateRangeObservable.pipe(map((dateRange) => this.get({ dateRange })), exhaustAll());
   }
 
   createUpdate(operations: [Operation]): Observable<Object> {
