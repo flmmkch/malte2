@@ -7,14 +7,14 @@
         <list-table-column width="auto"></list-table-column>
         <list-table-column width="8em" title="Balance">
             <ng-template value-template let-boarder="item">
-                <span
+                <div
                 *ngIf="boarder.balance"
-                class="amount-value"
+                class="amount-value text-end"
                 [class.plus]="boarder.balance.isStrictPositive()"
                 [class.minus]="boarder.balance.isStrictNegative()"
                 >
                     {{ boarder.balance.toLocaleString() }} €
-                </span>
+                </div>
             </ng-template>
         </list-table-column>
         <list-table-column width="16em">
