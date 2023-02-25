@@ -8,7 +8,7 @@
     <SpaProxyServerUrl>http://localhost:44411</SpaProxyServerUrl>
     <SpaProxyLaunchCommand>npm start</SpaProxyLaunchCommand>
     <ImplicitUsings>enable</ImplicitUsings>
-    <VersionPrefix>0.8.1</VersionPrefix>
+    <VersionPrefix>0.9.0</VersionPrefix>
   </PropertyGroup>
 
   <ItemGroup>
