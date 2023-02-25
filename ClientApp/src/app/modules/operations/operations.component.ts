@@ -8,6 +8,9 @@ import { combineLatestWith, map } from 'rxjs/operators';
 import { AccountBook } from 'src/app/shared/models/account-book.model';
 import { AccountingCategory } from 'src/app/shared/models/accounting-category.model';
 import { AccountingEntry, EntryType } from 'src/app/shared/models/accounting-entry.model';
+import { ContextDicts } from 'src/app/shared/models/accouting-operation/context-dicts';
+import { calculateEntryTypeTotal, getOperationBalance } from 'src/app/shared/models/accouting-operation/operation-amount';
+import { createOperationDisplay, OperationDisplay } from 'src/app/shared/models/accouting-operation/operation-display';
 import { Amount } from 'src/app/shared/models/amount.model';
 import { BoarderListItem } from 'src/app/shared/models/boarder.model';
 import { allOperationEditionTypes, OperationEditionType, operationEditionTypeString } from 'src/app/shared/models/operation-edition.model';
@@ -25,31 +28,10 @@ import { DictionaryById, listToDictionary, listToDictionaryWithFunc } from 'src/
 import { FrenchDateParserFormatter } from 'src/app/shared/utils/french-date-parser-formatter';
 import { ListTable, SetCurrentWorkingItemEventArgs } from '../list-table/list-table.component';
 
-export interface OperationDisplay {
-    operation: Operation;
-    amount: string;
-    accountingEntryName: string;
-    categoryName: string;
-    accountBookName: string;
-    dateTime: string;
-    operatorName: string;
-    label: string;
-    boarderName: string;
-    paymentMethod: string;
-}
-
-interface ContextDicts {
-    operators: DictionaryById<Operator>;
-    books: DictionaryById<AccountBook>;
-    entries: DictionaryById<AccountingEntry>;
-    categories: DictionaryById<AccountingCategory>;
-    boarders: DictionaryById<BoarderListItem>;
-}
-
 @Component({
     selector: 'app-operations',
     templateUrl: './operations.component.html',
-    styleUrls: ['./operations.component.css'],
+    styleUrls: ['./operations.component.css', '../../shared/components/style/amount.css'],
     providers: [
         { provide: NgbDatepickerI18n, useClass: NgbDatepickerI18nDefault },
         {provide: NgbDateParserFormatter, useClass: FrenchDateParserFormatter }
@@ -249,7 +231,7 @@ export class OperationsComponent implements OnInit, AfterViewInit {
         });
         // build items displayed
         this.itemsDisplayed = orderedOps
-            .map(op => this.createOperationDisplay(op, { operators, books, entries, categories, boarders }));
+            .map(op => createOperationDisplay(op, { operators, books, entries, categories, boarders }));
         this.recalculateTotals(this.itemsDisplayed.map(itemDisplayed => itemDisplayed.operation));
     }
 
@@ -281,27 +263,6 @@ export class OperationsComponent implements OnInit, AfterViewInit {
         else {
             this._dateNavigation.emit([dateBegin, dateEnd]);
         }
-    }
-
-    createOperationDisplay(op: Operation, { books, entries, categories, operators, boarders }: ContextDicts = { books: this.accountBooks, entries: this.accountingEntries, categories: this.categories, operators: this.operators, boarders: this.boarders }): OperationDisplay {
-        const accountBookName = op.accountBookId in books ? books[op.accountBookId].label : '';
-        const accountingEntryName = op.accountingEntryId in entries ? entries[op.accountingEntryId].label : '';
-        const categoryName = (op.categoryId !== undefined && op.categoryId in categories) ? categories[op.categoryId].label : '';
-        const operatorName = op.operatorId in operators ? operators[op.operatorId].name : '';
-        const boarderName = op.boarderId && op.boarderId in boarders ? boarders[op.boarderId].name : '';
-        const opDisplay: OperationDisplay = {
-            operation: op,
-            amount: op.amount.toLocaleString(),
-            accountBookName,
-            categoryName,
-            accountingEntryName,
-            dateTime: op.dateTime.toLocaleDateString(),
-            operatorName,
-            boarderName,
-            label: op.label,
-            paymentMethod: paymentMethodString(op.paymentMethod),
-        };
-        return opDisplay;
     }
 
     private createNewOpDisplay(copyOldOpDisplay?: OperationDisplay): OperationDisplay {
@@ -349,8 +310,11 @@ export class OperationsComponent implements OnInit, AfterViewInit {
 
         // create the operation display
         const opDisplay = this.createOperationDisplay(operation);
-        opDisplay.amount = '';
         return opDisplay;
+    }
+
+    public createOperationDisplay(operation: Operation): OperationDisplay {
+        return createOperationDisplay(operation, { books: this.accountBooks, entries: this.accountingEntries, categories: this.accountingEntries, operators: this.operators, boarders: this.boarders });
     }
 
     public readonly editionTypes: OperationEditionType[] = allOperationEditionTypes();
@@ -369,7 +333,7 @@ export class OperationsComponent implements OnInit, AfterViewInit {
             this.resetValidationErrorMessage();
             if (e.value && e.value.operation) {
                 this.opsFormGroup.controls.dateTimeCtrl.setValue(dateToDatePickerValue(e.value.operation.dateTime));
-                this.opsFormGroup.controls.amountCtrl.setValue(e.value.amount);
+                this.opsFormGroup.controls.amountCtrl.setValue(e.value.operation.amount.toLocaleString());
                 this.opsFormGroup.controls.bookCtrl.setValue(e.value.operation.accountBookId);
                 this.opsFormGroup.controls.entryCtrl.setValue(e.value.operation.accountingEntryId);
                 this.opsFormGroup.controls.categoryCtrl.setValue(e.value.operation.categoryId);
@@ -619,22 +583,9 @@ export class OperationsComponent implements OnInit, AfterViewInit {
         }
     }
 
-    private calculateTotal(ops: Operation[], entryType: EntryType): Amount {
-        interface OpEntry {
-            operation: Operation,
-            accountingEntry: AccountingEntry,
-        }
-        return ops
-            .map(op => <OpEntry> { operation: op, accountingEntry: this.accountingEntries[op.accountingEntryId] })
-            .filter(({ accountingEntry }) => accountingEntry.entryType == entryType)
-            .map(({ operation }) => operation.amount)
-            .reduce((prev, cur) => prev.add(cur), Amount.from(0)!)
-            ;
-    }
-
     private recalculateTotals(ops: Operation[]) {
-        this.totalDisplayedRevenue = this.calculateTotal(ops, EntryType.Revenue);
-        this.totalDisplayedExpense = this.calculateTotal(ops, EntryType.Expense);
+        this.totalDisplayedRevenue = calculateEntryTypeTotal(ops, EntryType.Revenue, this.accountingEntries);
+        this.totalDisplayedExpense = calculateEntryTypeTotal(ops, EntryType.Expense, this.accountingEntries);
         this.totalDisplayedBalance = this.totalDisplayedRevenue.substract(this.totalDisplayedExpense);
     }
 
@@ -665,4 +616,6 @@ export class OperationsComponent implements OnInit, AfterViewInit {
         }
         return invoices;
     }
+
+    getOperationBalance = getOperationBalance;
 }

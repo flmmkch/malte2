@@ -8,12 +8,12 @@ import { platformBrowserDynamic } from '@angular/platform-browser-dynamic';
 import { AppModule, APP_VERSION } from './app/app.module';
 import { environment } from './environments/environment';
 
-export function getBaseUrl() {
-  return document.getElementsByTagName('base')[0].href;
+export function getBaseUrl(): string {
+  return document.baseURI;
 }
 
-export function getApiBaseUrl() {
-  return document.querySelector('meta[name="Malte2api"]')?.getAttribute('content');
+export function getApiBaseUrl(): string {
+  return document.querySelector('base[target="Malte2Api"]')?.getAttribute('href') || '';
 }
 
 const providers = [
