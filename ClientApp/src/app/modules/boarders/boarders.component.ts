@@ -9,7 +9,7 @@ import { BoarderService } from 'src/app/shared/services/boarder.service';
   selector: 'app-boarders',
   templateUrl: './boarders.component.html',
   encapsulation: ViewEncapsulation.None,
-  styleUrls: ['./boarders.component.css']
+  styleUrls: ['./boarders.component.css', '../../shared/components/style/amount.css'],
 })
 export class BoardersComponent implements OnInit {
   public items?: BoarderListItem[];
@@ -20,7 +20,7 @@ export class BoardersComponent implements OnInit {
 
   load(): Observable<BoarderListItem[]> {
     const today = new Date();
-    const observable = this._service.list(today);
+    const observable = this._service.list({ occupancyDate: today, balances: true });
     observable.subscribe(items => {
       this.items = items;
     });

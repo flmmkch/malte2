@@ -107,12 +107,12 @@
         >
         <list-table-column width="8em" title="Date" property="dateTime"></list-table-column>
         <list-table-column width="8em" title="Montant">
-            <ng-template value-template let-opdisplay="item">
+            <ng-template value-template let-op="item.operation">
                 <span class="amount-value"
-                [class.plus]="getOperationBalance(opdisplay.operation, accounting.entries).isStrictPositive()"
-                [class.minus]="getOperationBalance(opdisplay.operation, accounting.entries).isStrictNegative()"
+                [class.plus]="getOperationBalance(op, accounting.entries).isStrictPositive()"
+                [class.minus]="getOperationBalance(op, accounting.entries).isStrictNegative()"
                 >
-                    {{ opdisplay.operation.amount.toLocaleString() }} €
+                    {{ op.amount.toLocaleString() }} €
                 </span>
             </ng-template>
         </list-table-column>

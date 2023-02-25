@@ -5,6 +5,18 @@
         <list-table-column width="14em" title="Nom" property="name" [rowheader]="true"></list-table-column>
         <list-table-column width="14em" title="Chambre" property="currentRoomName"></list-table-column>
         <list-table-column width="auto"></list-table-column>
+        <list-table-column width="8em" title="Balance">
+            <ng-template value-template let-boarder="item">
+                <span
+                *ngIf="boarder.balance"
+                class="amount-value"
+                [class.plus]="boarder.balance.isStrictPositive()"
+                [class.minus]="boarder.balance.isStrictNegative()"
+                >
+                    {{ boarder.balance.toLocaleString() }} €
+                </span>
+            </ng-template>
+        </list-table-column>
         <list-table-column width="16em">
             <ng-template column-header>
                 <div *ngIf="items && items.length > 0" class="details-column">

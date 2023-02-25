@@ -2,6 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
+import { Amount } from '../models/amount.model';
 import { Boarder, BoarderListItem } from '../models/boarder.model';
 import { dateToSerializationString } from '../utils/date-time-form-conversion';
 
@@ -19,13 +20,16 @@ export class BoarderService {
       .pipe(map(fromJson));
   }
 
-  list(occupancyDate?: Date): Observable<BoarderListItem[]> {
-    let urlSuffix: string = '';
-    if (occupancyDate) {
-      urlSuffix = `?occupancyDate=${dateToSerializationString(occupancyDate)}`;
+  list(parameters?: { occupancyDate?: Date, balances?: boolean }): Observable<BoarderListItem[]> {
+    const urlSearchParams = new URLSearchParams();
+    if (parameters?.occupancyDate) {
+      urlSearchParams.append('occupancyDate', dateToSerializationString(parameters.occupancyDate));
+    }
+    if (parameters?.balances === true) {
+      urlSearchParams.append('balances', true.toString());
     }
     return this._http
-      .get<BoarderListItemJson[]>(this.baseUrl + `api/boarder/list${urlSuffix}`)
+      .get<BoarderListItemJson[]>(`${this.baseUrl}api/boarder/list?${urlSearchParams.toString()}`)
       .pipe(map(boardersJson => boardersJson.map(listItemFromJson)));
   }
 
@@ -79,8 +83,13 @@ export interface BoarderListItemJson {
   b: number,
   n: string,
   r: string,
+  a?: string,
 }
 
 export function listItemFromJson(json: BoarderListItemJson): BoarderListItem {
-  return new BoarderListItem(json.b, json.n, json.r);
+  const listItem = new BoarderListItem(json.b, json.n, json.r);
+  if (json.a) {
+    listItem.balance = Amount.from(json.a);
+  }
+  return listItem;
 }
