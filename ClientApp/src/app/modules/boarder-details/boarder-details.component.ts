@@ -6,7 +6,7 @@ import { zip } from 'rxjs';
 import { AccountBook } from 'src/app/shared/models/account-book.model';
 import { AccountingCategory } from 'src/app/shared/models/accounting-category.model';
 import { AccountingEntry } from 'src/app/shared/models/accounting-entry.model';
-import { calculateTotal } from 'src/app/shared/models/accouting-operation/operation-amount';
+import { calculateTotal, getOperationBalance } from 'src/app/shared/models/accouting-operation/operation-amount';
 import { createOperationDisplay, OperationDisplay } from 'src/app/shared/models/accouting-operation/operation-display';
 import { Amount } from 'src/app/shared/models/amount.model';
 import { Boarder } from 'src/app/shared/models/boarder.model';
@@ -196,4 +196,6 @@ export class BoarderDetailsComponent implements OnInit {
       return Amount.from(0)!;
     }
   }
+  
+  getOperationBalance = getOperationBalance;
 }

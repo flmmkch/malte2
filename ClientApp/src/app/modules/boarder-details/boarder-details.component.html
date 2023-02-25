@@ -106,7 +106,16 @@
         [enableAddRemove]="false"
         >
         <list-table-column width="8em" title="Date" property="dateTime"></list-table-column>
-        <list-table-column width="8em" title="Montant" property="amount"></list-table-column>
+        <list-table-column width="8em" title="Montant">
+            <ng-template value-template let-opdisplay="item">
+                <span class="amount-value"
+                [class.plus]="getOperationBalance(opdisplay.operation, accounting.entries).isStrictPositive()"
+                [class.minus]="getOperationBalance(opdisplay.operation, accounting.entries).isStrictNegative()"
+                >
+                    {{ opdisplay.operation.amount.toLocaleString() }} €
+                </span>
+            </ng-template>
+        </list-table-column>
         <list-table-column width="8em" title="Moy. Pay." property="paymentMethod"></list-table-column>
         <list-table-column width="10em" title="Livre" property="accountBookName"></list-table-column>
         <list-table-column width="12em" title="Imputation" property="accountingEntryName"></list-table-column>

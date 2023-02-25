@@ -4,7 +4,6 @@ import { ContextDicts } from "./context-dicts";
 
 export interface OperationDisplay {
     operation: Operation;
-    amount: string;
     accountingEntryName: string;
     categoryName: string;
     accountBookName: string;
@@ -23,7 +22,6 @@ export function createOperationDisplay(op: Operation, { books, entries, categori
     const boarderName = op.boarderId && op.boarderId in boarders ? boarders[op.boarderId].name : '';
     const opDisplay: OperationDisplay = {
         operation: op,
-        amount: op.amount.toLocaleString(),
         accountBookName,
         categoryName,
         accountingEntryName,

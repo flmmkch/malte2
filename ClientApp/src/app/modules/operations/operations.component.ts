@@ -9,7 +9,7 @@ import { AccountBook } from 'src/app/shared/models/account-book.model';
 import { AccountingCategory } from 'src/app/shared/models/accounting-category.model';
 import { AccountingEntry, EntryType } from 'src/app/shared/models/accounting-entry.model';
 import { ContextDicts } from 'src/app/shared/models/accouting-operation/context-dicts';
-import { calculateEntryTypeTotal } from 'src/app/shared/models/accouting-operation/operation-amount';
+import { calculateEntryTypeTotal, getOperationBalance } from 'src/app/shared/models/accouting-operation/operation-amount';
 import { createOperationDisplay, OperationDisplay } from 'src/app/shared/models/accouting-operation/operation-display';
 import { Amount } from 'src/app/shared/models/amount.model';
 import { BoarderListItem } from 'src/app/shared/models/boarder.model';
@@ -310,7 +310,6 @@ export class OperationsComponent implements OnInit, AfterViewInit {
 
         // create the operation display
         const opDisplay = this.createOperationDisplay(operation);
-        opDisplay.amount = '';
         return opDisplay;
     }
 
@@ -334,7 +333,7 @@ export class OperationsComponent implements OnInit, AfterViewInit {
             this.resetValidationErrorMessage();
             if (e.value && e.value.operation) {
                 this.opsFormGroup.controls.dateTimeCtrl.setValue(dateToDatePickerValue(e.value.operation.dateTime));
-                this.opsFormGroup.controls.amountCtrl.setValue(e.value.amount);
+                this.opsFormGroup.controls.amountCtrl.setValue(e.value.operation.amount.toLocaleString());
                 this.opsFormGroup.controls.bookCtrl.setValue(e.value.operation.accountBookId);
                 this.opsFormGroup.controls.entryCtrl.setValue(e.value.operation.accountingEntryId);
                 this.opsFormGroup.controls.categoryCtrl.setValue(e.value.operation.categoryId);
@@ -617,4 +616,6 @@ export class OperationsComponent implements OnInit, AfterViewInit {
         }
         return invoices;
     }
+
+    getOperationBalance = getOperationBalance;
 }
