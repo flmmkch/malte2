@@ -123,13 +123,13 @@
         >
         <list-table-column width="8em" title="Date" property="dateTime"></list-table-column>
         <list-table-column width="8em" title="Montant">
-            <ng-template value-template let-opdisplay="item">
-                <span class="amount-value"
-                [class.plus]="getOperationBalance(opdisplay.operation, accountingEntries).isStrictPositive()"
-                [class.minus]="getOperationBalance(opdisplay.operation, accountingEntries).isStrictNegative()"
+            <ng-template value-template let-op="item.operation">
+                <div class="amount-value text-end"
+                [class.plus]="getOperationBalance(op, accountingEntries).isStrictPositive()"
+                [class.minus]="getOperationBalance(op, accountingEntries).isStrictNegative()"
                 >
-                    {{ opdisplay.operation.amount.toLocaleString() }} €
-                </span>
+                    {{ op.amount.toLocaleString() }} €
+                </div>
             </ng-template>
         </list-table-column>
         <list-table-column width="8em" title="Moy. Pay." property="paymentMethod"></list-table-column>

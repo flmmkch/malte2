@@ -1,3 +1,5 @@
+import { Amount } from "./amount.model";
+
 /** Pensionnaire */
 export class Boarder {
     constructor(public readonly id?: number) { }
@@ -25,4 +27,6 @@ export class BoarderListItem {
         public name: string,
         public currentRoomName?: string
     ) { }
+
+    public balance?: Amount;
 }
