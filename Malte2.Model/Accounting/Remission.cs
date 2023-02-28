@@ -56,6 +56,12 @@ namespace Malte2.Model.Accounting
             public CashValue Value { get; set; }
             [JsonPropertyName("n")]
             public int Count { get; set; }
+
+            public Amount CalculateAmount() {
+                Amount amount = Value.GetAmount();
+
+                return amount * Count;
+            }
         }
 
         [JsonPropertyName("h")]
@@ -85,6 +91,44 @@ namespace Malte2.Model.Accounting
                 return SqlColumnAttribute.GetColumnName(memberInfo!);
             }
             return null;
+        }
+    }
+
+    public static class CashValueExtensions {
+        public static Amount GetAmount(this Remission.CashValue cashValue) {
+            switch (cashValue) {
+                case Remission.CashValue.c01:
+                    return new Amount(1);
+                case Remission.CashValue.c02:
+                    return new Amount(2);
+                case Remission.CashValue.c05:
+                    return new Amount(5);
+                case Remission.CashValue.c10:
+                    return new Amount(10);
+                case Remission.CashValue.c20:
+                    return new Amount(20);
+                case Remission.CashValue.c50:
+                    return new Amount(50);
+                case Remission.CashValue.e001:
+                    return new Amount(1_00);
+                case Remission.CashValue.e002:
+                    return new Amount(2_00);
+                case Remission.CashValue.e005:
+                    return new Amount(5_00);
+                case Remission.CashValue.e010:
+                    return new Amount(10_00);
+                case Remission.CashValue.e020:
+                    return new Amount(20_00);
+                case Remission.CashValue.e050:
+                    return new Amount(50_00);
+                case Remission.CashValue.e100:
+                    return new Amount(100_00);
+                case Remission.CashValue.e200:
+                    return new Amount(200_00);
+                case Remission.CashValue.e500:
+                    return new Amount(500_00);
+            }
+            throw new Exception($"Invalid cash value ${cashValue}");
         }
     }
 

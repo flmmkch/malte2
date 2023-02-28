@@ -53,6 +53,17 @@ export class RemissionService {
       .get<RemissionOperationCheckJson[]>(this.baseUrl + `api/remission/getRemissionChecks${args}`)
       .pipe(map(remissionsJson => remissionsJson.map(operationCheckFromJson)));
   }
+
+  editionDownloadUrl(params: { dateRange: [Date, Date] }): string {
+    let urlSearchParams = new URLSearchParams();
+    if (params.dateRange && params.dateRange[0]) {
+      urlSearchParams.set('dateStart', dateToSerializationString(params.dateRange[0]));
+    }
+    if (params.dateRange && params.dateRange[1]) {
+      urlSearchParams.set('dateEnd', dateToSerializationString(params.dateRange[1]));
+    }
+    return `${this.baseUrl}api/remission/generateEdition?${urlSearchParams.toString()}`;
+  }
 }
 
 export interface CashDepositJson {
