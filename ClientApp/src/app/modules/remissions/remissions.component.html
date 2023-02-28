@@ -20,7 +20,7 @@
   <div class="col-sm-1 amount-total-label">
     Espèces
   </div>
-  <div class="col-sm-1 amount-total-value">
+  <div class="col-sm-1 amount-total-value text-end">
     {{ totalCashAmount.toLocaleString() }} €
   </div>
 </div>
@@ -28,7 +28,7 @@
   <div class="col-sm-1 amount-total-label">
     Chèques
   </div>
-  <div class="col-sm-1 amount-total-value">
+  <div class="col-sm-1 amount-total-value text-end">
     {{ totalCheckAmount.toLocaleString() }} €
   </div>
 </div>
@@ -36,7 +36,7 @@
   <div class="col-sm-1 amount-total-label">
     Total
   </div>
-  <div class="col-sm-1 amount-total-value">
+  <div class="col-sm-1 amount-total-value text-end">
     {{ totalAmount.toLocaleString() }} €
   </div>
 </div>
@@ -50,9 +50,33 @@
         <list-table-column width="8em" title="Date" property="dateTime"></list-table-column>
         <list-table-column width="auto" title="Notes" property="notes"></list-table-column>
         <list-table-column width="12em" title="Opérateur·rice" property="operatorName"></list-table-column>
-        <list-table-column width="8em" title="Espèces" property="cashAmount"></list-table-column>
-        <list-table-column width="8em" title="Chèques" property="checkAmount"></list-table-column>
-        <list-table-column width="8em" title="Total" property="totalAmount"></list-table-column>
+        <list-table-column width="8em" title="Total">
+            <ng-template value-template let-remission="item">
+                <div
+                class="amount-value text-end"
+                >
+                    {{ remission.totalAmount.toLocaleString() }}
+                </div>
+            </ng-template>
+        </list-table-column>
+        <list-table-column width="8em" title="Espèces">
+          <ng-template value-template let-remission="item">
+              <div
+              class="amount-value text-end"
+              >
+                  {{ remission.cashAmount.toLocaleString() }}
+              </div>
+          </ng-template>
+        </list-table-column>
+        <list-table-column width="8em" title="Chèques">
+            <ng-template value-template let-remission="item">
+                <div
+                class="amount-value text-end"
+                >
+                    {{ remission.checkAmount.toLocaleString() }}
+                </div>
+            </ng-template>
+        </list-table-column>
         <div list-table-editor>
           <form [formGroup]="remissionFormGroup" (ngSubmit)="onSubmit()">
             <div class="form-group row">
