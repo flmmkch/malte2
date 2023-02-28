@@ -127,6 +127,10 @@ namespace Malte2.Model.Accounting
             return (amount._amount / 100) > value;
         }
 
+        public static Amount operator *(Amount amount, long value)
+        {
+            return new Amount(amount._amount * value);
+        }
 
         public static Amount? TryFromString(string amountString, CultureInfo? culture = null)
         {

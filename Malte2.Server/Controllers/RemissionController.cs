@@ -1,6 +1,9 @@
 using Microsoft.AspNetCore.Mvc;
 using Malte2.Services;
 using Malte2.Model.Accounting;
+using Malte2.Model.Edition;
+using Malte2.Extensions;
+using Malte2.Model;
 
 namespace Malte2.Controllers
 {
@@ -10,12 +13,14 @@ namespace Malte2.Controllers
     public class RemissionController : ControllerBase
     {
         private readonly RemissionService _remissionService;
+        private readonly OperatorService _operatorService;
 
         private readonly ILogger<RemissionController> _logger;
 
-        public RemissionController(RemissionService remissionService, ILogger<RemissionController> logger)
+        public RemissionController(RemissionService remissionService, OperatorService operatorService, ILogger<RemissionController> logger)
         {
             _remissionService = remissionService;
+            _operatorService = operatorService;
             _logger = logger;
         }
 
@@ -44,6 +49,28 @@ namespace Malte2.Controllers
         {
             DateTime? upToDate = upToDateString != null ? DateTime.Parse(upToDateString) : null;
             return _remissionService.GetRemissionChecks(upToDate, remissionId);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GenerateEdition([FromQuery(Name = "dateStart")] string? dateStartString = null, [FromQuery(Name = "dateEnd")] string? dateEndString = null)
+        {
+            DateTime? dateStart = dateStartString != null ? DateTime.Parse(dateStartString) : null;
+            DateTime? dateEnd = dateEndString != null ? DateTime.Parse(dateEndString) : null;
+
+            string title = "";
+            if (dateStart.HasValue && dateEnd.HasValue && dateStart.Value.Month == dateEnd.Value.Month) {
+                title = $"{dateStart.Value.ToString("MMMM yyyy")}";
+            }
+
+            var remissions = await _remissionService.GetItems(dateStart, dateEnd).ToListAsync();
+            var operators = await _operatorService.GetItems().BuildDictionaryById();
+
+            XlsxEdition? xlsxEdition = new Malte2.Model.Accounting.Edition.RemissionEdition(title, remissions, operators);
+
+            var editionStream = xlsxEdition.ProduceXlsx();
+            string contentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+            string fileName = $"Dépôts bancaires {title}.xlsx";
+            return File(editionStream, contentType, fileName);
         }
     }
 
