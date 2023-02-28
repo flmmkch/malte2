@@ -57,8 +57,8 @@ namespace Malte2.Model.Accounting.Edition
             worksheet.Column(column).AdjustToContents();
             worksheet.Cell(row, column++).SetValue("Date");
             worksheet.Cell(row, column++).SetValue("Total");
-            worksheet.Cell(row, column++).SetValue("Chèques");
             worksheet.Cell(row, column++).SetValue("Espèces");
+            worksheet.Cell(row, column++).SetValue("Chèques");
             IXLStyle operationTableHeaderStyle = worksheet.Range(row, LEFT_COL_START, row, LEFT_COL_START + COLS_COUNT - 1).Style;
             SetTableBorders(operationTableHeaderStyle);
             SetTitleTextStyle(operationTableHeaderStyle);
@@ -80,12 +80,13 @@ namespace Malte2.Model.Accounting.Edition
                     worksheet.Cell(row, column).SetFormulaR1C1($"SUM(R{row}C{column + 1}:R{row}C{column + 2})");
                     column++;
 
+                    // cash
+                    worksheet.Cell(row, column).Value = remission.CashDeposits.Select(cashDeposit => cashDeposit.CalculateAmount()).Aggregate(new Amount(), (sum, amount) => sum + amount);
+                    column++;
+
                     // checks
                     worksheet.Cell(row, column).Value = remission.CheckRemissions.Select(checkRemission => checkRemission.Amount).Aggregate(new Amount(), (sum, amount) => sum + amount);
                     column++;
-
-                    // cash
-                    worksheet.Cell(row, column).Value = remission.CashDeposits.Select(cashDeposit => cashDeposit.CalculateAmount()).Aggregate(new Amount(), (sum, amount) => sum + amount);
                 }
             }
             else {
