@@ -3,11 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.30114.105
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Malte2.Server", "Malte2.Server\Malte2.Server.csproj", "{309C6339-B036-4D89-B466-997F298482B0}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Malte2.Tests", "Malte2.Tests\Malte2.Tests.csproj", "{9D394D2A-0CE5-4A02-9BDA-EF79AA682A19}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Malte2.Model", "Malte2.Model\Malte2.Model.csproj", "{D351947B-3E1C-4036-8A3C-DA4A5F773C6D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Malte2.Service", "Malte2.Service\Malte2.Service.csproj", "{2E73D11E-2EB3-4718-8BA8-E574D543B2AE}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -18,10 +18,6 @@ Global
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{309C6339-B036-4D89-B466-997F298482B0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{309C6339-B036-4D89-B466-997F298482B0}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{309C6339-B036-4D89-B466-997F298482B0}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{309C6339-B036-4D89-B466-997F298482B0}.Release|Any CPU.Build.0 = Release|Any CPU
 		{9D394D2A-0CE5-4A02-9BDA-EF79AA682A19}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{9D394D2A-0CE5-4A02-9BDA-EF79AA682A19}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9D394D2A-0CE5-4A02-9BDA-EF79AA682A19}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -30,5 +26,9 @@ Global
 		{D351947B-3E1C-4036-8A3C-DA4A5F773C6D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D351947B-3E1C-4036-8A3C-DA4A5F773C6D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D351947B-3E1C-4036-8A3C-DA4A5F773C6D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2E73D11E-2EB3-4718-8BA8-E574D543B2AE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2E73D11E-2EB3-4718-8BA8-E574D543B2AE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2E73D11E-2EB3-4718-8BA8-E574D543B2AE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2E73D11E-2EB3-4718-8BA8-E574D543B2AE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

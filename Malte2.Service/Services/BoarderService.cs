@@ -37,10 +37,9 @@ namespace Malte2.Services
                 {
                     while (await reader.ReadAsync())
                     {
-                        BoarderListItemResponse itemResponse = new BoarderListItemResponse
+                        BoarderListItemResponse itemResponse = new BoarderListItemResponse(reader.GetString(reader.GetOrdinal("name")))
                         {
                             BoarderId = reader.GetInt64(reader.GetOrdinal("boarder_id")),
-                            Name = reader.GetString(reader.GetOrdinal("name")),
                             RoomName = DatabaseValueUtils.GetNullableStringFromReader(reader, reader.GetOrdinal("room_name")),
                         };
                         yield return itemResponse;

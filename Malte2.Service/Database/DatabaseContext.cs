@@ -21,7 +21,7 @@ namespace Malte2.Database
         {
             Configuration = configuration;
             _logger = logger;
-            ConnectionString = Configuration.GetConnectionString("Malte2");
+            ConnectionString = Configuration.GetConnectionString("Malte2")!;
             try
             {
                 Connection = InitializeDatabaseConnection(ConnectionString);

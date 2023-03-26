@@ -6,6 +6,11 @@ namespace Malte2.Model.Boarding
 
     public class BoarderListItemResponse : IHasObjectId
     {
+        public BoarderListItemResponse(string name)
+        {
+            Name = name;
+        }
+        
         [JsonPropertyName("b")]
         public long BoarderId { get; set; }
 
