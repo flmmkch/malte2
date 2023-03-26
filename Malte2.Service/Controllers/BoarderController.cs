@@ -35,7 +35,7 @@ namespace Malte2.Controllers
                 await foreach (BoarderListItemResponse boarderListItem in boarderListItemsAsync) {
                     Amount balanceAmount = new Amount();
                     await foreach (Operation operation in _operationService.GetItems(null, roomOccupancyDateTime, null, null, null, null, boarderListItem.BoarderId)) {
-                        if (entryDictionary.TryGetValue(operation.AccountingEntryId, out AccountingEntry entry)) {
+                        if (entryDictionary.TryGetValue(operation.AccountingEntryId, out AccountingEntry? entry)) {
                             switch (entry.EntryType) {
                                 case AccountingEntryType.Expense:
                                     balanceAmount -= operation.Amount;
