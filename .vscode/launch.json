@@ -8,7 +8,7 @@
         "name": "Launch Chrome",
         "request": "launch",
         "type": "chrome",
-        "url": "http://localhost:5080/",
+        "url": "http://localhost:5000/",
         "webRoot": "${workspaceFolder}/ClientApp"
     },
         {
@@ -16,9 +16,9 @@
             "type": "coreclr",
             "request": "launch",
             "preLaunchTask": "build",
-            "program": "${workspaceFolder}/Malte2.Server/bin/Debug/net6.0/Malte2.Server.dll",
+            "program": "${workspaceFolder}/Malte2.Service/bin/Debug/net6.0/Malte2.Service.dll",
             "args": [],
-            "cwd": "${workspaceFolder}/Malte2.Server",
+            "cwd": "${workspaceFolder}/Malte2.Service",
             "stopAtEntry": false,
             "serverReadyAction": {
                 "action": "openExternally",
