@@ -34,7 +34,7 @@ jobs:
       - name: Setup Dotnet
         uses: actions/setup-dotnet@v3
         with:
-          dotnet-version: '6.0.111'
+          dotnet-version: '6.0.407'
 
       - name: Restore dependencies
         run: dotnet restore
@@ -53,8 +53,8 @@ jobs:
           
       - name: Publish zip
         run: |
-          dotnet publish Malte2.Server/Malte2.Server.csproj -c Release -r win7-x64 --self-contained
-          powershell -NoLogo -Sta -NoProfile -NonInteractive -ExecutionPolicy Unrestricted -Command 'Compress-Archive -Path Malte2.Server/bin/Release/net6.0/win7-x64/publish/* -DestinationPath Malte2.zip'
+          dotnet publish Malte2.Service/Malte2.Service.csproj -c Release -r win7-x64 --self-contained
+          powershell -NoLogo -Sta -NoProfile -NonInteractive -ExecutionPolicy Unrestricted -Command 'Compress-Archive -Path Malte2.Service/bin/Release/net6.0/win7-x64/publish/* -DestinationPath Malte2.zip'
 
       - name: Upload build
         uses: actions/upload-artifact@v3
