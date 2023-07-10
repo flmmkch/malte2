@@ -106,6 +106,8 @@ export class BoarderDetailsComponent implements OnInit {
     ])
     .subscribe({
       next: ([operations, books, categories, entries, operators]) => {
+        // reverse order for operations
+        operations.reverse();
         this.accounting = {
           operations,
           books: listToDictionary(books),
