@@ -48,10 +48,11 @@ export class RemissionsComponent implements OnInit, AfterViewInit {
 
     @ViewChild('listTable') listTable!: ListTable;
 
-    public readonly remissionFormGroup = new FormGroup({
+    public readonly remissionFormGroup: FormGroup = new FormGroup({
         dateTimeCtrl: new FormControl(),
         operCtrl: new FormControl(),
         notesCtrl: new FormControl(),
+        ...{}
     });
     
     public operators: DictionaryById<Operator> = [];

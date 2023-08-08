@@ -65,7 +65,7 @@ export class ListTableColumn {
 
   @ContentChild(ColumnHeaderDirective) headerContent?: ColumnHeaderDirective;
 
-  getItemProperty<T>(item: T): string {
+  getItemProperty<T extends object>(item: T): string {
     if (this.property && this.property in item) {
       const prop = this.property as keyof (typeof item);
       const value = item[prop];
