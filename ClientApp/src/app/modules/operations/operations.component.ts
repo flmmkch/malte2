@@ -136,7 +136,7 @@ export class OperationsComponent implements OnInit, AfterViewInit {
         detailsCtrl: new FormControl(),
         invoiceCtrl: new FormControl(),
         boarderCtrl: new FormControl(),
-        paymentMethodCtrl: new FormControl(PaymentMethod.Cash),
+        paymentMethodCtrl: new FormControl<PaymentMethod>(PaymentMethod.Cash),
         paymentCheckNbCtrl: new FormControl(),
         paymentCardTicketNbCtrl: new FormControl(),
         paymentTransferNbCtrl: new FormControl(),
@@ -348,13 +348,13 @@ export class OperationsComponent implements OnInit, AfterViewInit {
                 this.opsFormGroup.controls.paymentTransferNbCtrl.setValue(e.value.operation.transferNumber?.toString());
             }
             else {
-                this.opsFormGroup.controls.amountCtrl.setValue(undefined);
-                this.opsFormGroup.controls.labelCtrl.setValue(undefined);
-                this.opsFormGroup.controls.detailsCtrl.setValue(undefined);
-                this.opsFormGroup.controls.invoiceCtrl.setValue(undefined);
-                this.opsFormGroup.controls.paymentMethodCtrl.setValue(undefined);
-                this.opsFormGroup.controls.entryCtrl.setValue(undefined);
-                this.opsFormGroup.controls.categoryCtrl.setValue(undefined);
+                this.opsFormGroup.controls.amountCtrl.setValue(null);
+                this.opsFormGroup.controls.labelCtrl.setValue(null);
+                this.opsFormGroup.controls.detailsCtrl.setValue(null);
+                this.opsFormGroup.controls.invoiceCtrl.setValue(null);
+                this.opsFormGroup.controls.paymentMethodCtrl.setValue(null);
+                this.opsFormGroup.controls.entryCtrl.setValue(null);
+                this.opsFormGroup.controls.categoryCtrl.setValue(null);
             }
         });
         this.listTable.confirmDeleteMessage = () => `Supprimer l'opération ?`;
@@ -384,8 +384,8 @@ export class OperationsComponent implements OnInit, AfterViewInit {
                 this.resetValidationErrorMessage(`La catégorie est invalide.`);
                 return;
             }
-            const paymentMethod: PaymentMethod = Number.parseInt(this.opsFormGroup.controls.paymentMethodCtrl.value);
-            if (!(paymentMethod in PaymentMethod)) {
+            const paymentMethod: PaymentMethod | null =  this.opsFormGroup.controls.paymentMethodCtrl.value;
+            if (!paymentMethod || !(paymentMethod in PaymentMethod)) {
                 this.resetValidationErrorMessage(`Le moyen de paiement est invalide.`);
                 return;
             }
@@ -549,8 +549,8 @@ export class OperationsComponent implements OnInit, AfterViewInit {
 
     public get workingItemPaymentMethod(): PaymentMethod | undefined {
         if (this.opsFormGroup.controls.paymentMethodCtrl.value !== undefined) {
-            const paymentMethod: PaymentMethod = Number.parseInt(this.opsFormGroup.controls.paymentMethodCtrl.value);
-            if (paymentMethod in PaymentMethod) {
+            const paymentMethod: PaymentMethod | null = this.opsFormGroup.controls.paymentMethodCtrl.value;
+            if (paymentMethod && paymentMethod in PaymentMethod) {
                 return paymentMethod;
             }
         }

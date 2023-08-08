@@ -33,6 +33,9 @@
               "node_modules/bootstrap/dist/css/bootstrap.min.css",
               "src/styles.css"
             ],
+            "allowedCommonJsDependencies": [
+               "file-saver"
+            ],
             "localize": true
           },
           "configurations": {
@@ -132,5 +135,7 @@
       }
     }
   },
-  "defaultProject": "Malte2"
+  "cli": {
+    "analytics": false
+  }
 }
