@@ -17,15 +17,15 @@ namespace Malte2.Services
             _logger = logger;
         }
 
-        public async IAsyncEnumerable<Operation> GetItems(DateTime? dateStart, DateTime? dateEnd, PaymentMethod? filterPaymentMethod = null, long? filterBookId = null, long? filterEntryId = null, long? filterCategoryId = null, long? filterBoarderId = null)
+        public async IAsyncEnumerable<Operation> GetItems(DateTime? dateStart, DateTime? dateEnd, PaymentMethod? filterPaymentMethod = null, long? filterBookId = null, AccountingEntryType? entryType = null, long? filterEntryId = null, long? filterCategoryId = null, long? filterBoarderId = null)
         {
             string commandText = @"SELECT
             operation_id,
             operator_id,
-            accounting_entry_id,
+            operation.accounting_entry_id,
             category_id,
             date,
-            label,
+            operation.label,
             boarder_id,
             payment_method,
             check_number,
@@ -36,9 +36,11 @@ namespace Malte2.Services
             invoice,
             amount
             FROM operation
+            LEFT JOIN accounting_entry ae ON ae.accounting_entry_id = operation.accounting_entry_id
             WHERE (:date_start IS NULL OR :date_start <= date) AND (:date_end IS NULL OR :date_end >= date)
                 AND (:filter_payment_method IS NULL OR operation.payment_method = :filter_payment_method)
                 AND (:filter_account_book_id IS NULL OR operation.account_book_id = :filter_account_book_id)
+                AND (:filter_entry_type IS NULL OR ae.accounting_entry_type == :filter_entry_type)
                 AND (:filter_accounting_entry_id IS NULL OR operation.accounting_entry_id = :filter_accounting_entry_id)
                 AND (:filter_category_id IS NULL OR operation.category_id = :filter_category_id)
                 AND (:filter_boarder_id IS NULL OR operation.boarder_id = :filter_boarder_id)
@@ -50,6 +52,7 @@ namespace Malte2.Services
                 command.Parameters.AddWithValue("date_end", DateTimeDatabaseUtils.GetStringFromNullableDate(dateEnd));
                 command.Parameters.AddWithValue("filter_payment_method", filterPaymentMethod);
                 command.Parameters.AddWithValue("filter_account_book_id", filterBookId);
+                command.Parameters.AddWithValue("filter_entry_type", entryType);
                 command.Parameters.AddWithValue("filter_accounting_entry_id", filterEntryId);
                 command.Parameters.AddWithValue("filter_category_id", filterCategoryId);
                 command.Parameters.AddWithValue("filter_boarder_id", filterBoarderId);

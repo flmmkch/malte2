@@ -59,7 +59,7 @@ namespace Malte2.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GenerateEdition([FromQuery(Name = "editionType")] OperationEditionType editionType = OperationEditionType.ByAccountBook, [FromQuery(Name = "dateStart")] string? dateStartString = null, [FromQuery(Name = "dateEnd")] string? dateEndString = null, [FromQuery(Name = "paymentMethod")] PaymentMethod? paymentMethod = null, [FromQuery(Name = "accountBook")] long? accountBookId = null, [FromQuery(Name = "accountingEntry")] long? accountingEntryId = null, [FromQuery(Name = "category")] long? categoryId = null)
+        public async Task<IActionResult> GenerateEdition([FromQuery(Name = "editionType")] OperationEditionType editionType = OperationEditionType.ByAccountBook, [FromQuery(Name = "dateStart")] string? dateStartString = null, [FromQuery(Name = "dateEnd")] string? dateEndString = null, [FromQuery(Name = "paymentMethod")] PaymentMethod? paymentMethod = null, [FromQuery(Name = "accountBook")] long? accountBookId = null, [FromQuery(Name = "entryType")] AccountingEntryType? entryType = null, [FromQuery(Name = "accountingEntry")] long? accountingEntryId = null, [FromQuery(Name = "category")] long? categoryId = null)
         {
             DateTime? dateStart = dateStartString != null ? DateTime.Parse(dateStartString) : null;
             DateTime? dateEnd = dateEndString != null ? DateTime.Parse(dateEndString) : null;
@@ -69,7 +69,7 @@ namespace Malte2.Controllers
                 title = $"{dateStart.Value.ToString("MMMM yyyy")}";
             }
 
-            var operations = await _operationService.GetItems(dateStart, dateEnd, paymentMethod, accountBookId, accountingEntryId, categoryId).ToListAsync();
+            var operations = await _operationService.GetItems(dateStart, dateEnd, paymentMethod, accountBookId, entryType, accountingEntryId, categoryId).ToListAsync();
             var accountBooks = await _accountBookService.GetItems().BuildDictionaryById();
             var accountingEntries = await _accountingEntryService.GetItems().BuildDictionaryById();
             var accountingCategories = await _accountingCategoryService.GetItems().BuildDictionaryById();

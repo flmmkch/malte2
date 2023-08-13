@@ -37,13 +37,25 @@
     </div>
     <div class="me-2">
       <div class="dropdown">
+        <button class="btn dropdown-toggle" [class]="'btn-' + entryTypeColorClass(filteringEntryType)" type="button" id="entryTypeDropdownButton" data-bs-toggle="dropdown"
+          aria-expanded="false">
+          {{ filteringEntryType !== null ? entryTypeFilterLabel(filteringEntryType) : 'Dépenses et recettes'  }}
+        </button>
+        <ul class="dropdown-menu" aria-labelledby="entryTypeDropdownButton">
+          <li><a class="dropdown-item" (click)="filteringEntryType = null; updateFilters()">Toutes</a></li>
+          <li *ngFor="let entryType of entryTypeList"><a class="dropdown-item" [class]="'text-' + entryTypeColorClass(entryType)" (click)="filteringEntryType = entryType; updateFilters()">{{ entryTypeFilterLabel(entryType) }}</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="me-2">
+      <div class="dropdown">
         <button class="btn btn-secondary dropdown-toggle" type="button" id="accountingEntryDropdownButton" data-bs-toggle="dropdown"
           aria-expanded="false">
           {{ filteringAccountingEntry !== null ? filteringAccountingEntry.label : 'Imputation'  }}
         </button>
         <ul class="dropdown-menu" aria-labelledby="accountingEntryDropdownButton">
           <li><a class="dropdown-item" (click)="filteringAccountingEntry = null; updateFilters()">Toutes</a></li>
-          <li *ngFor="let accountingEntry of accountingEntryList"><a class="dropdown-item" (click)="filteringAccountingEntry = accountingEntry; updateFilters()">{{ accountingEntry.label }}</a></li>
+          <li *ngFor="let accountingEntry of filteredAccountingEntries"><a class="dropdown-item" [class]="'text-' + entryTypeColorClass(accountingEntry.entryType)" (click)="filteringAccountingEntry = accountingEntry; updateFilters()">{{ accountingEntry.label }}</a></li>
         </ul>
       </div>
     </div>
@@ -167,7 +179,7 @@
             <div class="form-group row">
               <label for="entrySelect" class="form-label col-2">Imputation comptable</label>
               <select class="form-control col-offset-2 col-10" formControlName="entryCtrl" id="entrySelect" (change)="changeAccountingEntry($event)">
-                <option *ngFor="let entry of accountingEntryList" value="{{ entry.id }}">{{ entry.label }}</option>
+                <option *ngFor="let entry of filteredAccountingEntries" value="{{ entry.id }}">{{ entry.label }}</option>
               </select>
             </div>
             <div class="form-group row">

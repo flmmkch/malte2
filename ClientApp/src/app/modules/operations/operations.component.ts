@@ -50,8 +50,25 @@ export class OperationsComponent implements OnInit, AfterViewInit {
         return Object.values(this.accountBooks);
     }
 
-    public get accountingEntryList(): AccountingEntry[] {
-        return Object.values(this.accountingEntries);
+    public get entryTypeList(): EntryType[] {
+        return [EntryType.Expense, EntryType.Revenue];
+    }
+
+    public entryTypeFilterLabel(entryType: EntryType): string {
+        switch (entryType) {
+            case EntryType.Expense:
+                return 'Dépenses';
+            case EntryType.Revenue:
+                return 'Recettes';
+        }
+    }
+
+    public get filteredAccountingEntries(): AccountingEntry[] {
+        const accountingEntries = Object.values(this.accountingEntries);
+        if (this.filters.entryType !== null) {
+            return accountingEntries.filter(ae => ae.entryType === this.filters.entryType);
+        }
+        return accountingEntries;
     }
 
     public categoryListForEntry(accountingEntryId?: number | string): AccountingCategory[] {
@@ -80,6 +97,7 @@ export class OperationsComponent implements OnInit, AfterViewInit {
 
     public filters: OperationFilters = {
         accountBook: null,
+        entryType: null,
         accountingEntry: null,
         category: null,
         paymentMethod: null,
@@ -101,6 +119,14 @@ export class OperationsComponent implements OnInit, AfterViewInit {
         this.filters.accountBook = value;
     }
 
+    public get filteringEntryType(): EntryType | null {
+        return this.filters.entryType;
+    }
+    
+    public set filteringEntryType(value: EntryType | null) {
+        this.filters.entryType = value;
+    }
+
     public get filteringAccountingEntry(): AccountingEntry | null {
         return this.filters.accountingEntry;
     }
@@ -115,6 +141,18 @@ export class OperationsComponent implements OnInit, AfterViewInit {
     
     public set filteringAccountingCategory(value: AccountingCategory | null) {
         this.filters.category = value;
+    }
+
+    public entryTypeColorClass(entryType: EntryType | null): string {
+        if (entryType !== null) {
+            switch (entryType) {
+                case EntryType.Expense:
+                    return 'danger';
+                case EntryType.Revenue:
+                    return 'success';
+            }
+        }
+        return 'secondary';
     }
 
     public updateFilters() {
@@ -217,6 +255,9 @@ export class OperationsComponent implements OnInit, AfterViewInit {
         }
         if (this.filteringAccountingEntry !== null) {
             orderedOps = orderedOps.filter(op => this.filteringAccountingEntry?.id === op.accountingEntryId);
+        }
+        if (this.filteringEntryType != null) {
+            orderedOps = orderedOps.filter(op => this.filteringEntryType === this.accountingEntries[op.accountingEntryId]?.entryType);
         }
         if (this.filteringAccountingCategory !== null) {
             orderedOps = orderedOps.filter(op => this.filteringAccountingCategory?.id === op.categoryId);
