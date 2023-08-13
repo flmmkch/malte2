@@ -4,7 +4,7 @@ import { Observable } from 'rxjs';
 import { exhaustAll, map } from 'rxjs/operators';
 import { AccountBook } from '../models/account-book.model';
 import { AccountingCategory } from '../models/accounting-category.model';
-import { AccountingEntry } from '../models/accounting-entry.model';
+import { AccountingEntry, EntryType } from '../models/accounting-entry.model';
 import { Amount } from '../models/amount.model';
 import { OperationEditionType } from '../models/operation-edition.model';
 import { Operation } from '../models/operation.model';
@@ -53,16 +53,19 @@ export class OperationService {
     let args = `dateStart=${dateToSerializationString(params.dateRange[0])}&dateEnd=${dateToSerializationString(params.dateRange[1])}`;
     if (params.filters) {
       if (params.filters.paymentMethod !== null) {
-        args = `${args}&paymentMethod=${params.filters.paymentMethod.toString()}`;
+        args = `${args}&paymentMethod=${params.filters.paymentMethod}`;
       }
       if (params.filters.accountBook?.id !== undefined) {
-        args = `${args}&accountBook=${params.filters.accountBook.id.toString()}`;
+        args = `${args}&accountBook=${params.filters.accountBook.id}`;
+      }
+      if (params.filters.entryType !== null) {
+        args = `${args}&entryType=${params.filters.entryType}`;
       }
       if (params.filters.accountingEntry?.id !== undefined) {
-        args = `${args}&accountingEntry=${params.filters.accountingEntry.id.toString()}`;
+        args = `${args}&accountingEntry=${params.filters.accountingEntry.id}`;
       }
       if (params.filters.category?.id !== undefined) {
-        args = `${args}&category=${params.filters.category.id.toString()}`;
+        args = `${args}&category=${params.filters.category.id}`;
       }
     }
     return args;
@@ -85,6 +88,7 @@ export class OperationService {
 export interface OperationFilters {
   paymentMethod: PaymentMethod | null,
   accountBook: AccountBook | null,
+  entryType: EntryType | null,
   accountingEntry: AccountingEntry | null,
   category: AccountingCategory | null,
 }
