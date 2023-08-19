@@ -174,7 +174,7 @@ export class OperationsComponent implements OnInit, AfterViewInit {
         detailsCtrl: new FormControl(),
         invoiceCtrl: new FormControl(),
         boarderCtrl: new FormControl(),
-        paymentMethodCtrl: new FormControl<PaymentMethod>(PaymentMethod.Cash),
+        paymentMethodCtrl: new FormControl(PaymentMethod.Cash),
         paymentCheckNbCtrl: new FormControl(),
         paymentCardTicketNbCtrl: new FormControl(),
         paymentTransferNbCtrl: new FormControl(),
@@ -425,11 +425,12 @@ export class OperationsComponent implements OnInit, AfterViewInit {
                 this.resetValidationErrorMessage(`La catégorie est invalide.`);
                 return;
             }
-            const paymentMethod: PaymentMethod | null =  this.opsFormGroup.controls.paymentMethodCtrl.value;
-            if (!paymentMethod || !(paymentMethod in PaymentMethod)) {
+            const paymentMethod: PaymentMethod | null = this.opsFormGroup.controls.paymentMethodCtrl.value;
+            if (paymentMethod === null) {
                 this.resetValidationErrorMessage(`Le moyen de paiement est invalide.`);
                 return;
             }
+            
             const operatorId = Number.parseInt(this.opsFormGroup.controls.operCtrl.value);
             if (!(operatorId in this.operators)) {
                 this.resetValidationErrorMessage(`L'opérateur est invalide.`);
