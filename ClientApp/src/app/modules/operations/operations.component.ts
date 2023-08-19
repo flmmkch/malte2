@@ -272,7 +272,7 @@ export class OperationsComponent implements OnInit, AfterViewInit {
         });
         // build items displayed
         this.itemsDisplayed = orderedOps
-            .map(op => createOperationDisplay(op, { operators, books, entries, categories, boarders }));
+            .map(op => createOperationDisplay(op, false, { operators, books, entries, categories, boarders }));
         this.recalculateTotals(this.itemsDisplayed.map(itemDisplayed => itemDisplayed.operation));
     }
 
@@ -350,12 +350,12 @@ export class OperationsComponent implements OnInit, AfterViewInit {
         }
 
         // create the operation display
-        const opDisplay = this.createOperationDisplay(operation);
+        const opDisplay = this.createOperationDisplay(operation, true);
         return opDisplay;
     }
 
-    public createOperationDisplay(operation: Operation): OperationDisplay {
-        return createOperationDisplay(operation, { books: this.accountBooks, entries: this.accountingEntries, categories: this.accountingEntries, operators: this.operators, boarders: this.boarders });
+    public createOperationDisplay(operation: Operation, initialEntry: boolean): OperationDisplay {
+        return createOperationDisplay(operation, initialEntry, { books: this.accountBooks, entries: this.accountingEntries, categories: this.accountingEntries, operators: this.operators, boarders: this.boarders });
     }
 
     public readonly editionTypes: OperationEditionType[] = allOperationEditionTypes();
@@ -374,7 +374,12 @@ export class OperationsComponent implements OnInit, AfterViewInit {
             this.resetValidationErrorMessage();
             if (e.value && e.value.operation) {
                 this.opsFormGroup.controls.dateTimeCtrl.setValue(dateToDatePickerValue(e.value.operation.dateTime));
-                this.opsFormGroup.controls.amountCtrl.setValue(e.value.operation.amount.toLocaleString());
+                if (e.value.initialEntry) {
+                    this.opsFormGroup.controls.amountCtrl.setValue(null);
+                }
+                else {
+                    this.opsFormGroup.controls.amountCtrl.setValue(e.value.operation.amount.toLocaleString());
+                }
                 this.opsFormGroup.controls.bookCtrl.setValue(e.value.operation.accountBookId);
                 this.opsFormGroup.controls.entryCtrl.setValue(e.value.operation.accountingEntryId);
                 this.opsFormGroup.controls.categoryCtrl.setValue(e.value.operation.categoryId);
@@ -518,7 +523,7 @@ export class OperationsComponent implements OnInit, AfterViewInit {
                     this.resetValidationErrorMessage();
                     if (isNewItem) {
                         this.listTable.addItem();
-                        const oldOpDisplay = this.createOperationDisplay(op!);
+                        const oldOpDisplay = this.createOperationDisplay(op!, false);
                         let opDisplay: OperationDisplay = this.createNewOpDisplay(oldOpDisplay);
                         this.listTable.currentWorkingItem = opDisplay;
                     }
@@ -531,6 +536,8 @@ export class OperationsComponent implements OnInit, AfterViewInit {
             });
         }
     }
+
+    public amountPlaceholder: string = Amount.from(0)!.toLocaleString();
 
     public reload() {
         this._dateNavigation.emit(this._currentDateRange);

@@ -4,6 +4,7 @@ import { ContextDicts } from "./context-dicts";
 
 export interface OperationDisplay {
     operation: Operation;
+    initialEntry: boolean;
     accountingEntryName: string;
     categoryName: string;
     accountBookName: string;
@@ -14,7 +15,7 @@ export interface OperationDisplay {
     paymentMethod: string;
 }
 
-export function createOperationDisplay(op: Operation, { books, entries, categories, operators, boarders }: ContextDicts): OperationDisplay {
+export function createOperationDisplay(op: Operation, initialEntry: boolean, { books, entries, categories, operators, boarders }: ContextDicts): OperationDisplay {
     const accountBookName = op.accountBookId in books ? books[op.accountBookId].label : '';
     const accountingEntryName = op.accountingEntryId in entries ? entries[op.accountingEntryId].label : '';
     const categoryName = (op.categoryId !== undefined && op.categoryId in categories) ? categories[op.categoryId].label : '';
@@ -22,6 +23,7 @@ export function createOperationDisplay(op: Operation, { books, entries, categori
     const boarderName = op.boarderId && op.boarderId in boarders ? boarders[op.boarderId].name : '';
     const opDisplay: OperationDisplay = {
         operation: op,
+        initialEntry,
         accountBookName,
         categoryName,
         accountingEntryName,
