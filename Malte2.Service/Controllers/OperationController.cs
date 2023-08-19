@@ -39,11 +39,11 @@ namespace Malte2.Controllers
         }
 
         [HttpGet]
-        public IAsyncEnumerable<Operation> Get([FromQuery(Name = "dateStart")] string? dateStartString = null, [FromQuery(Name = "dateEnd")] string? dateEndString = null, [FromQuery(Name = "boarderId")] long? boarderId = null)
+        public IAsyncEnumerable<Operation> Get([FromQuery(Name = "dateStart")] string? dateStartString = null, [FromQuery(Name = "dateEnd")] string? dateEndString = null, [FromQuery(Name = "paymentMethod")] PaymentMethod? paymentMethod = null, [FromQuery(Name = "accountBook")] long? accountBookId = null, [FromQuery(Name = "entryType")] AccountingEntryType? entryType = null, [FromQuery(Name = "accountingEntry")] long? accountingEntryId = null, [FromQuery(Name = "category")] long? categoryId = null, [FromQuery(Name = "boarderId")] long? boarderId = null)
         {
             DateTime? dateStart = dateStartString != null ? DateTime.Parse(dateStartString) : null;
             DateTime? dateEnd = dateEndString != null ? DateTime.Parse(dateEndString) : null;
-            return _operationService.GetItems(dateStart, dateEnd, null, null, null, null, boarderId);
+            return _operationService.GetItems(dateStart, dateEnd, paymentMethod, accountBookId, entryType, accountingEntryId, categoryId, boarderId);
         }
 
         [HttpPost]
