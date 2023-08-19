@@ -183,7 +183,7 @@ export class BoarderDetailsComponent implements OnInit {
         entries: this.accounting.entries,
         operators: this.accounting.operators,
       };
-      return this.accounting.operations.map(op => createOperationDisplay(op, contextDicts));
+      return this.accounting.operations.map(op => createOperationDisplay(op, false, contextDicts));
     }
     else {
       return [];
