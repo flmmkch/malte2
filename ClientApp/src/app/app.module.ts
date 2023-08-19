@@ -23,7 +23,7 @@ import { AccountingCategoriesComponent } from './modules/settings/accounting-cat
 import { FooterComponent } from './modules/footer/footer.component';
 import { RemissionsComponent } from './modules/remissions/remissions.component';
 
-export const APP_VERSION = '0.9.2';
+export const APP_VERSION = '0.9.3';
 
 @NgModule({
   declarations: [
