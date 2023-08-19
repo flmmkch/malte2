@@ -34,7 +34,7 @@ namespace Malte2.Controllers
                 Dictionary<long, AccountingEntry> entryDictionary = await _entryService.GetItems().BuildDictionaryById();
                 await foreach (BoarderListItemResponse boarderListItem in boarderListItemsAsync) {
                     Amount balanceAmount = new Amount();
-                    await foreach (Operation operation in _operationService.GetItems(null, roomOccupancyDateTime, null, null, null, null, boarderListItem.BoarderId)) {
+                    await foreach (Operation operation in _operationService.GetItems(null, roomOccupancyDateTime, null, null, null, null, null, boarderListItem.BoarderId)) {
                         if (entryDictionary.TryGetValue(operation.AccountingEntryId, out AccountingEntry? entry)) {
                             switch (entry.EntryType) {
                                 case AccountingEntryType.Expense:
