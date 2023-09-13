@@ -430,7 +430,7 @@ export class OperationsComponent implements OnInit, AfterViewInit {
                 this.resetValidationErrorMessage(`La catégorie est invalide.`);
                 return;
             }
-            const paymentMethod: PaymentMethod | null = this.opsFormGroup.controls.paymentMethodCtrl.value;
+            const paymentMethod: PaymentMethod | null = this.opsFormGroup.controls.paymentMethodCtrl.value !== null ? <PaymentMethod> Number.parseInt(<any> this.opsFormGroup.controls.paymentMethodCtrl.value) : null;
             if (paymentMethod === null) {
                 this.resetValidationErrorMessage(`Le moyen de paiement est invalide.`);
                 return;

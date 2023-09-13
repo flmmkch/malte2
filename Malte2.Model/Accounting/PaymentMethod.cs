@@ -5,13 +5,13 @@ namespace Malte2.Model.Accounting
     public enum PaymentMethod
     {
         /// <summary>Espèces</summary>
-        Cash,
+        Cash = 0,
         /// <summary>Chèque</summary>
-        Check,
+        Check = 1,
         /// <summary>Carte bancaire</summary>
-        Card,
+        Card = 2,
         /// <summary>Virement</summary>
-        Transfer,
+        Transfer = 3,
     }
 
     public static class PaymentMethodExtensions {
