@@ -1,13 +1,13 @@
 /** Moyen de paiement */
 export enum PaymentMethod {
     /** Espèces */
-    Cash,
+    Cash = 0,
     /** Chèque */
-    Check,
+    Check = 1,
     /** Carte */
-    Card,
+    Card = 2,
     /** Virement */
-    Transfer,
+    Transfer = 3,
 }
 
 export function allPaymentMethods(): PaymentMethod[] {
